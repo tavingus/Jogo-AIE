@@ -68,6 +68,11 @@ init python:
     MG2_POINTS_MISS = 5          # erro: perde isto (marcou errado OU deixou de marcar)
 
     # ---- Banco de achados por área -----------------------------------------
+    # Cada achado é ("id", texto): "id" forma o nome do PNG da arte do achado
+    # (images/minigame2/achado_<id>.png, com o texto já desenhado nela); o
+    # texto só aparece no placeholder enquanto o PNG não existe.
+    # "id" da área forma os PNGs das abas: aba_<id>_idle.png / aba_<id>_active.png
+    #
     # "correct"   = achados COMPATÍVEIS com a AIE (vêm da sua lista de sinais).
     # "wrong"     = distratores (NÃO compatíveis) — inventei estes; revise!
     # "n_correct" = quantos compatíveis aparecem por partida (sorteados do
@@ -75,62 +80,68 @@ init python:
     #               Precisa de len(wrong) >= 4 - n_correct.
     MG2_AREAS = [
         {
+            "id": "temperatura",
             "label": _("Temperatura"),
-            "correct": [_("Febre (temperatura elevada)"),
-                        _("Febre em episódios recorrentes")],
-            "wrong": [_("Hipotermia (temperatura baixa)"),
-                      _("Temperatura sempre abaixo do normal"),
-                      _("Calafrios com temperatura baixa")],
+            "correct": [("febre", _("Febre (temperatura elevada)")),
+                        ("febre_recorrente", _("Febre em episódios recorrentes"))],
+            "wrong": [("hipotermia", _("Hipotermia (temperatura baixa)")),
+                      ("temp_abaixo", _("Temperatura sempre abaixo do normal")),
+                      ("calafrios", _("Calafrios com temperatura baixa"))],
             "n_correct": 2,
         },
         {
+            "id": "mucosas",
             "label": _("Mucosas"),
-            "correct": [_("Mucosas pálidas"),
-                        _("Petéquias nas mucosas")],
-            "wrong": [_("Mucosas rosadas e úmidas"),
-                      _("Mucosas cianóticas (azuladas)"),
-                      _("Mucosas congestas e muito avermelhadas")],
+            "correct": [("mucosas_palidas", _("Mucosas pálidas")),
+                        ("petequias", _("Petéquias nas mucosas"))],
+            "wrong": [("mucosas_rosadas", _("Mucosas rosadas e úmidas")),
+                      ("mucosas_cianoticas", _("Mucosas cianóticas (azuladas)")),
+                      ("mucosas_congestas", _("Mucosas congestas e muito avermelhadas"))],
             "n_correct": 2,
         },
         {
+            "id": "linfonodos",
             "label": _("Linfonodos"),
-            "correct": [_("Linfonodos aumentados")],
-            "wrong": [_("Linfonodos com abscesso drenando"),
-                      _("Linfonodos atrofiados"),
-                      _("Ausência de qualquer alteração palpável")],
+            "correct": [("linfonodos_aumentados", _("Linfonodos aumentados"))],
+            "wrong": [("linfonodos_abscesso", _("Linfonodos com abscesso drenando")),
+                      ("linfonodos_atrofiados", _("Linfonodos atrofiados")),
+                      ("linfonodos_normais", _("Ausência de qualquer alteração palpável"))],
             "n_correct": 1,
         },
         {
+            "id": "estado_geral",
             "label": _("Estado geral"),
-            "correct": [_("Letargia"),
-                        _("Fraqueza"),
-                        _("Perda de peso"),
-                        _("Queda de desempenho")],
-            "wrong": [_("Hiperexcitabilidade e agitação"),
-                      _("Ganho de peso acentuado"),
-                      _("Desempenho acima do esperado")],
+            "correct": [("letargia", _("Letargia")),
+                        ("fraqueza", _("Fraqueza")),
+                        ("perda_peso", _("Perda de peso")),
+                        ("queda_desempenho", _("Queda de desempenho"))],
+            "wrong": [("hiperexcitabilidade", _("Hiperexcitabilidade e agitação")),
+                      ("ganho_peso", _("Ganho de peso acentuado")),
+                      ("desempenho_acima", _("Desempenho acima do esperado"))],
             "n_correct": 2,
         },
         {
+            "id": "historico",
             "label": _("Histórico"),
-            "correct": [_("Febre recorrente"),
-                        _("Exposição a sangue (agulhas ou instrumentos)"),
-                        _("Contato com insetos hematófagos"),
-                        _("Contato com animais infectados")],
-            "wrong": [_("Vacinação em dia, sem outros achados"),
-                      _("Animal isolado, sem insetos nem outros equídeos"),
-                      _("Cólica leve resolvida há semanas")],
+            "correct": [("hist_febre", _("Febre recorrente")),
+                        ("hist_sangue", _("Exposição a sangue (agulhas ou instrumentos)")),
+                        ("hist_insetos", _("Contato com insetos hematófagos")),
+                        ("hist_infectados", _("Contato com animais infectados"))],
+            "wrong": [("hist_vacinado", _("Vacinação em dia, sem outros achados")),
+                      ("hist_isolado", _("Animal isolado, sem insetos nem outros equídeos")),
+                      ("hist_colica", _("Cólica leve resolvida há semanas"))],
             "n_correct": 2,
         },
         {
+            "id": "hemograma",
             "label": _("Hemograma"),
-            "correct": [_("Anemia"),
-                        _("Hemoglobina (Hb) baixa"),
-                        _("Hematócrito (Ht) baixo"),
-                        _("Trombocitopenia (plaquetas baixas)")],
-            "wrong": [_("Policitemia (Ht alto)"),
-                      _("Hemoglobina (Hb) acima do normal"),
-                      _("Plaquetas muito aumentadas")],
+            "correct": [("anemia", _("Anemia")),
+                        ("hb_baixa", _("Hemoglobina (Hb) baixa")),
+                        ("ht_baixo", _("Hematócrito (Ht) baixo")),
+                        ("trombocitopenia", _("Trombocitopenia (plaquetas baixas)"))],
+            "wrong": [("policitemia", _("Policitemia (Ht alto)")),
+                      ("hb_alta", _("Hemoglobina (Hb) acima do normal")),
+                      ("plaquetas_altas", _("Plaquetas muito aumentadas"))],
             "n_correct": 2,
         },
     ]
@@ -159,16 +170,44 @@ init python:
     # esquerdo). Tamanho final: 820x170 → exporte a 410x85.
     MG2_TITLE_PANEL = mg2_art("mg2_title_panel.png", (820, 170), "PAINEL DE TÍTULO\n(mg2_title_panel.png)", "#4a3a20")
 
-    # IMAGEM: minigame2/mg2_tab_idle.png e mg2_tab_active.png — moldura da aba
-    # de uma área (o nome da área é escrito pelo jogo por cima).
-    # Tamanho final: 520x100 → exporte a 260x50.
-    MG2_TAB_ART = {
-        "idle": mg2_art("mg2_tab_idle.png", MG2_TAB_SIZE, "", "#4a4a4a"),
-        "active": mg2_art("mg2_tab_active.png", MG2_TAB_SIZE, "", "#2c6e8a"),
-    }
+    def mg2_layer(filename, size, label):
+        """Camada de arte transparente por cima de uma moldura (ex.: o texto de
+        um achado já desenhado no Aseprite). Placeholder = só o texto, sem fundo."""
+        path = MG2_ART_DIR + filename
+        if renpy.loadable(path):
+            return Transform(Image(path, nearest_neighbor=True), zoom=MG2_ZOOM)
+        return Fixed(
+            Text(label, size=28, color="#ffffff", xpos=40, yalign=0.5,
+                 xmaximum=size[0] - 80),
+            xysize=size,
+        )
 
-    # IMAGEM: minigame2/mg2_card_<estado>.png — moldura de uma carta de achado
-    # (o texto do achado é escrito pelo jogo por cima). Tamanho final: 820x130
+    # IMAGEM: minigame2/aba_<area>_idle.png e aba_<area>_active.png — a ABA de
+    # cada área, com o nome da área já desenhado (12 arquivos: 6 áreas x 2
+    # estados). <area> = temperatura, mucosas, linfonodos, estado_geral,
+    # historico, hemograma. Tamanho final: 520x100 → exporte a 260x50.
+    def mg2_build_tab_art():
+        result = []
+        for area in MG2_AREAS:
+            entry = {}
+            for state, color in (("idle", "#4a4a4a"), ("active", "#2c6e8a")):
+                fname = "aba_%s_%s.png" % (area["id"], state)
+                entry[state] = mg2_art(fname, MG2_TAB_SIZE,
+                                       "%s\n(%s)" % (area["label"], fname), color)
+            result.append(entry)
+        return result
+
+    MG2_TAB_ART = mg2_build_tab_art()
+
+    # IMAGEM: minigame2/mg2_tab_visited.png — marca de "área já examinada"
+    # (ex.: um check). Canvas do tamanho da aba, transparente, com a marca já
+    # na posição certa. Tamanho final: 520x100 → exporte a 260x50.
+    MG2_TAB_VISITED = mg2_layer("mg2_tab_visited.png", MG2_TAB_SIZE, "")
+    if not renpy.loadable(MG2_ART_DIR + "mg2_tab_visited.png"):
+        MG2_TAB_VISITED = Text("\u2713", size=34, color="#ffffff", xalign=0.95, yalign=0.5)
+
+    # IMAGEM: minigame2/mg2_card_<estado>.png — MOLDURA de uma carta de achado
+    # (sem texto; compartilhada por todos os achados). Tamanho final: 820x130
     # → exporte a 410x65. Estados:
     #   idle     = não marcada            selected = marcada (antes de concluir)
     #   right    = marcada e correta      wrong    = marcada e ERRADA
@@ -182,12 +221,26 @@ init python:
         for state, color in MG2_CARD_COLORS.items()
     )
 
+    # IMAGEM: minigame2/achado_<id>.png — o TEXTO de cada achado, já desenhado,
+    # em fundo TRANSPARENTE (é colocado por cima da moldura da carta). Um
+    # arquivo por achado; os ids estão em MG2_AREAS (ex.: achado_febre.png,
+    # achado_petequias.png). Tamanho final: 820x130 → exporte a 410x65.
+    def mg2_finding_art(card):
+        return mg2_layer("achado_%s.png" % card["id"], MG2_CARD_SIZE,
+                         "%s\n(achado_%s.png)" % (card["text"], card["id"]))
+
     # IMAGEM: minigame2/mg2_submit_idle.png, mg2_submit_hover.png,
-    # mg2_submit_disabled.png — botão "Concluir exame". Tamanho final: 400x90
-    # → exporte a 200x45. (o texto é escrito pelo jogo por cima)
-    MG2_SUBMIT_IDLE = mg2_art("mg2_submit_idle.png", MG2_SUBMIT_SIZE, "", "#3a5a3a")
-    MG2_SUBMIT_HOVER = mg2_art("mg2_submit_hover.png", MG2_SUBMIT_SIZE, "", "#4f7a4f")
-    MG2_SUBMIT_DISABLED = mg2_art("mg2_submit_disabled.png", MG2_SUBMIT_SIZE, "", "#2a2a2a")
+    # mg2_submit_disabled.png — botão "Concluir exame", com o texto desenhado.
+    # Tamanho final: 400x90 → exporte a 200x45.
+    MG2_SUBMIT_IDLE = mg2_art("mg2_submit_idle.png", MG2_SUBMIT_SIZE, "CONCLUIR EXAME\n(mg2_submit_idle.png)", "#3a5a3a")
+    MG2_SUBMIT_HOVER = mg2_art("mg2_submit_hover.png", MG2_SUBMIT_SIZE, "CONCLUIR EXAME\n(mg2_submit_hover.png)", "#4f7a4f")
+    MG2_SUBMIT_DISABLED = mg2_art("mg2_submit_disabled.png", MG2_SUBMIT_SIZE, "CONCLUIR EXAME\n(mg2_submit_disabled.png)", "#2a2a2a")
+
+    # IMAGEM: minigame2/mg2_continue_idle.png e mg2_continue_hover.png — botão
+    # "Continuar" da revisão, com o texto desenhado. Tamanho final: 400x90 →
+    # exporte a 200x45.
+    MG2_CONTINUE_IDLE = mg2_art("mg2_continue_idle.png", MG2_SUBMIT_SIZE, "CONTINUAR\n(mg2_continue_idle.png)", "#3a5a3a")
+    MG2_CONTINUE_HOVER = mg2_art("mg2_continue_hover.png", MG2_SUBMIT_SIZE, "CONTINUAR\n(mg2_continue_hover.png)", "#4f7a4f")
 
     # ---- Efeitos sonoros (só tocam se o arquivo existir) -------------------
     def mg2_sfx(kind):
@@ -224,9 +277,9 @@ init python:
             renpy.random.shuffle(wrong_pool)
 
             n_correct = area["n_correct"]
-            area_cards = [{"text": t, "correct": True} for t in correct_pool[:n_correct]]
-            area_cards += [{"text": t, "correct": False}
-                           for t in wrong_pool[:MG2_CARDS_PER_AREA - n_correct]]
+            area_cards = [{"id": i, "text": t, "correct": True} for (i, t) in correct_pool[:n_correct]]
+            area_cards += [{"id": i, "text": t, "correct": False}
+                           for (i, t) in wrong_pool[:MG2_CARDS_PER_AREA - n_correct]]
             renpy.random.shuffle(area_cards)
             cards.append(area_cards)
 
@@ -385,13 +438,12 @@ screen minigame2_gameplay():
             color "#ffffff"
             xmaximum 760
 
-    # ---- Abas: as 6 áreas do exame ---------------------------------------
+    # ---- Abas: as 6 áreas do exame (cada aba é uma imagem própria, com o ----
+    # ---- nome já desenhado; nenhum texto do Ren'Py) -----------------------
     for i, area in enumerate(MG2_AREAS):
 
-        $ tab_label = area["label"]
-        $ tab_art = MG2_TAB_ART["active"] if i == mg2_area else MG2_TAB_ART["idle"]
+        $ tab_art = MG2_TAB_ART[i]["active"] if i == mg2_area else MG2_TAB_ART[i]["idle"]
         $ tab_visited = mg2_visited[i]
-        $ tab_marked = mg2_marked_count(i)
 
         button:
             pos (MG2_TABS_X, MG2_TABS_Y0 + i * MG2_TABS_STEP)
@@ -401,18 +453,8 @@ screen minigame2_gameplay():
             action Function(mg2_select_area, i)
             hovered Function(mg2_sfx, "hover")
             add tab_art
-            text "[tab_label!t]":
-                xpos 30
-                yalign 0.5
-                size 34
-                color "#ffffff"
-            # "✓" = área já examinada; número = quantos achados marcados nela
             if tab_visited:
-                text "✓ [tab_marked]":
-                    xalign 0.96
-                    yalign 0.5
-                    size 30
-                    color "#ffffff"
+                add MG2_TAB_VISITED
 
     # ---- Cartas de achados da área aberta --------------------------------
     $ area_label = MG2_AREAS[mg2_area]["label"]
@@ -426,7 +468,6 @@ screen minigame2_gameplay():
 
     for j, card in enumerate(mg2_cards[mg2_area]):
 
-        $ card_text = card["text"]
         $ card_state = mg2_card_state(mg2_area, j)
 
         button:
@@ -437,12 +478,7 @@ screen minigame2_gameplay():
             action Function(mg2_toggle, mg2_area, j)
             hovered Function(mg2_sfx, "hover")
             add MG2_CARD_ART[card_state]
-            text "[card_text!t]":
-                xpos 40
-                yalign 0.5
-                size 32
-                color "#ffffff"
-                xmaximum MG2_CARD_SIZE[0] - 80
+            add mg2_finding_art(card)
 
     # ---- Rodapé: concluir (jogando) ou resultado + continuar (revisão) ---
     if mg2_phase == "exam":
@@ -456,12 +492,6 @@ screen minigame2_gameplay():
             focus_mask True
             action Function(mg2_submit)
             hovered Function(mg2_sfx, "hover")
-
-        text _("Concluir exame"):
-            pos (MG2_SUBMIT_POS[0] + MG2_SUBMIT_SIZE[0] // 2, MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] // 2)
-            anchor (0.5, 0.5)
-            size 34
-            color "#ffffff"
 
         if not mg2_all_visited():
             text _("Examine todas as áreas para poder concluir."):
@@ -489,17 +519,11 @@ screen minigame2_gameplay():
 
         imagebutton:
             pos MG2_SUBMIT_POS
-            idle MG2_SUBMIT_IDLE
-            hover MG2_SUBMIT_HOVER
+            idle MG2_CONTINUE_IDLE
+            hover MG2_CONTINUE_HOVER
             focus_mask True
             action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
             hovered Function(mg2_sfx, "hover")
-
-        text _("Continuar"):
-            pos (MG2_SUBMIT_POS[0] + MG2_SUBMIT_SIZE[0] // 2, MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] // 2)
-            anchor (0.5, 0.5)
-            size 34
-            color "#ffffff"
 
         # Legenda das cores da revisão
         text _("Verde = acerto   Vermelho = marcou errado   Amarelo = faltou marcar"):
