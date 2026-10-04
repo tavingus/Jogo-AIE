@@ -103,7 +103,23 @@ init python:
 
 
 ## -----------------------------------------------------------------------
-## 2) ARTE DO MAPA (mesmo esquema de pixel art: zoom 2.0 + nearest neighbor)
+## 2) ARTE DO MAPA
+##
+## Toda a arte é exportada do Aseprite em 960x540 e ampliada 2x (zoom 2.0 +
+## nearest neighbor) para a tela de 1920x1080.
+##
+##   images/roadmap/map_bg.png            fundo cheio do mapa
+##   images/roadmap/node_N_locked.png     nó N bloqueado   (N = 1 a 10)
+##   images/roadmap/node_N_unlocked.png   nó N jogável
+##   images/roadmap/node_N_done.png       nó N concluído (OPCIONAL: se não
+##                                        existir, usa node_N_unlocked.png)
+##
+## Cada PNG de nó é um canvas INTEIRO de 960x540 com o nó já desenhado na
+## posição certa (como no menu principal). Por isso a arte real é desenhada em
+## (0, 0), sem usar posição do código.
+##
+## Enquanto a arte de um nó não existe, aparece um retângulo provisório
+## (placeholder) na posição MAP_NODE_POS_ART.
 ## -----------------------------------------------------------------------
 init python:
 
@@ -123,66 +139,58 @@ init python:
             xysize=size,
         )
 
-    # IMAGEM: roadmap/map_bg.png — fundo cheio da trilha (livro/mapa/pergaminho).
-    # Tamanho final: 1920x1080 → exporte o PNG a 960x540.
+    # Fundo do mapa. Tamanho final: 1920x1080 → exporte o PNG a 960x540.
     MAP_BG = map_art("map_bg.png", (1920, 1080), "FUNDO DO MAPA\n(map_bg.png)", "#2a2418")
 
-    # Tamanho de cada nó na tela (ajuste livremente).
+    # ---- Placeholders dos nós (só usados enquanto a arte real não existe) ----
     MAP_NODE_SIZE = (160, 160)
 
-    # Posições dos 10 nós — trilha em zigzag (estilo Candy Crush):
-    # linha de baixo (1 a 5, esquerda->direita), depois linha de cima
-    # (6 a 10, direita->esquerda), conectando no nó 5/6 à direita.
-    #
-    # As coordenadas abaixo estão no espaço da ARTE (960x540, o mesmo do
-    # Aseprite) e indicam o CENTRO de cada nó. Elas são multiplicadas por
-    # MAP_ZOOM, então basta ler a posição no Aseprite e colocar aqui.
+    # Centro de cada placeholder, em coordenadas da ARTE (960x540); o código
+    # multiplica por MAP_ZOOM. Trilha em zigzag: linha de baixo (1 a 5,
+    # esquerda->direita) e linha de cima (6 a 10, direita->esquerda).
     MAP_NODE_POS_ART = [
         (150, 390), (315, 390), (480, 390), (645, 390), (810, 390),   # 1 a 5
         (810, 150), (645, 150), (480, 150), (315, 150), (150, 150),   # 6 a 10
     ]
     MAP_NODE_POS = [(x * MAP_ZOOM, y * MAP_ZOOM) for (x, y) in MAP_NODE_POS_ART]
 
-    def map_node_state_file(n, state):
-        """Estado cujo PNG será realmente usado. Se você só fez as artes
-        'locked' e 'unlocked' (jogável), um nó já concluído ('done') reaproveita
-        a arte 'unlocked' enquanto node_N_done.png não existir."""
-        if state == "done" and not renpy.loadable(MAP_ART_DIR + "node_%d_done.png" % n):
-            return "unlocked"
-        # Ainda sem a arte 'locked'? Usa a 'unlocked' escurecida (ver map_node_art)
-        if state == "locked" and not renpy.loadable(MAP_ART_DIR + "node_%d_locked.png" % n) \
-                and renpy.loadable(MAP_ART_DIR + "node_%d_unlocked.png" % n):
-            return "unlocked"
-        return state
+    # Linhas guia entre os placeholders; somem sozinhas quando a arte real
+    # dos nós já existe (a trilha provavelmente já vem desenhada no map_bg).
+    MAP_SHOW_CONNECTORS = not renpy.loadable(MAP_ART_DIR + "node_1_unlocked.png")
 
-    def map_node_art(n, state):
-        """Arte de UM nó (número n, 1 a 10) no estado 'locked'/'unlocked'/'done'.
-        Cada combinação número+estado é um arquivo próprio — pensado para você
-        desenhar cada nó individualmente no Aseprite, sem texto desenhado pelo
-        jogo por cima. Tamanho final: 160x160 → exporte cada PNG a 80x80."""
-        filename = "node_%d_%s.png" % (n, map_node_state_file(n, state))
-        colors = {"locked": "#3a3a3a", "unlocked": "#2c6e8a", "done": "#2e7d32"}
-        # (sem colchetes "[...]" aqui: o Ren'Py interpreta "[algo]" dentro de
-        # Text() como substituição de variável — por isso usamos parênteses)
-        label = "MINIGAME %d\n(%s)\n(%s)" % (n, state.upper(), filename)
-        art = map_art(filename, MAP_NODE_SIZE, label, colors[state])
-        if state == "locked" and map_node_state_file(n, state) != "locked" \
-                and renpy.loadable(MAP_ART_DIR + filename):
-            # provisório: arte 'unlocked' em tons de cinza e mais escura
-            art = Transform(art, matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.35))
-        return art
+    MAP_NODE_COLORS = {"locked": "#3a3a3a", "unlocked": "#2c6e8a", "done": "#2e7d32"}
 
-    def map_node_has_art(n, state):
-        """True se o PNG real do nó existe. A arte real é exportada do Aseprite
-        no canvas inteiro (960x540, já na posição certa), igual ao menu: ela é
-        ampliada 2x e desenhada em (0, 0), SEM usar MAP_NODE_POS. Só o
-        retângulo provisório (arte ausente) usa MAP_NODE_POS."""
-        return renpy.loadable(MAP_ART_DIR + "node_%d_%s.png" % (n, map_node_state_file(n, state)))
+    def map_node_file(n, state):
+        """Nome do PNG a usar para o nó n no estado dado, ou None se não há
+        arte real (aí o nó usa o placeholder). 'done' sem arte própria
+        reaproveita a 'unlocked'."""
+        candidates = [state]
+        if state == "done":
+            candidates.append("unlocked")
+        for st in candidates:
+            filename = "node_%d_%s.png" % (n, st)
+            if renpy.loadable(MAP_ART_DIR + filename):
+                return filename
+        return None
+
+    def map_node_image(filename):
+        """Arte real de um nó (canvas inteiro 960x540 -> 1920x1080)."""
+        return Transform(Image(MAP_ART_DIR + filename, nearest_neighbor=True), zoom=MAP_ZOOM)
+
+    def map_node_placeholder(n, state):
+        """Retângulo provisório do nó n (sem colchetes "[...]" no texto: o
+        Ren'Py os interpretaria como substituição de variável)."""
+        label = "MINIGAME %d\n(%s)" % (n, state.upper())
+        return Fixed(
+            Solid(MAP_NODE_COLORS[state], xysize=MAP_NODE_SIZE),
+            Text(label, size=24, color="#ffffff", xalign=0.5, yalign=0.5,
+                 text_align=0.5, xmaximum=MAP_NODE_SIZE[0] - 16),
+            xysize=MAP_NODE_SIZE,
+        )
 
     def mg_map_connector(p1, p2, color="#ffffff55", thickness=6):
-        """Barra fina ligando o centro de p1 ao centro de p2 — só um guia
-        visual provisório; a arte final provavelmente já vem com a trilha
-        desenhada no map_bg.png, e aí dá pra desligar com MAP_SHOW_CONNECTORS."""
+        """Barra fina ligando o centro de p1 ao centro de p2 (só guia visual
+        para os placeholders)."""
         x1, y1 = p1
         x2, y2 = p2
         length = math.hypot(x2 - x1, y2 - y1)
@@ -190,16 +198,25 @@ init python:
         bar = Solid(color, xysize=(int(length), thickness))
         return Transform(bar, rotate=angle, xanchor=0.0, yanchor=0.5, xpos=x1, ypos=y1)
 
-    # Desliga as linhas procedurais assim que a trilha já estiver desenhada
-    # na própria arte de fundo (map_bg.png).
-    # (ficam ligadas só enquanto a arte real dos nós ainda não existe)
-    MAP_SHOW_CONNECTORS = not renpy.loadable(MAP_ART_DIR + "node_1_unlocked.png")
-
     def mg_map_sfx(kind):
         files = {"hover": "audio/sfx_hover.ogg", "click": "audio/sfx_click.ogg"}
         path = files.get(kind)
         if path and renpy.loadable(path):
             renpy.sound.play(path)
+
+    def mg_map_sanitize():
+        """Garante que o progresso salvo tem o formato esperado (evita erro se
+        o persistent foi mexido à mão ou veio de uma versão antiga)."""
+        if not isinstance(persistent.mg_unlocked, int) or persistent.mg_unlocked < 1:
+            persistent.mg_unlocked = 1
+        persistent.mg_unlocked = min(persistent.mg_unlocked, MG_TOTAL)
+        for name, default in (("mg_completed", False), ("mg_scores", 0),
+                              ("mg_max_scores", 0), ("mg_medals", False)):
+            lst = getattr(persistent, name)
+            if not isinstance(lst, list):
+                lst = []
+            lst = list(lst)[:MG_TOTAL] + [default] * (MG_TOTAL - len(lst))
+            setattr(persistent, name, lst)
 
 
 ## -----------------------------------------------------------------------
@@ -217,42 +234,47 @@ screen roadmap_screen():
         size 40
         color "#ffffff"
 
-    # Linhas conectando os nós em ordem (placeholder provisório)
     if MAP_SHOW_CONNECTORS:
         for i in range(MG_TOTAL - 1):
             add mg_map_connector(MAP_NODE_POS[i], MAP_NODE_POS[i + 1])
 
     # Os 10 nós da trilha
     for i in range(MG_TOTAL):
+
         $ n = i + 1
         $ node_state = mg_node_state(n)
+        $ node_file = map_node_file(n, node_state)
         $ node_x, node_y = MAP_NODE_POS[i]
-        $ has_art = map_node_has_art(n, node_state)
+        $ clickable = (node_state != "locked")
 
-        if node_state == "locked":
-            # Nó bloqueado: só mostra a arte, sem ação de clique
-            if has_art:
-                add map_node_art(n, node_state)
-            else:
-                add map_node_art(n, node_state):
-                    pos (node_x, node_y)
-                    anchor (0.5, 0.5)
-        else:
-            # Nó desbloqueado (ou já concluído, e por isso rejogável)
-            button:
-                if has_art:
-                    # arte de canvas inteiro: sem pos; focus_mask faz só os
-                    # pixels opacos do nó responderem ao mouse
+        if node_file is not None:
+            # ---- Arte real: canvas inteiro, desenhada em (0, 0) ----
+            if clickable:
+                button:
                     xysize (1920, 1080)
-                else:
+                    background None
+                    focus_mask True   # só os pixels opacos do nó respondem
+                    action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
+                    hovered Function(mg_map_sfx, "hover")
+                    add map_node_image(node_file)
+            else:
+                add map_node_image(node_file)
+
+        else:
+            # ---- Placeholder provisório, na posição MAP_NODE_POS ----
+            if clickable:
+                button:
                     pos (node_x, node_y)
                     anchor (0.5, 0.5)
                     xysize MAP_NODE_SIZE
-                background None
-                focus_mask True
-                action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
-                hovered Function(mg_map_sfx, "hover")
-                add map_node_art(n, node_state)
+                    background None
+                    action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
+                    hovered Function(mg_map_sfx, "hover")
+                    add map_node_placeholder(n, node_state)
+            else:
+                add map_node_placeholder(n, node_state):
+                    pos (node_x, node_y)
+                    anchor (0.5, 0.5)
 
 
 ## -----------------------------------------------------------------------
@@ -261,16 +283,17 @@ screen roadmap_screen():
 ## -----------------------------------------------------------------------
 label roadmap:
 
+    $ mg_map_sanitize()
+
     call screen roadmap_screen
     $ chosen = _return
 
-    # Trava extra: nó bloqueado nunca abre, mesmo que algo o devolva por engano
+    # Trava extra: nó bloqueado nunca abre
     if chosen and chosen <= persistent.mg_unlocked:
         # Chama "label minigame_<chosen>_entry" dinamicamente.
         # Esse label mora dentro de minigame<chosen>.rpy e é responsável por
         # mostrar as instruções, rodar o gameplay e chamar mg_complete(chosen).
         call expression ("minigame_%d_entry" % chosen)
 
-    # Volta a mostrar o mapa (com o progresso já atualizado) até o jogador
-    # sair do jogo por outro caminho (ex.: um botão de menu, se você adicionar).
+    # Volta a mostrar o mapa (com o progresso já atualizado).
     jump roadmap
