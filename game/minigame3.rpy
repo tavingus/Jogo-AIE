@@ -9,8 +9,8 @@
 #   1. TUBO        — escolher o tubo certo (sem anticoagulante / EDTA / heparina)
 #   2. VIA/LOCAL   — jugular (endovenosa) / garupa (intramuscular) / dorso (subcutânea)
 #   3. ETIQUETA    — identificar a amostra: confere a FICHA do animal e preenche
-#                    Identificação, Propriedade e Data da coleta (clicar no campo
-#                    troca a opção, em ciclo) e confirma
+#                    Cavalo, Propriedade e Data da coleta (clicar no campo troca
+#                    a opção, em ciclo) e confirma
 #   4. RESENHA     — (opcional) preencher Idade, Sexo e Pelagem do animal
 #   5. CAIXA       — colocar a amostra na caixa refrigerada e enviar ao laboratório
 #
@@ -24,13 +24,17 @@
 #   O placar nunca fica abaixo de 0. Pontuação máxima = nenhum erro.
 #   A pontuação aparece ao final, na tela de resultado.
 #
-# ARTE (mesmo esquema dos outros minigames):
-#   Se o PNG não existir em game/images/minigame3/, aparece um retângulo
-#   placeholder colorido com texto, já no tamanho final. Todo PNG real é
-#   exibido com zoom 2.0 + nearest neighbor: exporte na METADE do tamanho
-#   indicado em cada "# IMAGEM:" (arte a 960x540 = tela 1920x1080).
-#   Os TEXTOS das opções e dos campos são escritos pelo jogo por cima das
-#   molduras.
+# ARTE (mesmo esquema do menu, do roadmap e do minigame 2):
+#   TODA arte real é um PNG de CANVAS INTEIRO (960x540), com o elemento já na
+#   posição certa. O jogo amplia 2x (nearest neighbor) e desenha em (0, 0), sem
+#   usar posição do código; focus_mask True faz só os pixels opacos de cada
+#   botão responderem ao mouse. A ORDEM das opções é fixa (a posição está
+#   dentro de cada PNG).
+#   Enquanto o PNG não existe, aparece um retângulo placeholder colorido com
+#   texto, na posição definida pelas constantes MG3_*_RECT abaixo. (Essas
+#   constantes só servem aos placeholders: a arte real ignora todas elas.)
+#   Os textos das opções, dos campos e dos enunciados já vêm DESENHADOS nas
+#   artes; o jogo só escreve textos que mudam (pontos, feedback, resultado).
 #
 # Este arquivo contém: dados/configuração, lógica, tela de instruções, tela
 # do gameplay e o "label minigame_3_entry" — chamado pelo roadmap.rpy.
@@ -45,40 +49,39 @@ init python:
     MG3_ART_DIR = "images/minigame3/"
     MG3_ZOOM = 2.0  # arte a 960x540, exibida em 1920x1080
 
-    # ---- Layout (tela 1920x1080) — tudo na coluna da DIREITA ----------------
-    # (o cavalo ocupa a esquerda, na arte de fundo)
-    MG3_COL_X = 1000                  # x da coluna de opções
-    MG3_COL_W = 880                   # largura da coluna
+    # ---- Posições dos PLACEHOLDERS (tela 1920x1080): (x, y, largura, altura)
+    # Tudo na coluna da DIREITA (o cavalo ocupa a esquerda, no fundo).
+    MG3_TITLE_RECT = (1000, 30, 880, 130)
+    MG3_STEP_RECT = (1000, 175, 880, 100)           # enunciado da etapa
+    MG3_FICHA_RECT = (1000, 280, 880, 240)
 
-    MG3_TITLE_POS = (MG3_COL_X, 30)
-    MG3_TITLE_SIZE = (MG3_COL_W, 130)             # exporte a 440x65
+    def mg3_opt_rect(k):                            # etapas de escolha
+        return (1000, 300 + k * 150, 880, 130)
 
-    MG3_STEP_Y = 175                  # y do cabeçalho da etapa
-    MG3_PROMPT_Y = 222                # y do enunciado da etapa
+    def mg3_field_rect(f):                          # etapas de campos
+        return (1000, 545 + f * 110, 880, 100)
 
-    # Etapas de ESCOLHA (3 opções empilhadas)
-    MG3_OPT_Y0 = 300
-    MG3_OPT_STEP = 150
-    MG3_OPT_SIZE = (MG3_COL_W, 130)               # exporte a 440x65
+    MG3_CONFIRM_RECT = (1000, 940, 420, 90)
+    MG3_SKIP_RECT = (1460, 940, 420, 90)
+    MG3_RESULT_RECT = (460, 330, 1000, 420)
+    MG3_CONTINUE_RECT = (750, 800, 420, 90)
+    MG3_INSTR_PANEL_RECT = (360, 190, 1200, 600)
+    MG3_CLOSE_RECT = (840, 860, 240, 80)
 
-    # Etapas de CAMPOS (etiqueta e resenha): ficha + 3 campos
-    MG3_FICHA_POS = (MG3_COL_X, 280)
-    MG3_FICHA_SIZE = (MG3_COL_W, 240)             # exporte a 440x120
-    MG3_FIELD_Y0 = 545
-    MG3_FIELD_STEP = 110
-    MG3_FIELD_SIZE = (MG3_COL_W, 100)             # exporte a 440x50
-
-    MG3_FEEDBACK_Y = 868              # mensagem de feedback (acerto/erro)
-    MG3_BTN_Y = 940
-    MG3_BTN_SIZE = (420, 90)                      # exporte a 210x45
+    # Textos escritos pelo jogo (mudam durante a partida)
+    MG3_SCORE_POS = (60, 40)                        # "Pontos: N"
+    MG3_FEEDBACK_POS = (1000, 868)                  # motivo do acerto/erro
+    MG3_FEEDBACK_W = 880
+    MG3_RESULT_SCORE_POS = (960, 470)               # "Pontuação: N / M" (centralizado)
+    MG3_RESULT_VERDICT_POS = (960, 560)             # frase de feedback (centralizada)
 
     # ---- Regras ------------------------------------------------------------
     MG3_POINTS_HIT = 10
     MG3_POINTS_MISS = 5
-    MG3_END_BTN_SIZE = MG3_BTN_SIZE
 
-    # ---- Ficha do animal (dados que o jogador deve conferir) ----------------
-    # Edite à vontade: as opções das etapas 3 e 4 usam estes dados.
+    # ---- Ficha do animal (dados que o jogador confere) ----------------------
+    # Estes valores precisam bater com o que estiver DESENHADO na ficha
+    # (mg3_ficha.png) e com a opção correta de cada campo abaixo.
     MG3_PROFILE = {
         "name": "Golias da Natureza",
         "farm": "Haras Vale Verde",
@@ -89,20 +92,21 @@ init python:
     }
 
     # ---- Etapas ------------------------------------------------------------
-    # kind "choice": "options" = (texto, correta?, feedback).
-    # kind "fields": cada campo tem "options" e a PRIMEIRA opção é a correta
-    #                (a ordem é embaralhada a cada partida).
+    # kind "choice": "options" = (texto, correta?, feedback), na ordem EXATA
+    #                das artes opcao_<id>_1, _2, _3 (de cima para baixo).
+    # kind "fields": cada campo tem "id" e "options" = (texto, correta?), na
+    #                ordem das artes campo_<id>_1, _2, _3 (ordem do ciclo).
+    # O "texto" só aparece no placeholder enquanto o PNG não existe.
     MG3_STEPS = [
         {
             "id": "tubo",
             "kind": "choice",
             "title": _("Escolha do tubo"),
-            "prompt": _("Qual tubo usar para colher o sangue do exame sorológico?"),
             "options": [
-                (_("Tubo sem anticoagulante"), True,
-                 _("Correto! Sem anticoagulante o sangue coagula e permite obter o soro, necessário para o exame sorológico.")),
                 (_("Tubo com EDTA"), False,
                  _("O EDTA é um anticoagulante: o sangue não coagula e não se obtém soro para a sorologia.")),
+                (_("Tubo sem anticoagulante"), True,
+                 _("Correto! Sem anticoagulante o sangue coagula e permite obter o soro, necessário para o exame sorológico.")),
                 (_("Tubo com heparina"), False,
                  _("A heparina também é um anticoagulante e impede a formação do soro.")),
             ],
@@ -111,60 +115,66 @@ init python:
             "id": "via",
             "kind": "choice",
             "title": _("Local e via de coleta"),
-            "prompt": _("Onde e como colher o sangue do cavalo?"),
             "options": [
-                (_("Coleta endovenosa na veia jugular"), True,
-                 _("Correto! O sangue para análise é colhido da veia jugular.")),
                 (_("Aplicação intramuscular na garupa"), False,
                  _("A via intramuscular serve para aplicar medicamentos, não para colher sangue.")),
                 (_("Aplicação subcutânea no dorso"), False,
                  _("A via subcutânea também é de aplicação; não permite colher sangue para o exame.")),
+                (_("Coleta endovenosa na veia jugular"), True,
+                 _("Correto! O sangue para análise é colhido da veia jugular.")),
             ],
         },
         {
             "id": "etiqueta",
             "kind": "fields",
             "title": _("Identificação da amostra"),
-            "prompt": _("Confira a ficha do animal e preencha a etiqueta do tubo."),
-            "show_profile": True,
             "skippable": False,
             "fields": [
-                {"label": _("Cavalo"),
-                 "options": [MG3_PROFILE["name"], "Golias do Vale", "Gigante da Natureza"]},
-                {"label": _("Propriedade"),
-                 "options": [MG3_PROFILE["farm"], "Haras Campo Verde", "Fazenda Vale Verde"]},
-                {"label": _("Data da coleta"),
-                 "options": [MG3_PROFILE["date"], "11/03/2025", "21/03/2025"]},
+                {"id": "cavalo", "label": _("Cavalo"),
+                 "options": [("Golias do Vale", False),
+                             (MG3_PROFILE["name"], True),
+                             ("Gigante da Natureza", False)]},
+                {"id": "propriedade", "label": _("Propriedade"),
+                 "options": [("Haras Campo Verde", False),
+                             ("Fazenda Vale Verde", False),
+                             (MG3_PROFILE["farm"], True)]},
+                {"id": "data", "label": _("Data da coleta"),
+                 "options": [(MG3_PROFILE["date"], True),
+                             ("11/03/2025", False),
+                             ("21/03/2025", False)]},
             ],
         },
         {
             "id": "resenha",
             "kind": "fields",
             "title": _("Resenha do animal"),
-            "prompt": _("Preencha a resenha com os dados da ficha (opcional)."),
-            "show_profile": True,
             "skippable": True,
             "fields": [
-                {"label": _("Idade"),
-                 "options": [MG3_PROFILE["age"], "3 anos", "15 anos"]},
-                {"label": _("Sexo"),
-                 "options": [MG3_PROFILE["sex"], "Fêmea", "Macho castrado"]},
-                {"label": _("Pelagem"),
-                 "options": [MG3_PROFILE["coat"], "Alazã", "Tordilha"]},
+                {"id": "idade", "label": _("Idade"),
+                 "options": [("3 anos", False),
+                             (MG3_PROFILE["age"], True),
+                             ("15 anos", False)]},
+                {"id": "sexo", "label": _("Sexo"),
+                 "options": [("Fêmea", False),
+                             ("Macho castrado", False),
+                             (MG3_PROFILE["sex"], True)]},
+                {"id": "pelagem", "label": _("Pelagem"),
+                 "options": [(MG3_PROFILE["coat"], True),
+                             ("Alazã", False),
+                             ("Tordilha", False)]},
             ],
         },
         {
             "id": "caixa",
             "kind": "choice",
             "title": _("Transporte da amostra"),
-            "prompt": _("Onde colocar a amostra para enviá-la ao laboratório?"),
             "options": [
-                (_("Caixa isotérmica refrigerada (com gelo)"), True,
-                 _("Correto! A amostra deve seguir refrigerada até o laboratório.")),
                 (_("Caixa de papelão em temperatura ambiente"), False,
                  _("Sem refrigeração a amostra pode se deteriorar e comprometer o resultado.")),
                 (_("Porta-luvas do carro, ao sol"), False,
                  _("O calor degrada a amostra: ela precisa ir refrigerada.")),
+                (_("Caixa isotérmica refrigerada (com gelo)"), True,
+                 _("Correto! A amostra deve seguir refrigerada até o laboratório.")),
             ],
         },
     ]
@@ -179,62 +189,130 @@ init python:
     MG3_MAX_SCORE = mg3_count_hits() * MG3_POINTS_HIT
 
     # ---- Placeholders de arte ----------------------------------------------
-    def mg3_art(filename, size, label, color):
-        """Imagem real (ampliada 2x, nearest neighbor; exporte na metade de
-        "size") se o arquivo existir, senão um retângulo colorido com texto
-        já no tamanho final."""
+    def mg3_art(filename, rect, label, color, fill=True):
+        """Arte de canvas inteiro (960x540 → 1920x1080, nearest neighbor,
+        desenhada em (0, 0)) se o PNG existir. Senão, um placeholder: retângulo
+        colorido com texto na posição "rect" = (x, y, largura, altura).
+        fill=False = só o texto, sem retângulo."""
         path = MG3_ART_DIR + filename
         if renpy.loadable(path):
             return Transform(Image(path, nearest_neighbor=True), zoom=MG3_ZOOM)
-        return Fixed(
-            Solid(color, xysize=size),
-            Text(label, size=26, color="#ffffff", xalign=0.5, yalign=0.5,
-                 text_align=0.5, xmaximum=size[0] - 20),
-            xysize=size,
-        )
+
+        x, y, w, h = rect
+        text = Text(label, size=26, color="#ffffff", xalign=0.5, yalign=0.5,
+                    text_align=0.5, xmaximum=w - 20)
+        if fill:
+            box = Fixed(Solid(color, xysize=(w, h)), text, xysize=(w, h))
+        else:
+            box = Fixed(text, xysize=(w, h))
+        return Fixed(Transform(box, pos=(x, y)), xysize=(1920, 1080))
+
+    def mg3_overlay(filename, rect, color):
+        """Camada transparente de estado (certo/errado) sobre uma opção. Arte
+        real = canvas inteiro com a marca já na posição; placeholder = faixa
+        colorida semitransparente sobre o retângulo "rect"."""
+        path = MG3_ART_DIR + filename
+        if renpy.loadable(path):
+            return Transform(Image(path, nearest_neighbor=True), zoom=MG3_ZOOM)
+        x, y, w, h = rect
+        return Fixed(Transform(Solid(color, xysize=(w, h)), pos=(x, y)),
+                     xysize=(1920, 1080))
 
     # IMAGEM: minigame3/mg3_bg.png — fundo cheio: área de atendimento com o
-    # "Golias da Natureza" no lado ESQUERDO (a coluna da direita, x>=1000, fica
-    # livre para as opções). Tamanho final: 1920x1080 → exporte a 960x540.
-    MG3_BG = mg3_art("mg3_bg.png", (1920, 1080), "FUNDO: cavalo à esquerda\n(mg3_bg.png)", "#3a4a3a")
+    # "Golias da Natureza" no lado ESQUERDO (a coluna da direita fica livre
+    # para as opções). Canvas 960x540.
+    MG3_BG = mg3_art("mg3_bg.png", (0, 0, 1920, 1080), "FUNDO: cavalo à esquerda\n(mg3_bg.png)", "#3a4a3a")
 
-    # IMAGEM: minigame3/mg3_title_panel.png — painel de título (topo da coluna
-    # direita). Tamanho final: 880x130 → exporte a 440x65.
-    MG3_TITLE_PANEL = mg3_art("mg3_title_panel.png", MG3_TITLE_SIZE, "PAINEL DE TÍTULO\n(mg3_title_panel.png)", "#4a3a20")
+    # IMAGEM: minigame3/mg3_title_panel.png — painel de título ("3 - COLETA DE
+    # EXAME", com o texto desenhado). Canvas 960x540.
+    MG3_TITLE_PANEL = mg3_art("mg3_title_panel.png", MG3_TITLE_RECT, "3 - COLETA DE EXAME\n(mg3_title_panel.png)", "#4a3a20")
 
-    # IMAGEM: minigame3/mg3_opt_idle.png e mg3_opt_wrong.png — moldura de uma
-    # opção das etapas de escolha (sem texto: o texto é escrito pelo jogo).
-    # idle = disponível; wrong = opção errada já tentada (vermelha).
-    # Tamanho final: 880x130 → exporte a 440x65.
-    MG3_OPT_ART = {
-        "idle": mg3_art("mg3_opt_idle.png", MG3_OPT_SIZE, "", "#4a4a4a"),
-        "wrong": mg3_art("mg3_opt_wrong.png", MG3_OPT_SIZE, "", "#8a2c2c"),
-    }
+    # IMAGEM: minigame3/mg3_etapa_<id>.png — cabeçalho + enunciado de cada etapa,
+    # já desenhados (ex.: "Etapa 1/5 — Escolha do tubo: qual tubo usar...?").
+    # <id> = tubo, via, etiqueta, resenha, caixa. Canvas 960x540. 5 arquivos.
+    MG3_STEP_ART = [
+        mg3_art("mg3_etapa_%s.png" % st["id"], MG3_STEP_RECT,
+                "ETAPA %d/%d — %s\n(mg3_etapa_%s.png)" % (i + 1, len(MG3_STEPS), st["title"], st["id"]),
+                "#33363a")
+        for i, st in enumerate(MG3_STEPS)
+    ]
 
-    # IMAGEM: minigame3/mg3_field_idle.png, mg3_field_right.png e
-    # mg3_field_wrong.png — moldura de um campo (etiqueta/resenha).
-    # idle = a preencher; right = campo certo (travado, verde); wrong = campo
-    # errado após confirmar (vermelho). Tamanho final: 880x100 → exporte a 440x50.
-    MG3_FIELD_ART = {
-        "idle": mg3_art("mg3_field_idle.png", MG3_FIELD_SIZE, "", "#4a4a4a"),
-        "right": mg3_art("mg3_field_right.png", MG3_FIELD_SIZE, "", "#2e7d32"),
-        "wrong": mg3_art("mg3_field_wrong.png", MG3_FIELD_SIZE, "", "#8a2c2c"),
-    }
+    # IMAGEM: minigame3/opcao_<id>_<n>.png — cada opção das etapas de ESCOLHA
+    # (moldura + texto já desenhados), na posição dela. <id> = tubo, via, caixa;
+    # <n> = 1, 2, 3 (de cima para baixo). Canvas 960x540. 9 arquivos.
+    # IMAGEM: minigame3/mg3_errada_<n>.png — camada que marca uma opção errada
+    # já tentada (ex.: moldura vermelha), na posição do slot <n> = 1, 2, 3
+    # (vale para as 3 etapas de escolha). Canvas 960x540, fundo transparente.
+    MG3_OPTION_ART = {}
+    for _st in MG3_STEPS:
+        if _st["kind"] == "choice":
+            MG3_OPTION_ART[_st["id"]] = [
+                mg3_art("opcao_%s_%d.png" % (_st["id"], k + 1), mg3_opt_rect(k),
+                        "%s\n(opcao_%s_%d.png)" % (opt[0], _st["id"], k + 1), "#4a4a4a")
+                for k, opt in enumerate(_st["options"])
+            ]
+    MG3_TRIED_OVERLAY = [
+        mg3_overlay("mg3_errada_%d.png" % (k + 1), mg3_opt_rect(k), "#cc222266")
+        for k in range(3)
+    ]
 
-    # IMAGEM: minigame3/mg3_ficha.png — a "ficha do animal" (prancheta/papel)
-    # sobre a qual o jogo escreve os dados. Tamanho final: 880x240 → exporte
-    # a 440x120.
-    MG3_FICHA = mg3_art("mg3_ficha.png", MG3_FICHA_SIZE, "", "#d8cfa8")
+    # IMAGEM: minigame3/mg3_ficha.png — a "ficha do animal" já com os dados
+    # desenhados (precisam bater com MG3_PROFILE). Canvas 960x540.
+    MG3_FICHA = mg3_art("mg3_ficha.png", MG3_FICHA_RECT,
+                        "FICHA DO ANIMAL\n%s | %s | %s\n%s | %s | %s" % (
+                            MG3_PROFILE["name"], MG3_PROFILE["farm"], MG3_PROFILE["date"],
+                            MG3_PROFILE["age"], MG3_PROFILE["sex"], MG3_PROFILE["coat"]),
+                        "#d8cfa8")
 
-    # IMAGEM: minigame3/mg3_btn_idle.png e mg3_btn_hover.png — botão genérico
-    # (Confirmar / Pular resenha / Continuar); o texto é escrito pelo jogo.
-    # Tamanho final: 420x90 → exporte a 210x45.
-    MG3_BTN_IDLE = mg3_art("mg3_btn_idle.png", MG3_BTN_SIZE, "", "#3a5a3a")
-    MG3_BTN_HOVER = mg3_art("mg3_btn_hover.png", MG3_BTN_SIZE, "", "#4f7a4f")
+    # IMAGEM: minigame3/campo_<id>_<n>.png — cada opção de um CAMPO (etiqueta e
+    # resenha), moldura + texto já desenhados, na posição do campo. <id> =
+    # cavalo, propriedade, data, idade, sexo, pelagem; <n> = 1, 2, 3 (a ordem do
+    # ciclo de cliques). Canvas 960x540. 18 arquivos.
+    # IMAGEM: minigame3/campo_<id>_vazio.png — o campo ainda sem escolha
+    # (ex.: "clique para escolher"). Canvas 960x540. 6 arquivos.
+    # IMAGEM: minigame3/mg3_campo_certo_<n>.png e mg3_campo_errado_<n>.png —
+    # camadas transparentes (verde / vermelha) sobre o campo de posição <n> = 1,
+    # 2, 3 (valem para a etiqueta e para a resenha). Canvas 960x540. 6 arquivos.
+    MG3_FIELD_ART = {}
+    for _st in MG3_STEPS:
+        if _st["kind"] == "fields":
+            for _f, _field in enumerate(_st["fields"]):
+                _rect = mg3_field_rect(_f)
+                MG3_FIELD_ART[_field["id"]] = [
+                    mg3_art("campo_%s_vazio.png" % _field["id"], _rect,
+                            "%s: (clique para escolher)\n(campo_%s_vazio.png)" % (_field["label"], _field["id"]),
+                            "#4a4a4a")
+                ] + [
+                    mg3_art("campo_%s_%d.png" % (_field["id"], n + 1), _rect,
+                            "%s: %s\n(campo_%s_%d.png)" % (_field["label"], opt[0], _field["id"], n + 1),
+                            "#4a4a4a")
+                    for n, opt in enumerate(_field["options"])
+                ]
+    MG3_FIELD_RIGHT = [mg3_overlay("mg3_campo_certo_%d.png" % (f + 1), mg3_field_rect(f), "#2e7d3277") for f in range(3)]
+    MG3_FIELD_WRONG = [mg3_overlay("mg3_campo_errado_%d.png" % (f + 1), mg3_field_rect(f), "#cc222277") for f in range(3)]
 
-    # IMAGEM: minigame3/mg3_result_panel.png — painel do resultado final.
-    # Tamanho final: 1000x420 → exporte a 500x210.
-    MG3_RESULT_PANEL = mg3_art("mg3_result_panel.png", (1000, 420), "PAINEL DE RESULTADO\n(mg3_result_panel.png)", "#2e5a3a")
+    # IMAGEM: minigame3/mg3_confirmar_idle.png, mg3_confirmar_hover.png e
+    # mg3_confirmar_disabled.png — botão "Confirmar" (texto desenhado).
+    # disabled = enquanto algum campo ainda está vazio. Canvas 960x540.
+    MG3_CONFIRM_IDLE = mg3_art("mg3_confirmar_idle.png", MG3_CONFIRM_RECT, "CONFIRMAR\n(mg3_confirmar_idle.png)", "#3a5a3a")
+    MG3_CONFIRM_HOVER = mg3_art("mg3_confirmar_hover.png", MG3_CONFIRM_RECT, "CONFIRMAR\n(mg3_confirmar_hover.png)", "#4f7a4f")
+    MG3_CONFIRM_DISABLED = mg3_art("mg3_confirmar_disabled.png", MG3_CONFIRM_RECT, "CONFIRMAR\n(mg3_confirmar_disabled.png)", "#2a2a2a")
+
+    # IMAGEM: minigame3/mg3_pular_idle.png e mg3_pular_hover.png — botão
+    # "Pular resenha" (texto desenhado). Canvas 960x540.
+    MG3_SKIP_IDLE = mg3_art("mg3_pular_idle.png", MG3_SKIP_RECT, "PULAR RESENHA\n(mg3_pular_idle.png)", "#5a4a2a")
+    MG3_SKIP_HOVER = mg3_art("mg3_pular_hover.png", MG3_SKIP_RECT, "PULAR RESENHA\n(mg3_pular_hover.png)", "#7a6a3a")
+
+    # IMAGEM: minigame3/mg3_resultado.png — painel do resultado final, com o
+    # texto fixo desenhado (ex.: "Amostra enviada ao laboratório!"); o jogo
+    # escreve a pontuação e a frase de feedback por cima, em
+    # MG3_RESULT_SCORE_POS e MG3_RESULT_VERDICT_POS. Canvas 960x540.
+    MG3_RESULT_PANEL = mg3_art("mg3_resultado.png", MG3_RESULT_RECT, "AMOSTRA ENVIADA AO LABORATÓRIO!\n(mg3_resultado.png)", "#2e5a3a")
+
+    # IMAGEM: minigame3/mg3_continuar_idle.png e mg3_continuar_hover.png —
+    # botão "Continuar" do resultado (texto desenhado). Canvas 960x540.
+    MG3_CONTINUE_IDLE = mg3_art("mg3_continuar_idle.png", MG3_CONTINUE_RECT, "CONTINUAR\n(mg3_continuar_idle.png)", "#3a5a3a")
+    MG3_CONTINUE_HOVER = mg3_art("mg3_continuar_hover.png", MG3_CONTINUE_RECT, "CONTINUAR\n(mg3_continuar_hover.png)", "#4f7a4f")
 
     # ---- Efeitos sonoros (só tocam se o arquivo existir) -------------------
     def mg3_sfx(kind):
@@ -253,7 +331,6 @@ init python:
 default mg3_step = 0          # etapa atual (índice em MG3_STEPS)
 default mg3_score = 0
 default mg3_finished = False  # True depois da última etapa
-default mg3_order = []        # por etapa: ordem embaralhada das opções (choice) ou por campo (fields)
 default mg3_tried = []        # etapa de escolha: opções erradas já tentadas
 default mg3_values = []       # por etapa de campos: posição atual de cada campo (-1 = vazio)
 default mg3_locked = []       # por etapa de campos: campo já correto (travado)?
@@ -265,28 +342,14 @@ default mg3_feedback_ok = True
 init python:
 
     def mg3_reset():
-        """Nova partida: embaralha a ordem das opções e zera o estado."""
-        order, values, locked, wrong = [], [], [], []
+        """Nova partida: zera o estado."""
+        values, locked, wrong = [], [], []
         for st in MG3_STEPS:
-            if st["kind"] == "choice":
-                perm = list(range(len(st["options"])))
-                renpy.random.shuffle(perm)
-                order.append(perm)
-                values.append([])
-                locked.append([])
-                wrong.append([])
-            else:
-                perms = []
-                for f in st["fields"]:
-                    perm = list(range(len(f["options"])))
-                    renpy.random.shuffle(perm)
-                    perms.append(perm)
-                order.append(perms)
-                values.append([-1] * len(st["fields"]))
-                locked.append([False] * len(st["fields"]))
-                wrong.append([False] * len(st["fields"]))
+            n = len(st["fields"]) if st["kind"] == "fields" else 0
+            values.append([-1] * n)
+            locked.append([False] * n)
+            wrong.append([False] * n)
 
-        store.mg3_order = order
         store.mg3_values = values
         store.mg3_locked = locked
         store.mg3_wrong = wrong
@@ -318,7 +381,7 @@ init python:
 
     # ---- Etapas de escolha ---------------------------------------------------
     def mg3_choose(opt):
-        """Clique numa opção (índice em "options") de uma etapa de escolha."""
+        """Clique na opção opt (0, 1, 2) de uma etapa de escolha."""
         if store.mg3_finished or opt in store.mg3_tried:
             return
         text, correct, feedback = MG3_STEPS[store.mg3_step]["options"][opt]
@@ -332,14 +395,10 @@ init python:
             mg3_set_feedback(feedback, False)
 
     # ---- Etapas de campos (etiqueta e resenha) -----------------------------
-    def mg3_field_text(f):
-        """Texto exibido no campo f da etapa atual ("" se ainda vazio)."""
-        step = MG3_STEPS[store.mg3_step]
-        pos = store.mg3_values[store.mg3_step][f]
-        if pos < 0:
-            return _("(clique para escolher)")
-        opt = store.mg3_order[store.mg3_step][f][pos]
-        return step["fields"][f]["options"][opt]
+    def mg3_field_art(f):
+        """Arte atual do campo f da etapa atual (vazio ou a opção escolhida)."""
+        field = MG3_STEPS[store.mg3_step]["fields"][f]
+        return MG3_FIELD_ART[field["id"]][store.mg3_values[store.mg3_step][f] + 1]
 
     def mg3_cycle(f):
         """Clique num campo: passa para a próxima opção dele (em ciclo)."""
@@ -357,16 +416,14 @@ init python:
         s = store.mg3_step
         if store.mg3_finished:
             return
-        any_empty = False
         any_wrong = False
-        for f in range(len(MG3_STEPS[s]["fields"])):
+        for f, field in enumerate(MG3_STEPS[s]["fields"]):
             if store.mg3_locked[s][f]:
                 continue
             pos = store.mg3_values[s][f]
             if pos < 0:
-                any_empty = True
                 continue
-            if store.mg3_order[s][f][pos] == 0:     # a 1ª opção é a correta
+            if field["options"][pos][1]:
                 store.mg3_locked[s][f] = True
                 store.mg3_wrong[s][f] = False
                 mg3_hit()
@@ -380,8 +437,6 @@ init python:
             mg3_advance()
         elif any_wrong:
             mg3_set_feedback(_("Há campos errados (em vermelho). Confira a ficha do animal e corrija."), False)
-        elif any_empty:
-            mg3_set_feedback(_("Preencha todos os campos antes de confirmar."), False)
 
     def mg3_all_filled():
         """Todos os campos da etapa atual já foram escolhidos?"""
@@ -411,23 +466,25 @@ init python:
 ## 1.5) TELA DE INSTRUÇÕES
 ##    Uso: call screen minigame3_instructions
 ##    Modal: bloqueia qualquer clique no que estiver atrás até "Entendi".
-##    (mesma estrutura do minigame 1)
 ## -----------------------------------------------------------------------
 init python:
 
-    # IMAGEM: minigame3/mg3_instructions_bg.png — fundo cheio das instruções.
-    # Tamanho final: 1920x1080 → exporte o PNG a 960x540.
-    MG3_INSTR_BG = mg3_art("mg3_instructions_bg.png", (1920, 1080),
+    # IMAGEM: minigame3/mg3_instructions_bg.png — fundo cheio. Canvas 960x540.
+    MG3_INSTR_BG = mg3_art("mg3_instructions_bg.png", (0, 0, 1920, 1080),
                            "FUNDO: instruções\n(mg3_instructions_bg.png)", "#2a2418")
 
-    # IMAGEM: minigame3/mg3_instructions_panel.png — moldura do texto de regras.
-    # Tamanho final: 1200x600 → exporte o PNG a 600x300.
-    MG3_INSTR_PANEL = mg3_art("mg3_instructions_panel.png", (1200, 600),
+    # IMAGEM: minigame3/mg3_instructions_panel.png — moldura do texto de regras,
+    # sem texto (o texto é escrito pelo jogo, centralizado em (960, 490), com
+    # até 1000 px de largura; deixe a moldura grande o bastante). Canvas 960x540.
+    MG3_INSTR_PANEL = mg3_art("mg3_instructions_panel.png", MG3_INSTR_PANEL_RECT,
                               "MOLDURA DE TEXTO\n(mg3_instructions_panel.png)", "#4a3a20")
 
+    # IMAGEM: minigame3/mg3_close_idle.png e mg3_close_hover.png — botão
+    # "Entendi" (texto desenhado). Canvas 960x540.
+    MG3_CLOSE_IDLE = mg3_art("mg3_close_idle.png", MG3_CLOSE_RECT, "ENTENDI\n(mg3_close_idle.png)", "#3a5a3a")
+    MG3_CLOSE_HOVER = mg3_art("mg3_close_hover.png", MG3_CLOSE_RECT, "ENTENDI\n(mg3_close_hover.png)", "#4f7a4f")
+
 style mg3_instructions_text:
-    xalign 0.5
-    yalign 0.5
     text_align 0.5
     color "#ffffff"
     size 30
@@ -439,24 +496,14 @@ screen minigame3_instructions():
     modal True  # impede qualquer clique/interação com o jogo por trás
 
     add MG3_INSTR_BG
+    add MG3_INSTR_PANEL
 
-    fixed:
-        xalign 0.5
-        yalign 0.45
-        xysize (1200, 600)
-        add MG3_INSTR_PANEL
+    # Texto de regras de exemplo — edite como quiser
+    text _("O campeão \"Golias da Natureza\" vai viajar para uma competição e precisa do exame de AIE!\n\nRealize a coleta passo a passo: escolha o tubo, a via de coleta, identifique a amostra, preencha a resenha e coloque a amostra na caixa refrigerada.\n\nCada conduta correta marca pontos; cada erro tira pontos.") style "mg3_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
-        # Texto de regras de exemplo — edite como quiser
-        text _("O campeão \"Golias da Natureza\" vai viajar para uma competição e precisa do exame de AIE!\n\nRealize a coleta passo a passo: escolha o tubo, a via de coleta, identifique a amostra, preencha a resenha e coloque a amostra na caixa refrigerada.\n\nCada conduta correta marca pontos; cada erro tira pontos.") style "mg3_instructions_text" xalign 0.5 yalign 0.5
-
-    # Botão "Entendi" / "Fechar" — libera o jogador para o minigame.
-    # IMAGEM: minigame3/mg3_close_idle.png e mg3_close_hover.png.
-    # Tamanho final: 240x80 → exporte cada PNG a 120x40.
     imagebutton:
-        xalign 0.5
-        yalign 0.85
-        idle mg3_art("mg3_close_idle.png", (240, 80), "ENTENDI\n(mg3_close_idle.png)", "#3a5a3a")
-        hover mg3_art("mg3_close_hover.png", (240, 80), "ENTENDI\n(mg3_close_hover.png)", "#4f7a4f")
+        idle MG3_CLOSE_IDLE
+        hover MG3_CLOSE_HOVER
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),
@@ -467,174 +514,94 @@ screen minigame3_instructions():
 
 ## -----------------------------------------------------------------------
 ## 2) TELA DO MINIGAME
+##    Todo botão é uma arte de canvas inteiro (1920x1080 na tela), desenhada
+##    em (0, 0); focus_mask True limita o clique aos pixels opacos da arte.
 ## -----------------------------------------------------------------------
-
-# Botão de ação genérico (Confirmar / Pular / Continuar): moldura de arte +
-# texto escrito pelo jogo. Uso: use mg3_button(texto, x, ação, habilitado)
-screen mg3_button(label, x, act, enabled=True):
-
-    imagebutton:
-        pos (x, MG3_BTN_Y)
-        idle MG3_BTN_IDLE
-        hover MG3_BTN_HOVER
-        insensitive MG3_BTN_IDLE
-        focus_mask True
-        sensitive enabled
-        action act
-        hovered Function(mg3_sfx, "hover")
-
-    text "[label!t]":
-        pos (x + MG3_BTN_SIZE[0] // 2, MG3_BTN_Y + MG3_BTN_SIZE[1] // 2)
-        anchor (0.5, 0.5)
-        size 32
-        color ("#ffffff" if enabled else "#999999")
-
-
 screen minigame3_gameplay():
 
     modal True  # bloqueia qualquer interação com o que estiver atrás
 
-    # Fundo cheio (cavalo à esquerda)
+    # Fundo cheio (cavalo à esquerda) e painel de título
     add MG3_BG
+    add MG3_TITLE_PANEL
 
-    # ---- Painel de título (topo da coluna da direita) --------------------
-    # Se a sua arte do painel já tiver o texto desenhado, apague os 2 textos abaixo.
-    fixed:
-        pos MG3_TITLE_POS
-        xysize MG3_TITLE_SIZE
-        add MG3_TITLE_PANEL
-        text _("3 - COLETA DE EXAME"):
-            xpos 30
-            ypos 20
-            size 34
-            color "#ffffff"
-        text _("Faça a coleta para o exame de AIE do cavalo campeão."):
-            xpos 30
-            ypos 78
-            size 24
-            color "#ffffff"
-            xmaximum MG3_COL_W - 60
-
-    # ---- Pontuação (canto superior esquerdo, sobre a arte) --------------
+    # Pontuação atual (texto que muda)
     text _("Pontos: [mg3_score]"):
-        xpos 60
-        ypos 40
+        pos MG3_SCORE_POS
         size 36
         color "#ffffff"
 
     if not mg3_finished:
 
         $ step = MG3_STEPS[mg3_step]
-        $ step_title = step["title"]
-        $ step_prompt = step["prompt"]
-        $ step_number = mg3_step + 1
-        $ step_total = len(MG3_STEPS)
 
-        text _("Etapa [step_number]/[step_total] — [step_title!t]"):
-            xpos MG3_COL_X
-            ypos MG3_STEP_Y
-            size 34
-            bold True
-            color "#ffffff"
-
-        text "[step_prompt!t]":
-            xpos MG3_COL_X
-            ypos MG3_PROMPT_Y
-            size 26
-            color "#ffffff"
-            xmaximum MG3_COL_W
+        # Cabeçalho + enunciado da etapa (arte própria de cada etapa)
+        add MG3_STEP_ART[mg3_step]
 
         # ---- Etapa de ESCOLHA: 3 opções empilhadas ----------------------
         if step["kind"] == "choice":
 
             for k in range(len(step["options"])):
 
-                $ opt = mg3_order[mg3_step][k]
-                $ opt_text = step["options"][opt][0]
-                $ opt_tried = opt in mg3_tried
+                $ opt_tried = k in mg3_tried
 
                 button:
-                    pos (MG3_COL_X, MG3_OPT_Y0 + k * MG3_OPT_STEP)
-                    xysize MG3_OPT_SIZE
+                    xysize (1920, 1080)
                     background None
                     focus_mask True
                     sensitive not opt_tried
-                    action Function(mg3_choose, opt)
+                    action Function(mg3_choose, k)
                     hovered Function(mg3_sfx, "hover")
-                    add MG3_OPT_ART["wrong" if opt_tried else "idle"]
-                    text "[opt_text!t]":
-                        xpos 40
-                        yalign 0.5
-                        size 32
-                        color "#ffffff"
-                        xmaximum MG3_OPT_SIZE[0] - 80
+                    add MG3_OPTION_ART[step["id"]][k]
+                    if opt_tried:
+                        add MG3_TRIED_OVERLAY[k]
 
         # ---- Etapa de CAMPOS: ficha do animal + campos ------------------
         else:
 
-            if step["show_profile"]:
-
-                $ pf_name = MG3_PROFILE["name"]
-                $ pf_farm = MG3_PROFILE["farm"]
-                $ pf_date = MG3_PROFILE["date"]
-                $ pf_age = MG3_PROFILE["age"]
-                $ pf_sex = MG3_PROFILE["sex"]
-                $ pf_coat = MG3_PROFILE["coat"]
-
-                fixed:
-                    pos MG3_FICHA_POS
-                    xysize MG3_FICHA_SIZE
-                    add MG3_FICHA
-                    vbox:
-                        xpos 40
-                        ypos 20
-                        spacing 8
-                        text _("FICHA DO ANIMAL") size 26 bold True color "#3a2410"
-                        text _("Nome: [pf_name]") size 26 color "#3a2410"
-                        text _("Propriedade: [pf_farm]") size 26 color "#3a2410"
-                        text _("Data da coleta: [pf_date]") size 26 color "#3a2410"
-                        text _("Idade: [pf_age]   Sexo: [pf_sex]   Pelagem: [pf_coat]") size 26 color "#3a2410"
+            add MG3_FICHA
 
             for f in range(len(step["fields"])):
 
-                $ field_label = step["fields"][f]["label"]
-                $ field_value = mg3_field_text(f)
-                $ field_state = "right" if mg3_locked[mg3_step][f] else ("wrong" if mg3_wrong[mg3_step][f] else "idle")
+                $ field_locked = mg3_locked[mg3_step][f]
+                $ field_wrong = mg3_wrong[mg3_step][f]
 
                 button:
-                    pos (MG3_COL_X, MG3_FIELD_Y0 + f * MG3_FIELD_STEP)
-                    xysize MG3_FIELD_SIZE
+                    xysize (1920, 1080)
                     background None
                     focus_mask True
-                    sensitive not mg3_locked[mg3_step][f]
+                    sensitive not field_locked
                     action Function(mg3_cycle, f)
                     hovered Function(mg3_sfx, "hover")
-                    add MG3_FIELD_ART[field_state]
-                    text "[field_label!t]:":
-                        xpos 40
-                        yalign 0.5
-                        size 30
-                        bold True
-                        color "#ffffff"
-                    text "[field_value!t]":
-                        xpos 320
-                        yalign 0.5
-                        size 30
-                        color "#ffffff"
-                        xmaximum MG3_FIELD_SIZE[0] - 360
+                    add mg3_field_art(f)
+                    if field_locked:
+                        add MG3_FIELD_RIGHT[f]
+                    elif field_wrong:
+                        add MG3_FIELD_WRONG[f]
 
-            use mg3_button(_("Confirmar"), MG3_COL_X, Function(mg3_confirm), mg3_all_filled())
+            imagebutton:
+                idle MG3_CONFIRM_IDLE
+                hover MG3_CONFIRM_HOVER
+                insensitive MG3_CONFIRM_DISABLED
+                sensitive mg3_all_filled()
+                focus_mask True
+                action Function(mg3_confirm)
+                hovered Function(mg3_sfx, "hover")
 
             if step["skippable"]:
-                use mg3_button(_("Pular resenha"), MG3_COL_X + MG3_COL_W - MG3_BTN_SIZE[0], Function(mg3_skip))
+                imagebutton:
+                    idle MG3_SKIP_IDLE
+                    hover MG3_SKIP_HOVER
+                    focus_mask True
+                    action Function(mg3_skip)
+                    hovered Function(mg3_sfx, "hover")
 
-        # ---- Feedback da última ação ------------------------------------
+        # ---- Feedback da última ação (texto que muda) -------------------
         if mg3_feedback:
             text "[mg3_feedback!t]":
-                xpos MG3_COL_X
-                ypos MG3_FEEDBACK_Y
+                pos MG3_FEEDBACK_POS
                 size 24
-                xmaximum MG3_COL_W
+                xmaximum MG3_FEEDBACK_W
                 color ("#b9f5b9" if mg3_feedback_ok else "#ffb3b3")
 
     # ---- Fim: resultado final --------------------------------------------
@@ -648,49 +615,28 @@ screen minigame3_gameplay():
             background "#000000aa"
             action NullAction()
 
-        fixed:
-            xalign 0.5
-            yalign 0.5
-            xysize (1000, 420)
-            add MG3_RESULT_PANEL
+        add MG3_RESULT_PANEL
 
-            vbox:
-                xalign 0.5
-                ypos 40
-                spacing 20
+        text _("Pontuação: [mg3_score] / [MG3_MAX_SCORE]"):
+            pos MG3_RESULT_SCORE_POS
+            anchor (0.5, 0.5)
+            size 40
+            color "#ffffff"
 
-                text _("Amostra enviada ao laboratório!"):
-                    xalign 0.5
-                    size 44
-                    color "#ffffff"
+        text "[verdict!t]":
+            pos MG3_RESULT_VERDICT_POS
+            anchor (0.5, 0.0)
+            text_align 0.5
+            size 28
+            color "#ffffff"
+            xmaximum 880
 
-                text _("Pontuação: [mg3_score] / [MG3_MAX_SCORE]"):
-                    xalign 0.5
-                    size 40
-                    color "#ffffff"
-
-                text "[verdict!t]":
-                    xalign 0.5
-                    text_align 0.5
-                    size 28
-                    color "#ffffff"
-                    xmaximum 880
-
-        # Botão Continuar (sob o painel)
-        button:
-            xalign 0.5
-            ypos 800
-            xysize MG3_END_BTN_SIZE
-            background None
+        imagebutton:
+            idle MG3_CONTINUE_IDLE
+            hover MG3_CONTINUE_HOVER
             focus_mask True
             action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
             hovered Function(mg3_sfx, "hover")
-            add MG3_BTN_IDLE
-            text _("Continuar"):
-                xalign 0.5
-                yalign 0.5
-                size 32
-                color "#ffffff"
 
 
 ## -----------------------------------------------------------------------
@@ -700,7 +646,7 @@ label minigame_3_gameplay:
 
     $ quick_menu = False       # esconde os botões rápidos do rodapé durante o minigame
     $ renpy.block_rollback()   # impede que o rollback (roda do mouse) bagunce o estado
-    $ mg3_reset()              # embaralha as opções e zera o estado (permite rejogar)
+    $ mg3_reset()              # zera o estado (permite rejogar do zero)
 
     scene black
     call screen minigame3_gameplay   # só retorna quando o jogador clica em "Continuar"
