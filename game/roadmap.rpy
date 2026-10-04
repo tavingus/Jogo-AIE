@@ -155,6 +155,13 @@ init python:
         label = "MINIGAME %d\n(%s)\n(%s)" % (n, state.upper(), filename)
         return map_art(filename, MAP_NODE_SIZE, label, colors[state])
 
+    def map_node_has_art(n, state):
+        """True se o PNG real do nó existe. A arte real é exportada do Aseprite
+        no canvas inteiro (960x540, já na posição certa), igual ao menu: ela é
+        ampliada 2x e desenhada em (0, 0), SEM usar MAP_NODE_POS. Só o
+        retângulo provisório (arte ausente) usa MAP_NODE_POS."""
+        return renpy.loadable(MAP_ART_DIR + "node_%d_%s.png" % (n, state))
+
     def mg_map_connector(p1, p2, color="#ffffff55", thickness=6):
         """Barra fina ligando o centro de p1 ao centro de p2 — só um guia
         visual provisório; a arte final provavelmente já vem com a trilha
@@ -168,7 +175,8 @@ init python:
 
     # Desliga as linhas procedurais assim que a trilha já estiver desenhada
     # na própria arte de fundo (map_bg.png).
-    MAP_SHOW_CONNECTORS = True
+    # (ficam ligadas só enquanto a arte real dos nós ainda não existe)
+    MAP_SHOW_CONNECTORS = not renpy.loadable(MAP_ART_DIR + "node_1_unlocked.png")
 
     def mg_map_sfx(kind):
         files = {"hover": "audio/sfx_hover.ogg", "click": "audio/sfx_click.ogg"}
@@ -202,18 +210,27 @@ screen roadmap_screen():
         $ n = i + 1
         $ node_state = mg_node_state(n)
         $ node_x, node_y = MAP_NODE_POS[i]
+        $ has_art = map_node_has_art(n, node_state)
 
         if node_state == "locked":
             # Nó bloqueado: só mostra a arte, sem ação de clique
-            add map_node_art(n, node_state):
-                pos (node_x, node_y)
-                anchor (0.5, 0.5)
+            if has_art:
+                add map_node_art(n, node_state)
+            else:
+                add map_node_art(n, node_state):
+                    pos (node_x, node_y)
+                    anchor (0.5, 0.5)
         else:
             # Nó desbloqueado (ou já concluído, e por isso rejogável)
             button:
-                pos (node_x, node_y)
-                anchor (0.5, 0.5)
-                xysize MAP_NODE_SIZE
+                if has_art:
+                    # arte de canvas inteiro: sem pos; focus_mask faz só os
+                    # pixels opacos do nó responderem ao mouse
+                    xysize (1920, 1080)
+                else:
+                    pos (node_x, node_y)
+                    anchor (0.5, 0.5)
+                    xysize MAP_NODE_SIZE
                 background None
                 focus_mask True
                 action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
