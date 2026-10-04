@@ -13,9 +13,8 @@
 #     - Exame NEGATIVO e RECENTE (dentro da validade) ........ ESTÁBULO
 #     - Exame NEGATIVO e VENCIDO (passou da validade) ........ NOVA COLETA
 #     - Exame POSITIVO (qualquer data) ........................ NOTIFICAR O MAPA
-#     - Exame EM PROCESSAMENTO (ainda sem resultado) .......... QUARENTENA
-#       (o 4º caso vem do seu texto: "em processamento" -> quarentena; se não
-#       quiser, tire "processamento" da lista MG5_KINDS)
+#   (Cavalo com exame "em processamento" não pode ser transportado, então
+#   esse caso NÃO existe na triagem: todo cavalo chega com resultado.)
 #
 #   Os cavalos e os casos são sorteados a cada partida (todo tipo de caso
 #   aparece pelo menos uma vez), e as datas variam.
@@ -60,8 +59,8 @@ init python:
     MG5_PAPERS_RECT = (1000, 180, 880, 340)           # papéis do cavalo
     MG5_HORSE_RECT = (60, 240, 860, 700)              # cavalo (esquerda)
 
-    def mg5_dest_rect(i):                             # 4 destinos em 2x2
-        return (1000 + (i % 2) * 450, 560 + (i // 2) * 200, 430, 180)
+    def mg5_dest_rect(i):                             # 3 destinos empilhados
+        return (1000, 560 + i * 135, 880, 120)
 
     MG5_STAMP_RECT = (60, 160, 860, 140)              # carimbo certo/errado
     MG5_NEXT_RECT = (1000, 880, 880, 100)             # botão Próximo (feedback)
@@ -97,18 +96,17 @@ init python:
     MG5_TODAY = datetime.date(2025, 5, 20)            # "data de hoje" do jogo
 
     # Tipos de caso e o destino certo de cada um
-    MG5_KINDS = ["recente", "vencido", "positivo", "processamento"]
+    MG5_KINDS = ["recente", "vencido", "positivo"]
     MG5_KIND_DEST = {
         "recente": "estabulo",
         "vencido": "coleta",
         "positivo": "mapa",
-        "processamento": "quarentena",
     }
 
-    # Destinos (a ordem define o slot 0-3 do botão e das artes destino_<id>_*)
+    # Destinos (a ordem define a posição do botão, de cima para baixo, e o
+    # nome das artes destino_<id>_*)
     MG5_DESTS = [
         ("estabulo", _("Estábulo")),
-        ("quarentena", _("Quarentena")),
         ("coleta", _("Nova coleta")),
         ("mapa", _("Notificar o MAPA")),
     ]
@@ -172,9 +170,9 @@ init python:
     MG5_TIMER_FRAME = mg5_art("mg5_tempo_moldura.png", MG5_TIMER_RECT, "", "#222222")
     MG5_TIMER_FILL = mg5_art("mg5_tempo_barra.png", MG5_TIMER_RECT, "", "#e0b030")
 
-    # IMAGEM: minigame5/destino_<id>_idle.png e destino_<id>_hover.png — os 4
+    # IMAGEM: minigame5/destino_<id>_idle.png e destino_<id>_hover.png — os 3
     # botões de destino (moldura + texto já desenhados). <id> = estabulo,
-    # quarentena, coleta, mapa. Canvas 960x540. 8 arquivos.
+    # coleta, mapa. Canvas 960x540. 6 arquivos.
     MG5_DEST_IDLE = {}
     MG5_DEST_HOVER = {}
     for _i, (_id, _label) in enumerate(MG5_DESTS):
@@ -237,10 +235,8 @@ init python:
             days, result = renpy.random.randint(5, v - 10), "negativo"
         elif kind == "vencido":
             days, result = renpy.random.randint(v + 6, v + 60), "negativo"
-        elif kind == "positivo":
-            days, result = renpy.random.randint(5, v + 30), "positivo"
         else:
-            days, result = renpy.random.randint(1, 5), "processamento"
+            days, result = renpy.random.randint(5, v + 30), "positivo"
         exam_date = MG5_TODAY - datetime.timedelta(days=days)
         return {"kind": kind, "result": result, "days": days,
                 "date": mg5_fmt_date(exam_date)}
@@ -272,8 +268,7 @@ init python:
 
     def mg5_result_text(case):
         return {"negativo": _("Negativo"),
-                "positivo": _("Positivo"),
-                "processamento": _("Em processamento")}[case["result"]]
+                "positivo": _("Positivo")}[case["result"]]
 
     def mg5_correct_text(case):
         """Explicação da conduta certa para o caso."""
@@ -282,14 +277,12 @@ init python:
             return _("Exame negativo de %d dias atrás, dentro da validade de %d dias: o cavalo vai para o ESTÁBULO.") % (days, MG5_VALIDITY_DAYS)
         elif kind == "vencido":
             return _("Exame negativo de %d dias atrás, passou da validade de %d dias: é preciso uma NOVA COLETA.") % (days, MG5_VALIDITY_DAYS)
-        elif kind == "positivo":
-            return _("Resultado POSITIVO para AIE: a conduta é a NOTIFICAÇÃO ao MAPA, qualquer que seja a data do exame.")
         else:
-            return _("O exame ainda está EM PROCESSAMENTO: o cavalo fica em QUARENTENA até sair o resultado.")
+            return _("Resultado POSITIVO para AIE: a conduta é a NOTIFICAÇÃO ao MAPA, qualquer que seja a data do exame.")
 
     def mg5_resolve(choice):
-        """Aplica a decisão do jogador ("estabulo", "quarentena", "coleta",
-        "mapa" ou "timeout") ao cavalo atual."""
+        """Aplica a decisão do jogador ("estabulo", "coleta", "mapa" ou
+        "timeout") ao cavalo atual."""
         case = store.mg5_horses[store.mg5_index]
         correct = MG5_KIND_DEST[case["kind"]]
         reason = mg5_correct_text(case)
@@ -354,7 +347,7 @@ screen minigame5_instructions():
     add MG5_INSTR_PANEL
 
     # Texto de regras de exemplo — edite como quiser (os números vêm das constantes)
-    $ instr_text = _("Chegaram %d cavalos para a triagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Você tem %d segundos por cavalo:\n\n• Negativo e recente: Estábulo\n• Negativo e vencido: Nova coleta\n• Positivo: Notificar o MAPA\n• Em processamento: Quarentena\n\nCada acerto marca pontos.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
+    $ instr_text = _("Chegaram %d cavalos para a triagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Você tem %d segundos por cavalo:\n\n• Negativo e recente: Estábulo\n• Negativo e vencido: Nova coleta\n• Positivo: Notificar o MAPA\n\nCada acerto marca pontos.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
 
     text "[instr_text]" style "mg5_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
@@ -405,7 +398,7 @@ screen mg5_scene():
 
 
 # Um cavalo: papéis, tempo e destinos. Retorna o destino ("estabulo",
-# "quarentena", "coleta", "mapa") ou "timeout".
+# "coleta", "mapa") ou "timeout".
 screen minigame5_horse():
 
     modal True  # bloqueia qualquer interação com o que estiver atrás
