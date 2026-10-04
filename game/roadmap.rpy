@@ -143,12 +143,20 @@ init python:
     ]
     MAP_NODE_POS = [(x * MAP_ZOOM, y * MAP_ZOOM) for (x, y) in MAP_NODE_POS_ART]
 
+    def map_node_state_file(n, state):
+        """Estado cujo PNG será realmente usado. Se você só fez as artes
+        'locked' e 'unlocked' (jogável), um nó já concluído ('done') reaproveita
+        a arte 'unlocked' enquanto node_N_done.png não existir."""
+        if state == "done" and not renpy.loadable(MAP_ART_DIR + "node_%d_done.png" % n):
+            return "unlocked"
+        return state
+
     def map_node_art(n, state):
         """Arte de UM nó (número n, 1 a 10) no estado 'locked'/'unlocked'/'done'.
         Cada combinação número+estado é um arquivo próprio — pensado para você
         desenhar cada nó individualmente no Aseprite, sem texto desenhado pelo
         jogo por cima. Tamanho final: 160x160 → exporte cada PNG a 80x80."""
-        filename = "node_%d_%s.png" % (n, state)
+        filename = "node_%d_%s.png" % (n, map_node_state_file(n, state))
         colors = {"locked": "#3a3a3a", "unlocked": "#2c6e8a", "done": "#2e7d32"}
         # (sem colchetes "[...]" aqui: o Ren'Py interpreta "[algo]" dentro de
         # Text() como substituição de variável — por isso usamos parênteses)
@@ -160,7 +168,7 @@ init python:
         no canvas inteiro (960x540, já na posição certa), igual ao menu: ela é
         ampliada 2x e desenhada em (0, 0), SEM usar MAP_NODE_POS. Só o
         retângulo provisório (arte ausente) usa MAP_NODE_POS."""
-        return renpy.loadable(MAP_ART_DIR + "node_%d_%s.png" % (n, state))
+        return renpy.loadable(MAP_ART_DIR + "node_%d_%s.png" % (n, map_node_state_file(n, state)))
 
     def mg_map_connector(p1, p2, color="#ffffff55", thickness=6):
         """Barra fina ligando o centro de p1 ao centro de p2 — só um guia
@@ -247,7 +255,8 @@ label roadmap:
     call screen roadmap_screen
     $ chosen = _return
 
-    if chosen:
+    # Trava extra: nó bloqueado nunca abre, mesmo que algo o devolva por engano
+    if chosen and chosen <= persistent.mg_unlocked:
         # Chama "label minigame_<chosen>_entry" dinamicamente.
         # Esse label mora dentro de minigame<chosen>.rpy e é responsável por
         # mostrar as instruções, rodar o gameplay e chamar mg_complete(chosen).
