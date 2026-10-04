@@ -149,6 +149,10 @@ init python:
         a arte 'unlocked' enquanto node_N_done.png não existir."""
         if state == "done" and not renpy.loadable(MAP_ART_DIR + "node_%d_done.png" % n):
             return "unlocked"
+        # Ainda sem a arte 'locked'? Usa a 'unlocked' escurecida (ver map_node_art)
+        if state == "locked" and not renpy.loadable(MAP_ART_DIR + "node_%d_locked.png" % n) \
+                and renpy.loadable(MAP_ART_DIR + "node_%d_unlocked.png" % n):
+            return "unlocked"
         return state
 
     def map_node_art(n, state):
@@ -161,7 +165,12 @@ init python:
         # (sem colchetes "[...]" aqui: o Ren'Py interpreta "[algo]" dentro de
         # Text() como substituição de variável — por isso usamos parênteses)
         label = "MINIGAME %d\n(%s)\n(%s)" % (n, state.upper(), filename)
-        return map_art(filename, MAP_NODE_SIZE, label, colors[state])
+        art = map_art(filename, MAP_NODE_SIZE, label, colors[state])
+        if state == "locked" and map_node_state_file(n, state) != "locked" \
+                and renpy.loadable(MAP_ART_DIR + filename):
+            # provisório: arte 'unlocked' em tons de cinza e mais escura
+            art = Transform(art, matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.35))
+        return art
 
     def map_node_has_art(n, state):
         """True se o PNG real do nó existe. A arte real é exportada do Aseprite
