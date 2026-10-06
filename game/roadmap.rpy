@@ -236,11 +236,15 @@ screen roadmap_screen():
 
     # Botão "Menu principal" (arte em mg_common.rpy: common/mapa_menu_*.png).
     # Pede confirmação antes de sair; o progresso do mapa é global (persistent).
+    # (Não usa MainMenu(): o jogo é iniciado no menu com Jump("intro"), e por
+    # isso roda dentro do contexto do menu principal, onde MainMenu() não faz
+    # nada. renpy.full_restart funciona em qualquer contexto.)
     imagebutton:
         idle MGC_MAP_MENU_IDLE
         hover MGC_MAP_MENU_HOVER
         focus_mask True
-        action [Function(mg_map_sfx, "click"), MainMenu(confirm=True)]
+        action [Function(mg_map_sfx, "click"),
+                Confirm(_("Voltar ao menu principal?"), yes=Function(renpy.full_restart))]
         hovered Function(mg_map_sfx, "hover")
 
     if MAP_SHOW_CONNECTORS:
