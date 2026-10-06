@@ -234,6 +234,15 @@ screen roadmap_screen():
         size 40
         color "#ffffff"
 
+    # Botão "Menu principal" (arte em mg_common.rpy: common/mapa_menu_*.png).
+    # Pede confirmação antes de sair; o progresso do mapa é global (persistent).
+    imagebutton:
+        idle MGC_MAP_MENU_IDLE
+        hover MGC_MAP_MENU_HOVER
+        focus_mask True
+        action [Function(mg_map_sfx, "click"), MainMenu(confirm=True)]
+        hovered Function(mg_map_sfx, "hover")
+
     if MAP_SHOW_CONNECTORS:
         for i in range(MG_TOTAL - 1):
             add mg_map_connector(MAP_NODE_POS[i], MAP_NODE_POS[i + 1])
@@ -284,6 +293,7 @@ screen roadmap_screen():
 label roadmap:
 
     $ mg_map_sanitize()
+    $ quick_menu = True
 
     call screen roadmap_screen
     $ chosen = _return
@@ -293,7 +303,12 @@ label roadmap:
         # Chama "label minigame_<chosen>_entry" dinamicamente.
         # Esse label mora dentro de minigame<chosen>.rpy e é responsável por
         # mostrar as instruções, rodar o gameplay e chamar mg_complete(chosen).
+        # O botão de pausa (mg_common.rpy) fica por cima do minigame; ao
+        # terminar normalmente ele é escondido aqui (se o jogador sair pelo
+        # menu de pausa, quem esconde é o label mg_exit_to_map).
+        show screen mg_pause_button
         call expression ("minigame_%d_entry" % chosen)
+        hide screen mg_pause_button
 
     # Volta a mostrar o mapa (com o progresso já atualizado).
     jump roadmap
