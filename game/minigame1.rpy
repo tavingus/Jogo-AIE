@@ -182,9 +182,10 @@ init python:
     # é ampliada 2x automaticamente).
     MG1_BG = mg1_art("mg1_bg.png", (1920, 1080), "FUNDO: livro aberto\n(mg1_bg.png)", "#3b2a1a")
 
-    # IMAGEM: minigame1/mg1_title_panel.png — painel de título no canto superior esquerdo.
-    # Tamanho final: 820x170 → exporte o PNG a 410x85.
-    MG1_TITLE_PANEL = mg1_art("mg1_title_panel.png", (820, 170), "PAINEL DE TÍTULO\n(mg1_title_panel.png)", "#5a3a1c")
+    # IMAGEM: minigame1/mg1_title_panel.png — painel de título no canto superior
+    # esquerdo. CANVAS INTEIRO 960x540, com o painel já na posição dele (o
+    # retângulo (60, 40, 820, 170) abaixo só posiciona o placeholder).
+    MG1_TITLE_PANEL = mg1_full_art("mg1_title_panel.png", (60, 40, 820, 170), "PAINEL DE TÍTULO\n(mg1_title_panel.png)", "#5a3a1c")
 
     # IMAGEM: minigame1/morfologia_1.png ... morfologia_5.png — imagens que alternam
     # na página esquerda (uma delas é a correta, definida em MG1_MORPH_CORRECT).
@@ -203,8 +204,9 @@ init python:
     MG1_CATEGORY_ART = [mg1_build_category_art(cat, row) for row, cat in enumerate(MG1_CATEGORIES)]
 
     # IMAGEM: minigame1/mg1_success.png — selo/banner exibido ao acertar tudo.
-    # Tamanho final: 900x300 → exporte o PNG a 450x150.
-    MG1_SUCCESS = mg1_art("mg1_success.png", (900, 300), "CLASSIFICAÇÃO CORRETA!\n(mg1_success.png)", "#2e7d32")
+    # CANVAS INTEIRO 960x540, com o selo já na posição dele (o retângulo
+    # (510, 390, 900, 300) só posiciona o placeholder, no centro da tela).
+    MG1_SUCCESS = mg1_full_art("mg1_success.png", (510, 390, 900, 300), "CLASSIFICAÇÃO CORRETA!\n(mg1_success.png)", "#2e7d32")
 
     # ---- Efeitos sonoros (só tocam se o arquivo existir) ---------------
     def mg1_sfx(kind):
@@ -289,14 +291,20 @@ init python:
     MG1_INSTR_BG = mg1_art("mg1_instructions_bg.png", (1920, 1080),
                             "FUNDO: instruções\n(mg1_instructions_bg.png)", "#2a2418")
 
-    # IMAGEM: minigame1/mg1_instructions_panel.png — moldura do texto de regras.
-    # Tamanho final: 1200x600 → exporte o PNG a 600x300.
-    MG1_INSTR_PANEL = mg1_art("mg1_instructions_panel.png", (1200, 600),
-                               "MOLDURA DE TEXTO\n(mg1_instructions_panel.png)", "#4a3a20")
+    # IMAGEM: minigame1/mg1_instructions_panel.png — moldura do texto de regras,
+    # sem texto (o texto é escrito pelo jogo, centralizado em (960, 490), com
+    # até 1000 px de largura). CANVAS INTEIRO 960x540, moldura já na posição
+    # (o retângulo (360, 190, 1200, 600) só posiciona o placeholder).
+    MG1_INSTR_PANEL = mg1_full_art("mg1_instructions_panel.png", (360, 190, 1200, 600),
+                                   "MOLDURA DE TEXTO\n(mg1_instructions_panel.png)", "#4a3a20")
+
+    # IMAGEM: minigame1/mg1_close_idle.png e mg1_close_hover.png — botão
+    # "Entendi" (texto desenhado). CANVAS INTEIRO 960x540, botão já na posição
+    # (o retângulo (840, 860, 240, 80) só posiciona o placeholder).
+    MG1_CLOSE_IDLE = mg1_full_art("mg1_close_idle.png", (840, 860, 240, 80), "ENTENDI\n(mg1_close_idle.png)", "#3a5a3a")
+    MG1_CLOSE_HOVER = mg1_full_art("mg1_close_hover.png", (840, 860, 240, 80), "ENTENDI\n(mg1_close_hover.png)", "#4f7a4f")
 
 style mg1_instructions_text:
-    xalign 0.5
-    yalign 0.5
     text_align 0.5
     color "#ffffff"
     size 30
@@ -309,23 +317,16 @@ screen minigame1_instructions():
 
     add MG1_INSTR_BG
 
-    fixed:
-        xalign 0.5
-        yalign 0.45
-        xysize (1200, 600)
-        add MG1_INSTR_PANEL
+    add MG1_INSTR_PANEL
 
-        # Texto de regras de exemplo — edite conforme as regras reais do minigame
-        text _("Regras do Minigame 1:\n\n- Explique aqui o objetivo.\n- Explique aqui os controles.\n- Explique aqui a condição de vitória/derrota.") style "mg1_instructions_text" xalign 0.5 yalign 0.5
+    # Texto de regras de exemplo — edite conforme as regras reais do minigame
+    text _("Regras do Minigame 1:\n\n- Explique aqui o objetivo.\n- Explique aqui os controles.\n- Explique aqui a condição de vitória/derrota.") style "mg1_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
-    # Botão "Entendi" / "Fechar" — libera o jogador para o minigame.
-    # IMAGEM: minigame1/mg1_close_idle.png e mg1_close_hover.png.
-    # Tamanho final: 240x80 → exporte cada PNG a 120x40.
+    # Botão "Entendi" / "Fechar" — libera o jogador para o minigame (arte de
+    # canvas inteiro, ver MG1_CLOSE_IDLE/HOVER acima).
     imagebutton:
-        xalign 0.5
-        yalign 0.85
-        idle mg1_art("mg1_close_idle.png", (240, 80), "ENTENDI\n(mg1_close_idle.png)", "#3a5a3a")
-        hover mg1_art("mg1_close_hover.png", (240, 80), "ENTENDI\n(mg1_close_hover.png)", "#4f7a4f")
+        idle MG1_CLOSE_IDLE
+        hover MG1_CLOSE_HOVER
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),
@@ -346,21 +347,18 @@ screen minigame1_gameplay():
 
     # ---- Painel de título / objetivo (canto superior esquerdo) ----------
     # Se a sua arte do painel já tiver o texto desenhado, apague os 2 textos abaixo.
-    fixed:
-        pos (60, 40)
-        xysize (820, 170)
-        add MG1_TITLE_PANEL
-        text _("1 - TAXONOMIA E IDENTIFICAÇÃO DO VÍRUS"):
-            xpos 30
-            ypos 25
-            size 34
-            color "#ffffff"
-        text _("Complete todas as características corretas do vírus da AIE."):
-            xpos 30
-            ypos 95
-            size 24
-            color "#ffffff"
-            xmaximum 760
+    add MG1_TITLE_PANEL
+    text _("1 - TAXONOMIA E IDENTIFICAÇÃO DO VÍRUS"):
+        xpos 90
+        ypos 65
+        size 34
+        color "#ffffff"
+    text _("Complete todas as características corretas do vírus da AIE."):
+        xpos 90
+        ypos 135
+        size 24
+        color "#ffffff"
+        xmaximum 760
 
     # ---- Página esquerda: morfologia (clique para trocar) ---------------
     button:
@@ -415,7 +413,7 @@ screen minigame1_gameplay():
             background "#00000088"
             action NullAction()
 
-        add MG1_SUCCESS align (0.5, 0.5)
+        add MG1_SUCCESS
 
         timer MG1_WIN_DELAY action Return(True)
 
