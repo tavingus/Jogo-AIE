@@ -159,6 +159,7 @@ init python:
     MAP_SHOW_CONNECTORS = not renpy.loadable(MAP_ART_DIR + "node_1_unlocked.png")
 
     MAP_NODE_COLORS = {"locked": "#3a3a3a", "unlocked": "#2c6e8a", "done": "#2e7d32"}
+    MAP_NODE_COLORS_HOVER = {"locked": "#3a3a3a", "unlocked": "#3f93b8", "done": "#3fa845"}
 
     def map_node_file(n, state):
         """Nome do PNG a usar para o nó n no estado dado, ou None se não há
@@ -173,16 +174,28 @@ init python:
                 return filename
         return None
 
+    def map_node_hover_file(n, state):
+        """PNG de HOVER do nó (o mesmo nome da arte parada + "_hover"): ex.
+        node_3_unlocked_hover.png, node_3_done_hover.png. None se não existir
+        (aí o nó não muda ao passar o mouse, só toca o som)."""
+        idle = map_node_file(n, state)
+        if idle is None:
+            return None
+        hover = idle.replace(".png", "_hover.png")
+        return hover if renpy.loadable(MAP_ART_DIR + hover) else None
+
     def map_node_image(filename):
         """Arte real de um nó (canvas inteiro 960x540 -> 1920x1080)."""
         return Transform(Image(MAP_ART_DIR + filename, nearest_neighbor=True), zoom=MAP_ZOOM)
 
-    def map_node_placeholder(n, state):
+    def map_node_placeholder(n, state, hover=False):
         """Retângulo provisório do nó n (sem colchetes "[...]" no texto: o
-        Ren'Py os interpretaria como substituição de variável)."""
+        Ren'Py os interpretaria como substituição de variável). hover=True =
+        versão mais clara, para quando o mouse está em cima."""
         label = "MINIGAME %d\n(%s)" % (n, state.upper())
+        colors = MAP_NODE_COLORS_HOVER if hover else MAP_NODE_COLORS
         return Fixed(
-            Solid(MAP_NODE_COLORS[state], xysize=MAP_NODE_SIZE),
+            Solid(colors[state], xysize=MAP_NODE_SIZE),
             Text(label, size=24, color="#ffffff", xalign=0.5, yalign=0.5,
                  text_align=0.5, xmaximum=MAP_NODE_SIZE[0] - 16),
             xysize=MAP_NODE_SIZE,
@@ -257,33 +270,38 @@ screen roadmap_screen():
         $ n = i + 1
         $ node_state = mg_node_state(n)
         $ node_file = map_node_file(n, node_state)
+        $ node_hover_file = map_node_hover_file(n, node_state)
         $ node_x, node_y = MAP_NODE_POS[i]
         $ clickable = (node_state != "locked")
 
         if node_file is not None:
             # ---- Arte real: canvas inteiro, desenhada em (0, 0) ----
             if clickable:
-                button:
-                    xysize (1920, 1080)
-                    background None
+                # idle = node_N_<estado>.png; hover = node_N_<estado>_hover.png
+                # (se o hover não existir, a imagem não muda)
+                $ node_idle_img = map_node_image(node_file)
+                $ node_hover_img = map_node_image(node_hover_file or node_file)
+                imagebutton:
+                    idle node_idle_img
+                    hover node_hover_img
                     focus_mask True   # só os pixels opacos do nó respondem
                     action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
                     hovered Function(mg_map_sfx, "hover")
-                    add map_node_image(node_file)
             else:
                 add map_node_image(node_file)
 
         else:
             # ---- Placeholder provisório, na posição MAP_NODE_POS ----
             if clickable:
-                button:
+                $ ph_idle = map_node_placeholder(n, node_state)
+                $ ph_hover = map_node_placeholder(n, node_state, True)
+                imagebutton:
                     pos (node_x, node_y)
                     anchor (0.5, 0.5)
-                    xysize MAP_NODE_SIZE
-                    background None
+                    idle ph_idle
+                    hover ph_hover
                     action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
                     hovered Function(mg_map_sfx, "hover")
-                    add map_node_placeholder(n, node_state)
             else:
                 add map_node_placeholder(n, node_state):
                     pos (node_x, node_y)
