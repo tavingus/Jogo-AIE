@@ -358,6 +358,58 @@ init python:
         return Transform(Image(path, nearest_neighbor=True), zoom=2.0)
 
 
+init python:
+
+    def menu_opt_art(filename, rect, label, color):
+        """Arte de canvas inteiro (960x540 → 1920x1080, nearest neighbor,
+        desenhada em (0, 0)) se o PNG existir em game/images/. Senão, um
+        placeholder: retângulo colorido com texto na posição "rect" =
+        (x, y, largura, altura). Usado pela janela de opções."""
+        path = "images/" + filename
+        if renpy.loadable(path):
+            return Transform(Image(path, nearest_neighbor=True), zoom=2.0)
+        x, y, w, h = rect
+        text = Text(label, size=26, color="#ffffff", xalign=0.5, yalign=0.5,
+                    text_align=0.5, xmaximum=w - 20)
+        box = Fixed(Solid(color, xysize=(w, h)), text, xysize=(w, h))
+        return Fixed(Transform(box, pos=(x, y)), xysize=(1920, 1080))
+
+    # ---- Janela de opções: artes (todas canvas inteiro 960x540) ----------
+    # Posições (tela 1920x1080) só dos PLACEHOLDERS; a arte real ignora.
+    # IMAGEM: options_panel.png — a janela central, com título e rótulos
+    #   (MÚSICA, EFEITOS, VOZ, IDIOMA) já desenhados.
+    # IMAGEM: options_back_idle.png / options_back_hover.png — botão VOLTAR.
+    # IMAGEM: options_lang_pt_idle/hover/selected.png e
+    #   options_lang_en_idle/hover/selected.png — botões de idioma
+    #   (selected = idioma atual).
+    OPT_PANEL = menu_opt_art("options_panel.png", (480, 140, 960, 800), "JANELA DE OPÇÕES\n(options_panel.png)", "#7a5a3a")
+    OPT_BACK_IDLE = menu_opt_art("options_back_idle.png", (760, 830, 400, 76), "VOLTAR", "#a54a3e")
+    OPT_BACK_HOVER = menu_opt_art("options_back_hover.png", (760, 830, 400, 76), "VOLTAR", "#c8604f")
+    OPT_LANG = {}
+    for _code, _label, _rect in (("pt", "PORTUGUÊS", (550, 680, 380, 68)), ("en", "ENGLISH", (990, 680, 380, 68))):
+        OPT_LANG[_code] = {
+            "idle": menu_opt_art("options_lang_%s_idle.png" % _code, _rect, _label, "#80603e"),
+            "hover": menu_opt_art("options_lang_%s_hover.png" % _code, _rect, _label, "#a6804f"),
+            "selected": menu_opt_art("options_lang_%s_selected.png" % _code, _rect, _label, "#568e48"),
+        }
+
+    # Barras de volume (desenhadas pelo Ren'Py; alinhadas com os rótulos da
+    # arte): x inicial, largura e y do centro de cada linha (tela 1920x1080).
+    OPT_BAR_X = 800
+    OPT_BAR_W = 580
+    OPT_BAR_CENTERS = [330, 430, 530]   # música, efeitos, voz
+
+
+## Estilo das barras de volume da janela de opções (combina com a UI)
+style opt_bar is bar:
+    ysize 24
+    left_bar Solid("#6aa052")
+    right_bar Solid("#4a341c")
+    thumb Fixed(Solid("#371f12", xysize=(16, 24)),
+                Transform(Solid("#f3e2b3", xysize=(12, 20)), pos=(2, 2)),
+                xysize=(16, 24))
+
+
 screen main_menu():
 
     ## This ensures that any other menu screen is replaced.
@@ -456,71 +508,76 @@ style centered_textbox_text:
 
 ## Options screen (customizada) ################################################
 ##
-## Tela de opções própria, mostrada como overlay sobre a screen main_menu
+## Janela central de opções, mostrada como overlay sobre a screen main_menu
 ## (via Show("options_menu") / Hide("options_menu")). Não substitui a screen
 ## "preferences" padrão do Ren'Py, que continua existindo e intacta.
+## Fecha com o botão VOLTAR ou com Esc / botão direito.
 
 screen options_menu():
 
     # Aparece por cima do menu principal (que continua na pilha de telas)
     modal True
 
-    # IMAGEM: options_bg.png — fundo cheio da tela de opções
-    add "images/options_bg.png"
+    # Escurece o menu atrás da janela
+    add Solid("#000000bb")
 
-    # --- Sliders de volume (usam os canais padrão do Ren'Py e persistem sozinhos) ---
-    vbox:
-        xalign 0.5
-        yalign 0.30
-        spacing 40
+    # Esc / botão direito = voltar
+    key "game_menu" action [Play("sound", "audio/sfx_click.ogg"), Hide("options_menu")]
 
-        hbox:
-            spacing 20
-            text _("Música") color "#ffffff" size 30 xsize 300
-            bar value Preference("music volume") xsize 400
+    # A janela central (título e rótulos já desenhados na arte)
+    add OPT_PANEL
 
-        hbox:
-            spacing 20
-            text _("Efeitos Sonoros") color "#ffffff" size 30 xsize 300
-            bar value Preference("sound volume") xsize 400
+    # --- Sliders de volume (canais padrão do Ren'Py, persistem sozinhos) ---
+    bar:
+        style "opt_bar"
+        value Preference("music volume")
+        pos (OPT_BAR_X, OPT_BAR_CENTERS[0] - 12)
+        xsize OPT_BAR_W
 
-        hbox:
-            spacing 20
-            text _("Voz") color "#ffffff" size 30 xsize 300
-            bar value Preference("voice volume") xsize 400
+    bar:
+        style "opt_bar"
+        value Preference("sound volume")
+        pos (OPT_BAR_X, OPT_BAR_CENTERS[1] - 12)
+        xsize OPT_BAR_W
+
+    bar:
+        style "opt_bar"
+        value Preference("voice volume")
+        pos (OPT_BAR_X, OPT_BAR_CENTERS[2] - 12)
+        xsize OPT_BAR_W
 
     # --- Seletor de idioma (sistema nativo de tradução do Ren'Py) ---
-    # Language(None) volta ao idioma padrão do projeto (ex.: Português).
+    # Language(None) volta ao idioma padrão do projeto (Português).
     # Language("english") troca para a tradução gerada em game/tl/english.
-    vbox:
-        xalign 0.5
-        yalign 0.55
-        spacing 15
+    $ lang_is_pt = (_preferences.language is None)
+    $ lang_is_en = (_preferences.language == "english")
 
-        text _("Idioma") color "#ffffff" size 28 xalign 0.5
-
-        hbox:
-            xalign 0.5
-            spacing 20
-
-            textbutton _("Português"):
-                action Language(None)
-                selected _preferences.language is None
-
-            textbutton _("English"):
-                action Language("english")
-                selected _preferences.language == "english"
-
-    # --- Botão "Voltar" (imagem) ---
     imagebutton:
-        xalign 0.5
-        yalign 0.85
-        idle "images/btn_back_idle.png"    # IMAGEM: btn_back_idle.png
-        hover "images/btn_back_hover.png"   # IMAGEM: btn_back_hover.png
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Hide("options_menu"),
-        ]
+        idle OPT_LANG["pt"]["idle"]
+        hover OPT_LANG["pt"]["hover"]
+        selected_idle OPT_LANG["pt"]["selected"]
+        selected_hover OPT_LANG["pt"]["selected"]
+        focus_mask True
+        selected lang_is_pt
+        action [Play("sound", "audio/sfx_click.ogg"), Language(None)]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    imagebutton:
+        idle OPT_LANG["en"]["idle"]
+        hover OPT_LANG["en"]["hover"]
+        selected_idle OPT_LANG["en"]["selected"]
+        selected_hover OPT_LANG["en"]["selected"]
+        focus_mask True
+        selected lang_is_en
+        action [Play("sound", "audio/sfx_click.ogg"), Language("english")]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    # --- Botão VOLTAR: fecha a janela de opções ---
+    imagebutton:
+        idle OPT_BACK_IDLE
+        hover OPT_BACK_HOVER
+        focus_mask True
+        action [Play("sound", "audio/sfx_click.ogg"), Hide("options_menu")]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
 
