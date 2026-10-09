@@ -238,7 +238,7 @@ screen achievements_screen():
     add Solid("#000000bb")
 
     # Esc / botão direito = voltar
-    key "game_menu" action [Play("sound", "audio/sfx_click.ogg"), Hide("achievements_screen")]
+    key "game_menu" action [Function(sfx, "window_close"), Hide("achievements_screen")]
 
     add ACH_PANEL_ART
 
@@ -302,7 +302,7 @@ screen achievements_screen():
         idle ACH_BACK_IDLE
         hover ACH_BACK_HOVER
         focus_mask True
-        action [Play("sound", "audio/sfx_click.ogg"), Hide("achievements_screen")]
+        action [Function(sfx, "window_close"), Hide("achievements_screen")]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
 

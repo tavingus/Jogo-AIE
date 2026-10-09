@@ -44,3 +44,10 @@ init python:
 
     def mus_stop(fade=None):
         renpy.music.stop(channel="music", fadeout=MUS_FADE if fade is None else fade)
+
+
+    # ---- Efeitos sonoros (arquivos audio/sfx_<nome>.ogg; se faltar, fica mudo) ----
+    def sfx(name):
+        path = "audio/sfx_%s.ogg" % name
+        if renpy.loadable(path):
+            renpy.sound.play(path)

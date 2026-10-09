@@ -65,3 +65,18 @@ Dica: se faltar o arquivo, o jogo continua sem som.
 | `amb_countryside.ogg` | menu e mapa (pássaros, vento) | ➕ |
 
 **Prioridade para começar (5):** `sfx_click`, `sfx_hover`, `sfx_correct`, `sfx_wrong` e `sfx_win` (já ligados); depois `sfx_locked`, `sfx_medal`, `sfx_achievement` e `sfx_fly_buzz`.
+
+
+---
+
+## SITUAÇÃO ATUAL (atualizado)
+
+**Prontos e ligados no jogo:** `sfx_locked`, `sfx_start`, `sfx_window_open`, `sfx_window_close`, `sfx_win` (este só no minigame 1 por enquanto).
+
+**Faltam fazer (anotado):**
+- Interface: `sfx_hover`, `sfx_click` ✅(ligados, falta o arquivo), `sfx_back`
+- Acerto/erro: `sfx_correct`, `sfx_wrong` ✅(ligados, falta o arquivo), `sfx_lose`, `sfx_score_tick`, `sfx_pick`, `sfx_drop`
+- Mapa: `sfx_node_unlock`, `sfx_node_done`, `sfx_medal`, `sfx_achievement`, `sfx_final`
+- Cavalo: `sfx_horse_angry` ✅(ligado, falta o arquivo), `sfx_horse_calm`
+- Minigames: `sfx_stethoscope`, `sfx_tube`, `sfx_paper`, `sfx_cooler`, `sfx_bubbles`, `sfx_pipette`, `sfx_spectro`, `sfx_gate`, `sfx_fly_buzz`, `sfx_fly_swat`, `sfx_fly_oops`, `sfx_needle_open`, `sfx_needle_bin`
+- Ambiente: `amb_countryside`

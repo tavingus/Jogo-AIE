@@ -95,7 +95,7 @@ screen mg_pause_button():
         idle MGC_PAUSE_IDLE
         hover MGC_PAUSE_HOVER
         focus_mask True
-        action [Function(mgc_sfx, "click"), Function(renpy.call_in_new_context, "mg_pause_label")]
+        action [Function(sfx, "window_open"), Function(renpy.call_in_new_context, "mg_pause_label")]
         hovered Function(mgc_sfx, "hover")
 
     # Esc / botão direito também pausam (em vez do menu de jogo padrão)
@@ -118,7 +118,7 @@ screen mg_pause_screen():
         idle MGC_RESUME_IDLE
         hover MGC_RESUME_HOVER
         focus_mask True
-        action [Function(mgc_sfx, "click"), Return("resume")]
+        action [Function(sfx, "window_close"), Return("resume")]
         hovered Function(mgc_sfx, "hover")
 
     imagebutton:

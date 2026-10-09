@@ -217,7 +217,12 @@ screen roadmap_screen():
                     action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
                     hovered Function(mg_map_sfx, "hover")
             else:
-                add map_node_image(node_file)
+                $ node_locked_img = map_node_image(node_file)
+                imagebutton:
+                    idle node_locked_img
+                    hover node_locked_img
+                    focus_mask True
+                    action Function(sfx, "locked")
 
         else:
             # ---- Placeholder provisório, na posição MAP_NODE_POS ----
@@ -232,8 +237,13 @@ screen roadmap_screen():
                     action [Play("sound", "audio/sfx_click.ogg"), Return(n)]
                     hovered Function(mg_map_sfx, "hover")
             else:
-                add map_node_placeholder(n, node_state):
+                $ ph_locked = map_node_placeholder(n, node_state)
+                imagebutton:
                     pos (node_x, node_y)
+                    anchor (0.5, 0.5)
+                    idle ph_locked
+                    hover ph_locked
+                    action Function(sfx, "locked")
                     anchor (0.5, 0.5)
 
 

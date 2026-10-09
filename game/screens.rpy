@@ -464,8 +464,8 @@ screen main_menu():
             Play("sound", "audio/sfx_click.ogg"),
             If(can_continue,
                Confirm(_("Começar um novo jogo? O botão Continuar passará a usar o novo progresso."),
-                       yes=[Function(mus_stop), Start("novo_jogo")]),
-               [Function(mus_stop), Start("novo_jogo")]),
+                       yes=[Function(sfx, "start"), Function(mus_stop), Start("novo_jogo")]),
+               [Function(sfx, "start"), Function(mus_stop), Start("novo_jogo")]),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
@@ -489,6 +489,7 @@ screen main_menu():
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),
+            Function(sfx, "window_open"),
             Show("achievements_screen"),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
@@ -500,6 +501,7 @@ screen main_menu():
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),
+            Function(sfx, "window_open"),
             Show("options_menu"),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
@@ -575,7 +577,7 @@ screen options_menu():
     add Solid("#000000bb")
 
     # Esc / botão direito = voltar
-    key "game_menu" action [Play("sound", "audio/sfx_click.ogg"), Hide("options_menu")]
+    key "game_menu" action [Function(sfx, "window_close"), Hide("options_menu")]
 
     # A janela central (título e rótulos já desenhados na arte)
     add OPT_PANEL
@@ -630,7 +632,7 @@ screen options_menu():
         idle OPT_BACK_IDLE
         hover OPT_BACK_HOVER
         focus_mask True
-        action [Play("sound", "audio/sfx_click.ogg"), Hide("options_menu")]
+        action [Function(sfx, "window_close"), Hide("options_menu")]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
 
