@@ -1,14 +1,16 @@
 ################################################################################
 # PROGRESS.RPY
-# Progresso do jogo (POR SAVE), conquistas (GLOBAIS) e aviso de conquista.
+# Progresso do jogo e conquistas (AMBOS POR SAVE) e aviso de conquista.
 #
-# Modelo de dados (opção "B" do design):
-#   - PROGRESSO é por save: quais minigames estão liberados / concluídos, a
-#     melhor pontuação de cada um e as medalhas (nó "perfect"). São variáveis
-#     "default" normais, então vão para dentro do arquivo de save. "Novo jogo"
-#     começa do zero; "Continuar" carrega o save mais recente.
-#   - CONQUISTAS são globais (persistent): valem para qualquer save, como um
-#     perfil. Desbloquear uma conquista nunca se perde ao começar de novo.
+# Modelo de dados:
+#   - PROGRESSO e CONQUISTAS são por save: quais minigames estão liberados /
+#     concluídos, a melhor pontuação de cada um, as medalhas (nó "perfect") e as
+#     conquistas. São variáveis "default" normais, então vão para dentro do
+#     arquivo de save. "Novo jogo" começa TUDO do zero (inclusive as
+#     conquistas); "Continuar" carrega o save mais recente.
+#   - No MENU PRINCIPAL ainda não há jogo carregado, então a tela "Conquistas"
+#     mostra as conquistas do save mais recente (o mesmo do "Continuar"). Para
+#     isso, a lista de conquistas também é gravada dentro do save (json).
 #
 # API usada pelos minigames (NÃO mudou):
 #     $ mg_report_score(N, pontos, pontos_maximos)   # minigames com pontuação
@@ -88,7 +90,7 @@ init python:
 ## -----------------------------------------------------------------------
 ## 3) CONQUISTAS (GLOBAIS)
 ## -----------------------------------------------------------------------
-default persistent.achievements = {}
+default ach_unlocked = {}   # conquistas deste save: {"mg1": True, ...}
 
 init python:
 
@@ -123,8 +125,17 @@ init python:
     ]
     ACH_BY_ID = dict((a["id"], a) for a in ACH_LIST)
 
+    def ach_state():
+        """Conquistas a mostrar: as do jogo em andamento ou, no menu principal
+        (sem jogo carregado), as do save mais recente."""
+        if getattr(store, "main_menu", False):
+            slot = prog_newest_slot()
+            info = renpy.slot_json(slot) if slot is not None else None
+            return dict((aid, True) for aid in (info or {}).get("achievements", []))
+        return store.ach_unlocked
+
     def ach_is_unlocked(aid):
-        return bool(persistent.achievements.get(aid))
+        return bool(ach_state().get(aid))
 
     def ach_count():
         return sum(1 for a in ACH_LIST if ach_is_unlocked(a["id"]))
@@ -135,10 +146,9 @@ init python:
 
     def ach_unlock(aid):
         """Desbloqueia a conquista. Devolve True só na PRIMEIRA vez."""
-        if persistent.achievements.get(aid):
+        if store.ach_unlocked.get(aid):
             return False
-        persistent.achievements[aid] = True
-        renpy.save_persistent()
+        store.ach_unlocked[aid] = True
         return True
 
     def ach_notify(ids):
@@ -310,8 +320,10 @@ init python:
     PROG_SLOT_RE = r"(auto-\d+|quick-\d+|\d+-\d+)$"   # só autosaves, quicksaves e saves manuais
 
     def _prog_save_json(d):
-        """Marca todo save criado por esta versão do jogo."""
+        """Marca todo save criado por esta versão do jogo e guarda a lista de
+        conquistas dele (para a tela Conquistas do menu principal)."""
         d["prog_version"] = PROG_VERSION
+        d["achievements"] = sorted(k for k, v in store.ach_unlocked.items() if v)
 
     config.save_json_callbacks.append(_prog_save_json)
 
