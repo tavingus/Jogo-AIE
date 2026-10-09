@@ -30,9 +30,17 @@ init python:
 
     # ---- Posições dos PLACEHOLDERS (tela 1920x1080): (x, y, largura, altura)
     MGC_PAUSE_BTN_RECT = (20, 980, 80, 80)        # botão de pausa: canto inferior ESQUERDO
-    MGC_PAUSE_PANEL_RECT = (610, 330, 700, 420)   # painel de pausa, no meio da tela
-    MGC_RESUME_RECT = (710, 470, 500, 90)         # botão "Continuar"
-    MGC_QUIT_RECT = (710, 590, 500, 90)           # botão "Sair para o mapa"
+    MGC_PAUSE_PANEL_RECT = (610, 250, 700, 580)   # painel de pausa, no meio da tela
+    MGC_RESUME_RECT = (710, 540, 500, 90)         # botão "Continuar"
+    MGC_QUIT_RECT = (710, 660, 500, 90)           # botão "Sair para o mapa"
+
+    # Barras de VOLUME dentro do painel de pausa (tela 1920x1080).
+    # O rótulo ("Música", "Efeitos") e a moldura das barras ficam desenhados
+    # no PNG do painel; o jogo só coloca a barra interativa por cima.
+    MGC_BAR_X = 900                  # início das barras
+    MGC_BAR_W = 340                  # largura das barras
+    MGC_BAR_Y = [395, 465]           # y do centro: música, efeitos
+    MGC_LABEL_X = 650                # só para o placeholder (rótulos)
     MGC_MAP_MENU_RECT = (30, 30, 260, 80)         # botão "Menu principal" (no mapa)
 
     def mgc_art(filename, rect, label, color):
@@ -59,7 +67,11 @@ init python:
     # tela, com o título já desenhado (ex.: "JOGO PAUSADO"). Os botões ficam por
     # cima, então deixe espaço para eles. Canvas 960x540. (Pode incluir um
     # escurecimento do resto da tela.)
+    # Deixe também desenhados os rótulos "Música" e "Efeitos" à esquerda das
+    # barras de volume (linhas em y=395 e y=465 da tela 1920x1080, barras de
+    # x=900 a x=1240; no canvas 960x540: y=197 e 232, x=450 a 620).
     MGC_PAUSE_PANEL = mgc_art("mg_pausa_painel.png", MGC_PAUSE_PANEL_RECT, "JOGO PAUSADO\n(mg_pausa_painel.png)", "#3a2e1c")
+    MGC_PANEL_IS_ART = renpy.loadable(MGC_ART_DIR + "mg_pausa_painel.png")
 
     # IMAGEM: common/mg_pausa_continuar_idle.png e _hover.png — botão
     # "Continuar" (texto desenhado). Canvas 960x540.
@@ -113,6 +125,24 @@ screen mg_pause_screen():
 
     add Solid("#000000bb")
     add MGC_PAUSE_PANEL
+
+    # Rótulos só aparecem no placeholder (a arte real já os traz desenhados)
+    if not MGC_PANEL_IS_ART:
+        text _("Música") pos (MGC_LABEL_X, MGC_BAR_Y[0] - 16) size 28 color "#ffffff"
+        text _("Efeitos") pos (MGC_LABEL_X, MGC_BAR_Y[1] - 16) size 28 color "#ffffff"
+
+    # Volume durante o jogo (mesmos valores das Opções do menu)
+    bar:
+        style "opt_bar"
+        value Preference("music volume")
+        pos (MGC_BAR_X, MGC_BAR_Y[0] - 12)
+        xsize MGC_BAR_W
+
+    bar:
+        style "opt_bar"
+        value Preference("sound volume")
+        pos (MGC_BAR_X, MGC_BAR_Y[1] - 12)
+        xsize MGC_BAR_W
 
     imagebutton:
         idle MGC_RESUME_IDLE
