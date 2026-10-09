@@ -16,8 +16,8 @@ Pixel art, 16-bit era look (SNES / GBA style), crisp hard pixel edges, NO anti-a
 | Arquivo | O que é | Tamanho final |
 |---|---|---|
 | `minigame6/mg6_bg.png` | fundo cheio com o cavalo central já posicionado | 960x540 |
-| `minigame6/fly_correct_1.png`, `fly_correct_2.png` | moscas **hematófagas** (o jogador clica) | 70x70 cada |
-| `minigame6/fly_wrong_1.png`, `fly_wrong_2.png` | moscas **inofensivas** (o jogador ignora) | 70x70 cada |
+| `minigame6/fly_correct_1.png`, `fly_correct_2.png` | moscas **hematófagas** (o jogador clica) — mutuca | 70x70 cada |
+| `minigame6/fly_wrong_1.png`, `fly_wrong_2.png` | moscas **inofensivas** (o jogador ignora) — mosca-doméstica | 70x70 cada |
 
 As moscas são sprites individuais com fundo transparente (não são canvas inteiro). O fundo (cenário + cavalo) você monta no Aseprite juntando o cenário vazio com o cavalo, nos 960x540 de sempre.
 
@@ -45,27 +45,26 @@ A peaceful farm pasture at golden hour, wide landscape, tall grass, a few wildfl
 
 ---
 
-## 2. Os dois tipos de mosca
+## 2. Os dois tipos de mosca (os dois são MOSCAS)
 
-Regra de design: o jogador precisa distinguir **só pela arte** em ~1 segundo. Hematófagas = cores escuras e opacas, olhar ameaçador, probóscide/ferrão visível. Inofensivas = cores vivas e simpáticas, formato arredondado e fofo. Mesmo tamanho e mesma vista (de cima, asas abertas) nas quatro.
+- **Hematófaga:** mutuca (tabanídeo) — corpo robusto, olhos enormes verdes, probóscide cortante.
+- **Inofensiva:** mosca-doméstica (*Musca domestica*) — não pica, só lambe. Menor, cinza clara, olhos vermelhos pequenos e **sem probóscide pontuda**.
 
-**2a. Hematófagas (`fly_correct_1` e `fly_correct_2`):**
+Cada tipo vira 2 arquivos (duas poses da mesma mosca: asas abertas e asas mais fechadas). Mesmo tamanho e mesma vista (de cima) nas quatro. O jogador precisa distinguir só pela arte: hematófaga = escura, grande, ameaçadora; inofensiva = clara, pequena, "bobinha".
+
+**2a. Hematófaga — mutuca (`fly_correct_1` e `fly_correct_2`):**
 ```
 [STYLE MASTER]
-Two small flying insects on a flat solid #00FF00 background, side by side, same size, seen from above with wings spread, each centered with equal margin, no text. Both look menacing and BLOOD-SUCKING, dark and dull colors:
-(1) a horsefly (tabanid): stocky grey-brown body, huge green iridescent striped eyes, smoky wings;
-(2) a stable fly (Stomoxys): slim dark grey body with striped thorax, red-brown eyes, and a clearly visible sharp black proboscis pointing forward.
-Each fits a square; simple readable silhouette even at tiny size.
+Two versions of the SAME insect on a flat solid #00FF00 background, side by side, same size, seen from above, each centered with equal margin, no text. A horsefly (tabanid), a BLOOD-SUCKING fly: stocky dark grey-brown body, huge iridescent green eyes with stripes, smoky dark wings, and a clearly visible short sharp black proboscis. Menacing look. Version 1: wings spread wide. Version 2: wings half-folded over the body (wing-flap pose). Simple readable silhouette even at tiny size.
 ```
-**2b. Inofensivas (`fly_wrong_1` e `fly_wrong_2`):**
+**2b. Inofensiva — mosca-doméstica (`fly_wrong_1` e `fly_wrong_2`):**
 ```
 [STYLE MASTER]
-Two small flying insects on a flat solid #00FF00 background, side by side, same size, seen from above with wings spread, each centered with equal margin, no text. Both look friendly and HARMLESS, bright cheerful colors:
-(1) a honeybee: round yellow and black body, translucent white wings;
-(2) a butterfly: orange and blue wings with simple clean pattern.
-Each fits a square; simple readable silhouette even at tiny size.
+Two versions of the SAME insect on a flat solid #00FF00 background, side by side, same size (slightly smaller than a horsefly), seen from above, each centered with equal margin, no text. A common housefly, a HARMLESS non-biting fly: slim light grey body with four faint dark stripes on the back, small red eyes, clear transparent pale wings, NO sharp proboscis (only a tiny soft tip), neutral friendly look. Version 1: wings spread wide. Version 2: wings half-folded over the body. Simple readable silhouette even at tiny size.
 ```
-**2c. Se quiser mais variação (opcional):** peça `Same style: a ladybug and a dragonfly` (inofensivas) ou `a black fly (simulid), small and hunched, and a second horsefly in a different pose` (hematófagas), e eu adiciono mais arquivos ao código.
+**Se a diferença ficar pouco clara em 70x70:** peça `Make the horsefly darker and bigger, with exaggerated green eyes, and the housefly lighter and smaller with clearly transparent wings.`
+
+**Mais variedade (opcional):** mosca-dos-estábulos (*Stomoxys*, hematófaga, parecida com a doméstica mas com probóscide pontuda) e mosca-varejeira verde ou mosca-da-fruta (inofensivas). Me diga se quer e eu adiciono arquivos no código.
 
 ---
 
