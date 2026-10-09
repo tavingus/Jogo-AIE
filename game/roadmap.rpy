@@ -244,7 +244,6 @@ screen roadmap_screen():
                     idle ph_locked
                     hover ph_locked
                     action Function(sfx, "locked")
-                    anchor (0.5, 0.5)
 
 
 ## -----------------------------------------------------------------------
