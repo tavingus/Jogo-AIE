@@ -155,9 +155,14 @@ init python:
         return None
 
     # ---- Posições dos PLACEHOLDERS / textos (tela 1920x1080) ---------------
-    ACH_TOAST_RECT = (560, 30, 800, 150)       # aviso (estrutura "(x, y, largura, altura)")
-    ACH_TOAST_NAME_POS = (620, 90)
-    ACH_TOAST_DESC_POS = (620, 135)
+    # Aviso discreto no canto inferior DIREITO (estilo Steam/PlayStation):
+    # pequeno, entra deslizando, some sozinho. Só mostra o nome da conquista
+    # (a descrição está na tela Conquistas).
+    ACH_TOAST_RECT = (1480, 968, 400, 72)      # (x, y, largura, altura) do placeholder
+    ACH_TOAST_NAME_POS = (1566, 998)           # onde o jogo escreve o nome
+    ACH_TOAST_NAME_W = 300
+    ACH_TOAST_STEP = 84                        # distância entre avisos empilhados (para cima)
+    ACH_TOAST_TIME = 4.0                       # segundos na tela
     ACH_PANEL_RECT = (200, 90, 1520, 900)      # janela de conquistas
     ACH_BACK_RECT = (760, 892, 400, 70)
     ACH_COUNTER_POS = (1480, 120)
@@ -167,42 +172,51 @@ init python:
     ACH_ROW_DY = 175                           # distância entre as linhas
     ACH_ROW_SIZE = (700, 160)
 
-    # IMAGEM: ach_toast.png — moldura do aviso de conquista (com o texto fixo
-    #   "CONQUISTA DESBLOQUEADA!" já desenhado). Canvas 960x540.
+    # IMAGEM: ach_toast.png — moldura do aviso de conquista, pequena (com o
+    #   ícone e o texto fixo "CONQUISTA DESBLOQUEADA" já desenhados; o nome da
+    #   conquista é escrito pelo jogo). Canvas 960x540.
     # IMAGEM: ach_panel.png — janela de conquistas (título "CONQUISTAS" já
     #   desenhado). Canvas 960x540.
     # IMAGEM: ach_back_idle.png / ach_back_hover.png — botão VOLTAR. Canvas 960x540.
     # IMAGEM (opcional): ach/ach_<id>.png e ach/ach_<id>_locked.png — ícone de
     #   cada conquista (<id> = mg1 ... mg7, final), 96x96 (ampliado 2x: 48x48
     #   na arte), posicionado pelo código no canto esquerdo de cada linha.
-    ACH_TOAST_ART = menu_opt_art("ach_toast.png", ACH_TOAST_RECT, "CONQUISTA DESBLOQUEADA!\n(ach_toast.png)", "#2e5a3a")
+    ACH_TOAST_ART = menu_opt_art("ach_toast.png", ACH_TOAST_RECT, "CONQUISTA DESBLOQUEADA\n(ach_toast.png)", "#2a2f3a")
     ACH_PANEL_ART = menu_opt_art("ach_panel.png", ACH_PANEL_RECT, "CONQUISTAS\n(ach_panel.png)", "#7a5a3a")
     ACH_BACK_IDLE = menu_opt_art("ach_back_idle.png", ACH_BACK_RECT, "VOLTAR", "#a54a3e")
     ACH_BACK_HOVER = menu_opt_art("ach_back_hover.png", ACH_BACK_RECT, "VOLTAR", "#c8604f")
 
 
-## Aviso de conquista desbloqueada (some sozinho). "ids" = conquistas novas.
+## Entrada/saída do aviso: desliza da direita com fade (e sai do mesmo jeito).
+## "delay" escalona os avisos quando há mais de um ao mesmo tempo.
+transform ach_toast_slide(delay=0.0):
+    on show:
+        xoffset 460
+        alpha 0.0
+        pause delay
+        easeout 0.35 xoffset 0 alpha 1.0
+    on hide:
+        easein 0.3 xoffset 460 alpha 0.0
+
+
+## Aviso de conquista desbloqueada (discreto, some sozinho).
+## "ids" = conquistas novas; se houver mais de uma, empilham para cima.
 screen ach_toast(ids):
 
     zorder 250
 
     for i, aid in enumerate(ids):
-        $ a = ACH_BY_ID[aid]
-        $ a_name = a["name"]
-        $ a_desc = a["desc"]
-        add Transform(ACH_TOAST_ART, yoffset=i * 170)
-        text "[a_name!t]":
-            pos (ACH_TOAST_NAME_POS[0], ACH_TOAST_NAME_POS[1] + i * 170)
-            size 36
-            bold True
-            color "#ffe9a3"
-        text "[a_desc!t]":
-            pos (ACH_TOAST_DESC_POS[0], ACH_TOAST_DESC_POS[1] + i * 170)
-            size 24
-            color "#ffffff"
-            xmaximum 680
+        $ a_name = ACH_BY_ID[aid]["name"]
+        fixed at ach_toast_slide(i * 0.25):
+            add Transform(ACH_TOAST_ART, yoffset=-i * ACH_TOAST_STEP)
+            text "[a_name!t]":
+                pos (ACH_TOAST_NAME_POS[0], ACH_TOAST_NAME_POS[1] - i * ACH_TOAST_STEP)
+                size 26
+                bold True
+                color "#ffe9a3"
+                xmaximum ACH_TOAST_NAME_W
 
-    timer 5.0 action Hide("ach_toast")
+    timer ACH_TOAST_TIME action Hide("ach_toast")
 
 
 ## Tela "Conquistas" (aberta pelo botão do menu principal).
