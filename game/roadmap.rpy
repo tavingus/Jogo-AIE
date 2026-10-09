@@ -245,6 +245,9 @@ label roadmap:
 
     $ quick_menu = True
 
+    # Música do mapa (a mesma do menu; não reinicia se já estiver tocando)
+    $ mus_menu()
+
     # Salva sozinho toda vez que o mapa aparece (é o "Continuar" do menu)
     $ prog_autosave()
 

@@ -438,7 +438,7 @@ screen main_menu():
     ## --------------------------------------------------------------------
 
     # Toca a música de menu em loop assim que a tela aparece
-    on "show" action Play("music", "audio/menu_theme.ogg", loop=True, fadein=1.0)
+    on "show" action Function(mus_menu)
 
     # Todas as imagens do menu (fundo, título e botões) foram exportadas do
     # Aseprite em 960x540, já posicionadas no canvas inteiro. Por isso TODAS
@@ -464,8 +464,8 @@ screen main_menu():
             Play("sound", "audio/sfx_click.ogg"),
             If(can_continue,
                Confirm(_("Começar um novo jogo? O botão Continuar passará a usar o novo progresso."),
-                       yes=[Stop("music", fadeout=1.0), Start("novo_jogo")]),
-               [Stop("music", fadeout=1.0), Start("novo_jogo")]),
+                       yes=[Function(mus_stop), Start("novo_jogo")]),
+               [Function(mus_stop), Start("novo_jogo")]),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
@@ -478,7 +478,6 @@ screen main_menu():
         sensitive can_continue
         action [
             Play("sound", "audio/sfx_click.ogg"),
-            Stop("music", fadeout=1.0),
             Function(prog_continue),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")

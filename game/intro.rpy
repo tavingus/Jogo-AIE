@@ -13,6 +13,9 @@
 # todo o progresso zerado (as variáveis "default" voltam ao valor inicial).
 # O "label intro" antigo do script.rpy deixa de ser usado.
 #
+# MÚSICA: intro_1/2/3 tocam em loop junto com cada imagem (veja music.rpy);
+# ao pular ou terminar, a música some com fade e o mapa toca o tema do menu.
+#
 # ARTE (todas em canvas inteiro 960x540, como no resto do jogo):
 #   images/intro/intro_1.png, intro_2.png, intro_3.png — as 3 cenas (sem texto)
 #   images/intro_box.png ......... caixa de texto do rodapé (sem texto)
@@ -96,14 +99,12 @@ label novo_jogo:
     $ intro_i = 0
     $ intro_skip = False
 
-    # (opcional) música da introdução, se o arquivo existir
-    if renpy.loadable("audio/intro_theme.ogg"):
-        play music "audio/intro_theme.ogg" fadein 1.0
-
     scene black
 
     while intro_i < len(INTRO_TEXTS) and not intro_skip:
         $ intro_art = INTRO_ART[intro_i]
+        # música do ato (loop); a anterior some com fade
+        $ mus_play(MUS_INTRO[intro_i])
         scene expression intro_art with Dissolve(INTRO_DISSOLVE)
         call screen intro_textbox(INTRO_TEXTS[intro_i])
         if _return == "skip":
@@ -111,7 +112,8 @@ label novo_jogo:
         $ intro_i += 1
 
     # Fade out: some a imagem e a música, e então aparece o mapa
-    $ renpy.music.stop(channel="music", fadeout=INTRO_FADE_OUT)
+    # (a música do mapa entra em "label roadmap")
+    $ mus_stop(INTRO_FADE_OUT)
     scene black with Dissolve(INTRO_FADE_OUT)
 
     $ quick_menu = True
