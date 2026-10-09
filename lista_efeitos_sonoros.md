@@ -80,3 +80,5 @@ Dica: se faltar o arquivo, o jogo continua sem som.
 - Cavalo: `sfx_horse_angry` ✅(ligado, falta o arquivo), `sfx_horse_calm`
 - Minigames: `sfx_stethoscope`, `sfx_tube`, `sfx_paper`, `sfx_cooler`, `sfx_bubbles`, `sfx_pipette`, `sfx_spectro`, `sfx_gate`, `sfx_fly_buzz`, `sfx_fly_swat`, `sfx_fly_oops`, `sfx_needle_open`, `sfx_needle_bin`
 - Ambiente: `amb_countryside`
+
+**Lote 2 recebido:** `sfx_back`, `sfx_click`, `sfx_hover`, `sfx_wrong` (prontos e ligados).

@@ -185,7 +185,7 @@ screen roadmap_screen():
         idle MGC_MAP_MENU_IDLE
         hover MGC_MAP_MENU_HOVER
         focus_mask True
-        action [Function(mg_map_sfx, "click"),
+        action [Function(sfx, "back"),
                 Confirm(_("Voltar ao menu principal?"), yes=Function(renpy.full_restart))]
         hovered Function(mg_map_sfx, "hover")
 

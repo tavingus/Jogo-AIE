@@ -125,7 +125,7 @@ screen mg_pause_screen():
         idle MGC_QUIT_IDLE
         hover MGC_QUIT_HOVER
         focus_mask True
-        action [Function(mgc_sfx, "click"), Return("quit")]
+        action [Function(sfx, "back"), Return("quit")]
         hovered Function(mgc_sfx, "hover")
 
     # Esc / botão direito = continuar
