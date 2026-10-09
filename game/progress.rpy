@@ -298,18 +298,46 @@ screen achievements_screen():
 
 ## -----------------------------------------------------------------------
 ## 4) CONTINUAR / AUTOSAVE
+##
+## O botão CONTINUAR só considera saves criados por ESTA versão do jogo (eles
+## levam uma marca "prog_version"). Isso evita o crash de carregar saves
+## antigos/incompatíveis ou os slots internos do Ren'Py (ex.: "_reload-1",
+## criado ao recarregar o jogo com Shift+R no modo desenvolvedor).
 ## -----------------------------------------------------------------------
 init python:
 
+    PROG_VERSION = 2   # aumente se mudar a estrutura do save e quiser invalidar os antigos
+    PROG_SLOT_RE = r"(auto-\d+|quick-\d+|\d+-\d+)$"   # só autosaves, quicksaves e saves manuais
+
+    def _prog_save_json(d):
+        """Marca todo save criado por esta versão do jogo."""
+        d["prog_version"] = PROG_VERSION
+
+    config.save_json_callbacks.append(_prog_save_json)
+
+    def prog_newest_slot():
+        """Slot do save válido mais recente, ou None se não houver nenhum."""
+        best, best_time = None, -1
+        for slot in renpy.list_slots(PROG_SLOT_RE):
+            info = renpy.slot_json(slot)
+            if not info or info.get("prog_version") != PROG_VERSION:
+                continue
+            t = renpy.slot_mtime(slot) or 0
+            if t > best_time:
+                best, best_time = slot, t
+        return best
+
     def prog_has_save():
-        """Existe algum save para o botão 'Continuar'?"""
-        return renpy.newest_slot() is not None
+        """Existe algum save válido para o botão 'Continuar'?"""
+        return prog_newest_slot() is not None
 
     def prog_continue():
-        """Carrega o save mais recente (o autosave do mapa, ou um manual)."""
-        slot = renpy.newest_slot()
-        if slot is not None:
-            renpy.load(slot)
+        """Carrega o save válido mais recente (o autosave do mapa, ou um manual)."""
+        slot = prog_newest_slot()
+        if slot is None:
+            renpy.notify(_("Nenhum jogo salvo encontrado."))
+            return
+        renpy.load(slot)
 
     def prog_autosave():
         """Salva o jogo (chamado sempre que o mapa aparece)."""
