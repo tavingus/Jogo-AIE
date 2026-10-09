@@ -399,6 +399,24 @@ init python:
     OPT_BAR_W = 580
     OPT_BAR_CENTERS = [330, 430, 530]   # música, efeitos, voz
 
+    # ---- Menu principal: 5 botões (canvas inteiro 960x540, na posição) -------
+    # IMAGEM: btn_play / btn_continue / btn_achievements / btn_options /
+    #   btn_quit  +  _idle.png e _hover.png (e btn_continue_disabled.png, para
+    #   quando não há save). Os retângulos abaixo só posicionam os PLACEHOLDERS.
+    MENU_BTN_RECTS = [(782, 464 + 116 * i, 380, 100) for i in range(5)]
+    MENU_BTN = {}
+    for _i, (_key, _label, _color, _hcolor) in enumerate([
+            ("play", "JOGAR", "#568e48", "#74b25c"),
+            ("continue", "CONTINUAR", "#568e48", "#74b25c"),
+            ("achievements", "CONQUISTAS", "#b8860b", "#e0a820"),
+            ("options", "OPÇÕES", "#486898", "#6286bc"),
+            ("quit", "SAIR", "#a54a3e", "#c8604f")]):
+        MENU_BTN[_key] = {
+            "idle": menu_opt_art("btn_%s_idle.png" % _key, MENU_BTN_RECTS[_i], _label, _color),
+            "hover": menu_opt_art("btn_%s_hover.png" % _key, MENU_BTN_RECTS[_i], _label, _hcolor),
+        }
+    MENU_BTN["continue"]["disabled"] = menu_opt_art("btn_continue_disabled.png", MENU_BTN_RECTS[1], "CONTINUAR", "#5c5c5c")
+
 
 ## Estilo das barras de volume da janela de opções (combina com a UI)
 style opt_bar is bar:
@@ -429,22 +447,57 @@ screen main_menu():
     add menu_art("images/menu_bg.png")
     add menu_art("images/game_title.png")
 
-    # Botões: focus_mask True faz só os pixels opacos do botão reagirem ao
-    # mouse (já que cada imagem cobre a tela inteira).
+    # Existe save para o botão CONTINUAR? (autosave do mapa ou save manual)
+    $ can_continue = prog_has_save()
+
+    # Botões (5), de cima para baixo: JOGAR, CONTINUAR, CONQUISTAS, OPÇÕES, SAIR.
+    # focus_mask True faz só os pixels opacos do botão reagirem ao mouse.
+    # Se o PNG não existir, aparece um placeholder na posição MENU_BTN_RECTS.
+
+    # JOGAR = NOVO JOGO (zera o progresso e passa pela introdução). Se já
+    # existe um save, pede confirmação. Start() sai do contexto do menu.
     imagebutton:
-        idle menu_art("images/btn_play_idle.png")
-        hover menu_art("images/btn_play_hover.png")
+        idle MENU_BTN["play"]["idle"]
+        hover MENU_BTN["play"]["hover"]
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),
-            Stop("music", fadeout=1.0),   # fade out da música do menu
-            Jump("intro"),                # segue para a introdução
+            If(can_continue,
+               Confirm(_("Começar um novo jogo? O botão Continuar passará a usar o novo progresso."),
+                       yes=[Stop("music", fadeout=1.0), Start("novo_jogo")]),
+               [Stop("music", fadeout=1.0), Start("novo_jogo")]),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
+    # CONTINUAR = carrega o save mais recente (apagado se não houver save)
     imagebutton:
-        idle menu_art("images/btn_options_idle.png")
-        hover menu_art("images/btn_options_hover.png")
+        idle MENU_BTN["continue"]["idle"]
+        hover MENU_BTN["continue"]["hover"]
+        insensitive MENU_BTN["continue"]["disabled"]
+        focus_mask True
+        sensitive can_continue
+        action [
+            Play("sound", "audio/sfx_click.ogg"),
+            Stop("music", fadeout=1.0),
+            Function(prog_continue),
+        ]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    # CONQUISTAS
+    imagebutton:
+        idle MENU_BTN["achievements"]["idle"]
+        hover MENU_BTN["achievements"]["hover"]
+        focus_mask True
+        action [
+            Play("sound", "audio/sfx_click.ogg"),
+            Show("achievements_screen"),
+        ]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    # OPÇÕES
+    imagebutton:
+        idle MENU_BTN["options"]["idle"]
+        hover MENU_BTN["options"]["hover"]
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),
@@ -452,9 +505,10 @@ screen main_menu():
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
+    # SAIR
     imagebutton:
-        idle menu_art("images/btn_quit_idle.png")
-        hover menu_art("images/btn_quit_hover.png")
+        idle MENU_BTN["quit"]["idle"]
+        hover MENU_BTN["quit"]["hover"]
         focus_mask True
         action [
             Play("sound", "audio/sfx_click.ogg"),

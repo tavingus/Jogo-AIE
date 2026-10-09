@@ -1,11 +1,12 @@
 ################################################################################
 # ROADMAP.RPY
-# Mapa de desafios ("roadmap"): trilha com os 10 minigames, progresso GLOBAL
-# (tipo conquista — independe de qual save você carrega) e desbloqueio
-# sequencial. Minigames já concluídos continuam clicáveis (rejogáveis).
+# Mapa de desafios ("roadmap"): trilha com os 10 minigames e desbloqueio
+# sequencial. O PROGRESSO (liberado / concluído / medalha) é POR SAVE e mora
+# em progress.rpy; as conquistas são globais. Minigames já concluídos
+# continuam clicáveis (rejogáveis).
 #
 # Fluxo:
-#   Menu -> Introdução -> label roadmap (este arquivo)
+#   Menu -> Novo jogo -> Introdução (intro.rpy) -> label roadmap (este arquivo)
 #     -> jogador clica num nó desbloqueado
 #     -> chama "label minigame_N_entry" (dentro de minigameN.rpy)
 #     -> ao voltar, o roadmap é redesenhado com o progresso atualizado
@@ -19,87 +20,14 @@
 
 
 ## -----------------------------------------------------------------------
-## 1) PROGRESSO (persistent = global, sobrevive a qualquer save/novo jogo)
+## 1) PROGRESSO
+##    Agora mora em progress.rpy (por save): mg_complete, mg_report_score,
+##    mg_node_state ("locked" / "unlocked" / "done" / "perfect"), conquistas
+##    e autosave. Os minigames continuam chamando as mesmas funções.
 ## -----------------------------------------------------------------------
 init python:
 
     import math
-
-    MG_TOTAL = 10  # total de minigames no mapa
-
-    # persistent.mg_unlocked = número do minigame mais avançado já liberado.
-    # Começa em 1 (só o primeiro nó liberado) na primeiríssima vez que o
-    # jogo roda nesta máquina; depois disso o valor já salvo é reaproveitado.
-    if persistent.mg_unlocked is None:
-        persistent.mg_unlocked = 1
-
-    # persistent.mg_completed[i] = True se o minigame (i+1) já foi concluído
-    # ao menos uma vez (controla o selo de "concluído" no nó, não o bloqueio).
-    if persistent.mg_completed is None:
-        persistent.mg_completed = [False] * MG_TOTAL
-
-    def mg_complete(n):
-        """Chame ao final de cada minigame: '$ mg_complete(N)'.
-        Marca o minigame N como concluído e libera o N+1, se for o caso."""
-        persistent.mg_completed[n - 1] = True
-        if persistent.mg_unlocked == n:
-            persistent.mg_unlocked = min(persistent.mg_unlocked + 1, MG_TOTAL)
-
-    def mg_node_state(n):
-        """'locked' / 'unlocked' / 'done' para o nó do minigame n."""
-        if n > persistent.mg_unlocked:
-            return "locked"
-        elif persistent.mg_completed[n - 1]:
-            return "done"
-        else:
-            return "unlocked"
-
-
-## -----------------------------------------------------------------------
-## 1.5) PONTUAÇÃO E MEDALHAS (também persistent = global)
-##
-## A pontuação é individual por minigame, NÃO cumulativa no jogo todo.
-## Cada minigame com pontuação chama "mg_report_score(N, pontos, max_pontos)"
-## ANTES de "mg_complete(N)". Minigames sem pontuação (ex.: o 1, por enquanto)
-## continuam chamando só "mg_complete(N)" normalmente — nada muda para eles.
-##
-## Medalha de minigame = tirou a pontuação máxima dele ALGUMA VEZ (mesmo que
-## uma partida depois seja pior, a medalha já conquistada não é perdida).
-## Medalha de maestria = as 10 medalhas de minigame foram conquistadas.
-## -----------------------------------------------------------------------
-init python:
-
-    # persistent.mg_scores[i]     = pontuação da ÚLTIMA partida do minigame (i+1)
-    # persistent.mg_max_scores[i] = pontuação máxima possível do minigame (i+1)
-    #                               (cada minigame informa a sua própria, pode
-    #                               mudar se você rebalancear o jogo depois)
-    # persistent.mg_medals[i]     = True = já tirou nota máxima no minigame (i+1)
-    # persistent.mg_mastery       = True = as 10 medalhas de minigame foram conquistadas
-    if persistent.mg_scores is None:
-        persistent.mg_scores = [0] * MG_TOTAL
-    if persistent.mg_max_scores is None:
-        persistent.mg_max_scores = [0] * MG_TOTAL
-    if persistent.mg_medals is None:
-        persistent.mg_medals = [False] * MG_TOTAL
-    if persistent.mg_mastery is None:
-        persistent.mg_mastery = False
-
-    def mg_report_score(n, score, max_score):
-        """Chame ao final de um minigame COM pontuação, antes de mg_complete(n):
-        '$ mg_report_score(N, pontos_obtidos, pontos_maximos_possiveis)'.
-        Registra o placar da última partida e concede a medalha de perfeição
-        (e, se for o caso, a de maestria) quando a pontuação é máxima."""
-        persistent.mg_scores[n - 1] = score
-        persistent.mg_max_scores[n - 1] = max_score
-
-        if max_score > 0 and score >= max_score:
-            persistent.mg_medals[n - 1] = True
-            if all(persistent.mg_medals):
-                persistent.mg_mastery = True
-
-    def mg_has_medal(n):
-        """A medalha de pontuação perfeita do minigame n já foi conquistada?"""
-        return persistent.mg_medals[n - 1]
 
 
 ## -----------------------------------------------------------------------
@@ -113,6 +41,10 @@ init python:
 ##   images/roadmap/node_N_unlocked.png   nó N jogável
 ##   images/roadmap/node_N_done.png       nó N concluído (OPCIONAL: se não
 ##                                        existir, usa node_N_unlocked.png)
+##   images/roadmap/node_N_perfect.png    nó N com PONTUAÇÃO MÁXIMA / medalha
+##                                        (OPCIONAL: se não existir, usa
+##                                        node_N_done.png e depois _unlocked)
+##   (cada um aceita também a versão "_hover": node_N_perfect_hover.png etc.)
 ##
 ## Cada PNG de nó é um canvas INTEIRO de 960x540 com o nó já desenhado na
 ## posição certa (como no menu principal). Por isso a arte real é desenhada em
@@ -158,15 +90,17 @@ init python:
     # dos nós já existe (a trilha provavelmente já vem desenhada no map_bg).
     MAP_SHOW_CONNECTORS = not renpy.loadable(MAP_ART_DIR + "node_1_unlocked.png")
 
-    MAP_NODE_COLORS = {"locked": "#3a3a3a", "unlocked": "#2c6e8a", "done": "#2e7d32"}
-    MAP_NODE_COLORS_HOVER = {"locked": "#3a3a3a", "unlocked": "#3f93b8", "done": "#3fa845"}
+    MAP_NODE_COLORS = {"locked": "#3a3a3a", "unlocked": "#2c6e8a", "done": "#2e7d32", "perfect": "#b8860b"}
+    MAP_NODE_COLORS_HOVER = {"locked": "#3a3a3a", "unlocked": "#3f93b8", "done": "#3fa845", "perfect": "#e0a820"}
 
     def map_node_file(n, state):
         """Nome do PNG a usar para o nó n no estado dado, ou None se não há
-        arte real (aí o nó usa o placeholder). 'done' sem arte própria
-        reaproveita a 'unlocked'."""
+        arte real (aí o nó usa o placeholder). 'perfect' sem arte própria
+        reaproveita a 'done', e 'done' reaproveita a 'unlocked'."""
         candidates = [state]
-        if state == "done":
+        if state == "perfect":
+            candidates += ["done", "unlocked"]
+        elif state == "done":
             candidates.append("unlocked")
         for st in candidates:
             filename = "node_%d_%s.png" % (n, st)
@@ -217,20 +151,6 @@ init python:
         if path and renpy.loadable(path):
             renpy.sound.play(path)
 
-    def mg_map_sanitize():
-        """Garante que o progresso salvo tem o formato esperado (evita erro se
-        o persistent foi mexido à mão ou veio de uma versão antiga)."""
-        if not isinstance(persistent.mg_unlocked, int) or persistent.mg_unlocked < 1:
-            persistent.mg_unlocked = 1
-        persistent.mg_unlocked = min(persistent.mg_unlocked, MG_TOTAL)
-        for name, default in (("mg_completed", False), ("mg_scores", 0),
-                              ("mg_max_scores", 0), ("mg_medals", False)):
-            lst = getattr(persistent, name)
-            if not isinstance(lst, list):
-                lst = []
-            lst = list(lst)[:MG_TOTAL] + [default] * (MG_TOTAL - len(lst))
-            setattr(persistent, name, lst)
-
 
 ## -----------------------------------------------------------------------
 ## 3) TELA DO MAPA
@@ -247,8 +167,17 @@ screen roadmap_screen():
         size 40
         color "#ffffff"
 
+    # Medalhas (pontuação máxima) conquistadas neste save
+    $ medals_now = mg_medal_count()
+    $ medals_total = MG_IMPLEMENTED
+    text _("Medalhas: [medals_now]/[medals_total]"):
+        xalign 0.97
+        ypos 40
+        size 34
+        color "#ffffff"
+
     # Botão "Menu principal" (arte em mg_common.rpy: common/mapa_menu_*.png).
-    # Pede confirmação antes de sair; o progresso do mapa é global (persistent).
+    # Pede confirmação antes de sair; o progresso fica no save (use Continuar).
     # (Não usa MainMenu(): o jogo é iniciado no menu com Jump("intro"), e por
     # isso roda dentro do contexto do menu principal, onde MainMenu() não faz
     # nada. renpy.full_restart funciona em qualquer contexto.)
@@ -314,14 +243,16 @@ screen roadmap_screen():
 ## -----------------------------------------------------------------------
 label roadmap:
 
-    $ mg_map_sanitize()
     $ quick_menu = True
 
-    call screen roadmap_screen
+    # Salva sozinho toda vez que o mapa aparece (é o "Continuar" do menu)
+    $ prog_autosave()
+
+    call screen roadmap_screen with Dissolve(0.5)
     $ chosen = _return
 
-    # Trava extra: nó bloqueado nunca abre
-    if chosen and chosen <= persistent.mg_unlocked:
+    # Trava extra: nó bloqueado ou ainda sem minigame nunca abre
+    if chosen and chosen <= mg_unlocked and chosen <= MG_IMPLEMENTED:
         # Chama "label minigame_<chosen>_entry" dinamicamente.
         # Esse label mora dentro de minigame<chosen>.rpy e é responsável por
         # mostrar as instruções, rodar o gameplay e chamar mg_complete(chosen).

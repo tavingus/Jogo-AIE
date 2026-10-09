@@ -66,6 +66,18 @@ init python:
     MG1_MARK_CORRECT = False   # True = pinta de verde a categoria já correta (bom p/ testar)
     MG1_WIN_DELAY = 1.5        # segundos mostrando "correto" antes de encerrar
 
+    # ---- Pontuação (sem timers) -----------------------------------------
+    # ERRO = clicar numa opção (ou na morfologia) que JÁ ESTAVA CERTA, tirando-a
+    # do lugar. Acertou tudo sem nenhum erro = pontuação máxima (medalha).
+    #   0 erros = 100 | 1 = 80 | 2 = 60 | 3 = 40
+    #   4 ou mais erros = "Muitos erros!": a rodada acaba na hora e o minigame
+    #   NÃO é concluído (nem "done"), é preciso tentar de novo.
+    MG1_MAX_SCORE = 100
+    MG1_ERROR_PENALTY = 20     # pontos perdidos por erro
+    MG1_MAX_ERRORS = 3         # com o 4º erro a rodada falha
+    MG1_ERRORS_POS = (900, 60) # contador "Erros: n/3" (texto escrito pelo jogo)
+    MG1_FAIL_DELAY = 2.0       # segundos mostrando "muitos erros" antes de sair
+
     # ---- Morfologia -----------------------------------------------------
     # Arquivos em game/images/minigame1/ (a ordem é a ordem do ciclo de cliques)
     MG1_MORPH_FILES = [
@@ -208,6 +220,11 @@ init python:
     # (510, 390, 900, 300) só posiciona o placeholder, no centro da tela).
     MG1_SUCCESS = mg1_full_art("mg1_success.png", (510, 390, 900, 300), "CLASSIFICAÇÃO CORRETA!\n(mg1_success.png)", "#2e7d32")
 
+    # IMAGEM: minigame1/mg1_fail.png — banner exibido quando o jogador erra
+    # demais (4 erros ou mais). CANVAS INTEIRO 960x540, banner já na posição
+    # (o retângulo (510, 390, 900, 300) só posiciona o placeholder).
+    MG1_FAIL = mg1_full_art("mg1_fail.png", (510, 390, 900, 300), "MUITOS ERROS!\nTente de novo\n(mg1_fail.png)", "#8a2c2c")
+
     # ---- Efeitos sonoros (só tocam se o arquivo existir) ---------------
     def mg1_sfx(kind):
         # AUDIO: audio/sfx_hover.ogg, audio/sfx_click.ogg (já usados no menu)
@@ -216,6 +233,7 @@ init python:
             "hover": "audio/sfx_hover.ogg",
             "click": "audio/sfx_click.ogg",
             "win": "audio/sfx_win.ogg",
+            "wrong": "audio/sfx_wrong.ogg",
         }
         path = files.get(kind)
         if path and renpy.loadable(path):
@@ -226,6 +244,8 @@ init python:
 default mg1_morph_index = 0   # morfologia atualmente exibida
 default mg1_cat_indices = []  # opção atual de cada categoria (mesma ordem de MG1_CATEGORIES)
 default mg1_won = False       # True quando tudo estiver correto
+default mg1_errors = 0        # erros desta rodada (clicar em algo que já estava certo)
+default mg1_failed = False    # True quando errou demais (rodada perdida)
 
 
 init python:
@@ -233,9 +253,11 @@ init python:
     def mg1_reset():
         """Prepara uma nova partida: sorteia um ponto de partida ERRADO para
         a morfologia e para cada categoria (o jogador nunca começa já certo)."""
-        global mg1_morph_index, mg1_cat_indices, mg1_won
+        global mg1_morph_index, mg1_cat_indices, mg1_won, mg1_errors, mg1_failed
 
         mg1_won = False
+        mg1_errors = 0
+        mg1_failed = False
 
         wrong_morphs = [i for i in range(len(MG1_MORPH_FILES)) if i != MG1_MORPH_CORRECT]
         mg1_morph_index = renpy.random.choice(wrong_morphs)
@@ -260,19 +282,35 @@ init python:
         mg1_won = True
         mg1_sfx("win")
 
+    def mg1_register_error():
+        """Conta um erro; com o (MG1_MAX_ERRORS + 1)º erro a rodada falha."""
+        global mg1_errors, mg1_failed
+        mg1_errors += 1
+        mg1_sfx("wrong")
+        if mg1_errors > MG1_MAX_ERRORS:
+            mg1_failed = True
+
+    def mg1_score():
+        """Pontuação desta rodada (0 erros = máxima)."""
+        return max(0, MG1_MAX_SCORE - mg1_errors * MG1_ERROR_PENALTY)
+
     def mg1_click_morph():
         """Clique na imagem da esquerda: passa para a próxima morfologia."""
         global mg1_morph_index
-        if mg1_won:
+        if mg1_won or mg1_failed:
             return
+        if mg1_morph_index == MG1_MORPH_CORRECT:
+            mg1_register_error()      # tirou do lugar uma morfologia que já estava certa
         mg1_morph_index = (mg1_morph_index + 1) % len(MG1_MORPH_FILES)
         mg1_sfx("click")
         mg1_check_win()
 
     def mg1_click_category(i):
         """Clique em uma categoria: passa para a próxima opção dela (em ciclo)."""
-        if mg1_won:
+        if mg1_won or mg1_failed:
             return
+        if mg1_is_correct(i):
+            mg1_register_error()      # tirou do lugar uma opção que já estava certa
         total = len(MG1_CATEGORIES[i]["files"])
         mg1_cat_indices[i] = (mg1_cat_indices[i] + 1) % total
         mg1_sfx("click")
@@ -405,8 +443,18 @@ screen minigame1_gameplay():
                 size 34
                 color "#1f8f2f"
 
+    # ---- Contador de erros (texto escrito pelo jogo) --------------------
+    $ errors_now = mg1_errors
+    $ errors_max = MG1_MAX_ERRORS
+    text _("Erros: [errors_now]/[errors_max]"):
+        pos MG1_ERRORS_POS
+        size 32
+        color ("#ffb3b3" if mg1_errors > 0 else "#ffffff")
+
     # ---- Vitória: bloqueia cliques, mostra o selo e encerra sozinho -----
     if mg1_won:
+        $ final_score = mg1_score()
+        $ final_max = MG1_MAX_SCORE
         button:
             xfill True
             yfill True
@@ -415,7 +463,25 @@ screen minigame1_gameplay():
 
         add MG1_SUCCESS
 
+        text _("Pontuação: [final_score] / [final_max]"):
+            xalign 0.5
+            ypos 780
+            size 40
+            color "#ffffff"
+
         timer MG1_WIN_DELAY action Return(True)
+
+    # ---- Derrota: erros demais, a rodada acaba e o minigame não conclui ---
+    if mg1_failed:
+        button:
+            xfill True
+            yfill True
+            background "#00000099"
+            action NullAction()
+
+        add MG1_FAIL
+
+        timer MG1_FAIL_DELAY action Return(True)
 
 
 ## -----------------------------------------------------------------------
@@ -443,6 +509,9 @@ label minigame_1_entry:
     call screen minigame1_instructions
     call minigame_1_gameplay
 
-    $ mg_complete(1)  # marca o minigame 1 como concluído e libera o 2 (definido em roadmap.rpy)
+    # Errou demais (4 ou mais erros): não conclui, volta ao mapa e é só tentar de novo
+    if not mg1_failed:
+        $ mg_report_score(1, mg1_score(), MG1_MAX_SCORE)  # pontuação máxima = medalha (definido em progress.rpy)
+        $ mg_complete(1)  # marca o minigame 1 como concluído e libera o 2
 
     return
