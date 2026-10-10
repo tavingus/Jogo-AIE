@@ -96,18 +96,18 @@ init python:
         (_("Anticorpo anti-hemaglutinina"), False,
          _("Não encaixa: a hemaglutinina é uma proteína do vírus da influenza equina, outro vírus, e não do vírus da AIE.")),
         (_("Anticorpo anti-p26"), True,
-         _("Encaixou! O anti-p26 reconhece a p26, proteína do capsídeo do vírus da AIE (EIAV).")),
+         _("Encaixou! O anti-p26 reconhece a p26, proteína do capsídeo do vírus da AIE. É o principal anticorpo detectado pelo IDGA.")),
         (_("Anticorpo anti-gp90"), True,
-         _("Encaixou! O anti-gp90 reconhece a gp90, glicoproteína do envelope do vírus da AIE.")),
+         _("Encaixou! O anti-gp90 reconhece a gp90, glicoproteína do envelope do vírus da AIE. Ela existe no vírus, mas não é o alvo principal dos testes de rotina.")),
         (_("Anticorpo anti-glicoproteína"), False,
          _("Não encaixa: essa glicoproteína é do herpesvírus equino, outro vírus, e o anticorpo não reconhece o antígeno da AIE.")),
         (_("Anticorpo anti-gp45"), True,
-         _("Encaixou! O anti-gp45 reconhece a gp45, glicoproteína transmembrana do vírus da AIE.")),
+         _("Encaixou! O anti-gp45 reconhece a gp45, glicoproteína transmembrana do vírus da AIE. Alguns kits de ELISA também usam a gp45 como antígeno.")),
         (_("Anticorpo anti-proteína E"), False,
          _("Não encaixa: a proteína E é do vírus do Nilo Ocidental, não do vírus da AIE.")),
     ]
     MG4_DOCK_TOTAL = sum(1 for c in MG4_CANDIDATES if c[1])
-    MG4_COMPLEX_FEEDBACK = _("Imunocomplexo formado! É ele que os testes detectam: no IDGA ele aparece como uma linha de precipitação no gel; no ELISA, é revelado por uma reação de cor.")
+    MG4_COMPLEX_FEEDBACK = _("Imunocomplexo formado! Os testes procuram os anticorpos do cavalo: o IDGA detecta principalmente o anti-p26, que forma uma linha de precipitação no gel; o ELISA revela a ligação por uma reação de cor.")
 
     # ---- Fases 2, 3 e 4: campos ---------------------------------------------
     # Cada campo: "id", "label" (só no placeholder), "answer" (índice da opção
