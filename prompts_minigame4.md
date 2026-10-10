@@ -36,6 +36,8 @@ Mapeamento (a ordem dos encaixes é de cima para baixo):
 | — | ◆ losango | `anticorpo_4` (errado) |
 | — | ☾ meia-lua | `anticorpo_6` (errado) |
 
+**Cores das pontas (as mesmas dos cartões de teste do jogo):** 1 ★ amarelo · 2 ▲ roxo · 3 ● laranja · 4 ◆ verde · 5 ■ vermelho · 6 ☾ rosa. Corpo do Y: azul-claro `#cfe4f5` com sombra `#8fb8dc`.
+
 ---
 
 ## 2. FASE 1 — Imunocomplexo (mundo microscópico)
