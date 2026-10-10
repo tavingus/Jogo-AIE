@@ -84,8 +84,8 @@ init python:
     MG5_RULE_POS = (1020, 478)                        # regra de validade
     MG5_COUNTER_POS = (60, 40)                        # "Cavalo n/5"
     MG5_SCORE_POS = (60, 90)                          # "Pontos: N"
-    MG5_REASON_POS = (60, 330)                        # motivo (tela de feedback)
-    MG5_REASON_W = 860
+    MG5_REASON_POS = (130, 950)                       # motivo (tela de feedback): embaixo, à direita do botão de pausa
+    MG5_REASON_W = 820
     MG5_RESULT_SCORE_POS = (960, 470)                 # "Pontuação: N / M" (centralizado)
     MG5_RESULT_VERDICT_POS = (960, 560)               # frase final (centralizada)
 
@@ -473,6 +473,7 @@ screen minigame5_feedback():
         size 28
         xmaximum MG5_REASON_W
         color ("#b9f5b9" if mg5_last_ok else "#ffb3b3")
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     imagebutton:
         idle MG5_NEXT_IDLE
