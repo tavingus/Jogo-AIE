@@ -70,7 +70,7 @@ Observação: **a numeração da grade = números dos arquivos** `anticorpo_1…
 [STYLE MASTER]
 Using the attached virus and antibody designs exactly, on a flat solid #00FF00 background: the purple virus on the left with THREE pale-blue Y antibodies attached to its three right-side sockets (top: triangle tip fitted in the triangle socket, middle: circle tip in the circle socket, bottom: square tip in the square socket), the antibody bodies extending to the right. Small happy sparkle pixels and a soft golden glow around the junctions to show the immune complex is formed. Clean, centered, no text.
 ```
-Use essa imagem para `mg4_complexo.png` (região ≈ x 70–380, y 140–380) e **recorte um antibody de cada vez** do mesmo desenho para `acoplado_2/3/5.png` (cada um na posição do seu encaixe: x 150–260; y 165, 235, 305).
+Use essa imagem para montar o **fundo inteiro** `mg4_bg_complexo.png` (960x540: a mesma cena do `mg4_bg_dock`, só que com o vírus e os 3 anticorpos acoplados e o brilho; ele substitui o fundo da fase 1 quando o complexo se forma). E **recorte um anticorpo de cada vez** do mesmo desenho para `acoplado_2/3/5.png` (cada um na posição do seu encaixe: x 150–260; y 165, 235, 305).
 
 ---
 

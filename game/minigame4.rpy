@@ -245,8 +245,7 @@ init python:
     # marca um anticorpo errado já tentado. 6 arquivos.
     # IMAGEM: minigame4/acoplado_<n>.png — o anticorpo <n> ENCAIXADO no antígeno
     # (à esquerda), só para os 3 que encaixam: <n> = 2, 3 e 5. Fundo transparente.
-    # IMAGEM: minigame4/mg4_complexo.png — o imunocomplexo formado (antígeno +
-    # anticorpos em rede), mostrado quando os 3 estiverem acoplados. Fundo transparente.
+    # (O imunocomplexo formado agora é um FUNDO inteiro: mg4_bg_complexo.png, abaixo.)
     MG4_CAND_ART = [
         mg4_art("anticorpo_%d.png" % (n + 1), mg4_cand_rect(n),
                 "%s\n(anticorpo_%d.png)" % (c[0], n + 1), "#4a4a4a")
@@ -261,7 +260,16 @@ init python:
             MG4_DOCKED_ART[_n] = mg4_art("acoplado_%d.png" % (_n + 1), MG4_SITE_RECTS[_site],
                                          "ENCAIXADO\n(acoplado_%d.png)" % (_n + 1), "#2c6e8a")
             _site += 1
-    MG4_COMPLEX_ART = mg4_art("mg4_complexo.png", MG4_COMPLEX_RECT, "IMUNOCOMPLEXO FORMADO\n(mg4_complexo.png)", "#2e7d32", fill=False)
+    # IMAGEM: minigame4/mg4_bg_complexo.png — FUNDO CHEIO da fase 1 com o
+    # imunocomplexo já formado (vírus + os 3 anticorpos acoplados, brilho etc.).
+    # Quando o jogador acopla o último anticorpo certo, este fundo SUBSTITUI o
+    # mg4_bg_dock.png (e os acoplado_N deixam de ser desenhados). Canvas 960x540,
+    # com a mesma cena do mg4_bg_dock (só o vírus acoplado muda). Se o PNG não
+    # existir, vale o esquema antigo: acoplado_N + um aviso placeholder.
+    MG4_BG_COMPLEX_REAL = renpy.loadable(MG4_ART_DIR + "mg4_bg_complexo.png")
+    MG4_BG_COMPLEX = mg4_art("mg4_bg_complexo.png", (0, 0, 1920, 1080),
+                             "FUNDO: IMUNOCOMPLEXO FORMADO\n(mg4_bg_complexo.png)", "#2e5a3a")
+    MG4_COMPLEX_ART = mg4_art("mg4_bg_complexo.png", MG4_COMPLEX_RECT, "IMUNOCOMPLEXO FORMADO\n(mg4_bg_complexo.png)", "#2e7d32", fill=False)
 
     # IMAGEM: minigame4/<campo>_<estado>.png — cada campo das fases 2, 3 e 4
     # (moldura + texto já desenhados), na posição do campo. <campo> = idga_1,
@@ -569,8 +577,13 @@ screen minigame4_gameplay():
 
     $ step = MG4_STEPS[min(mg4_step, len(MG4_STEPS) - 1)]
 
-    # Fundo da fase atual (cena à esquerda)
-    add MG4_BG[step["id"]]
+    # Fundo da fase atual (cena à esquerda). Na fase 1, com o imunocomplexo
+    # formado, entra o fundo mg4_bg_complexo (se existir).
+    $ complex_bg = (step["id"] == "dock" and len(mg4_docked) >= MG4_DOCK_TOTAL and MG4_BG_COMPLEX_REAL)
+    if complex_bg:
+        add MG4_BG_COMPLEX
+    else:
+        add MG4_BG[step["id"]]
 
     # Pontuação atual (texto que muda)
     text _("Pontos: [mg4_score]"):
@@ -605,12 +618,14 @@ screen minigame4_gameplay():
                         add MG4_CAND_WRONG[n]
 
             # Anticorpos já encaixados no antígeno (à esquerda)
-            for n in mg4_docked:
-                add MG4_DOCKED_ART[n]
+            if not complex_bg:
+                for n in mg4_docked:
+                    add MG4_DOCKED_ART[n]
 
             # Imunocomplexo formado + botão Continuar
             if len(mg4_docked) >= MG4_DOCK_TOTAL:
-                add MG4_COMPLEX_ART
+                if not complex_bg:
+                    add MG4_COMPLEX_ART
                 imagebutton:
                     idle MG4_NEXT_IDLE
                     hover MG4_NEXT_HOVER
