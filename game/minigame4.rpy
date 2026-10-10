@@ -94,8 +94,8 @@ init python:
     MG4_ELISA_SHOW_CUTOFF = True      # o texto "Ponto de corte = ..." continua na tela
     MG4_ELISA_FIXED = {
         "c_neg": 0.08,                      # controle negativo (C-)
-        "c_pos": 1.25,                      # controle positivo (C+)
-        "samples": [0.09, 0.95, 0.12, 0.78],   # amostras 1 a 4 (1 = Golias)
+        "c_pos": 1.41,                      # controle positivo (C+)
+        "samples": [0.05, 1.15, 0.78, 0.09],   # amostras 1 a 4 (1 = Golias)
     }
     MG4_RESULT_SCORE_POS = (960, 470)                # "Pontuação: N / M" (centralizado)
     MG4_RESULT_VERDICT_POS = (960, 560)              # frase final (centralizada)
