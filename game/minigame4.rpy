@@ -82,6 +82,21 @@ init python:
     MG4_CUTOFF_POS = (60, 840)                       # ELISA: ponto de corte
     # ELISA: centro do valor de DO de cada poço (C-, C+, A1, A2, A3, A4)
     MG4_OD_POS = [(160 + i * 140, 700) for i in range(6)]
+
+    # ---- ELISA: valores embutidos na arte ---------------------------------
+    # Se os números de DO já estão DESENHADOS no mg4_bg_elisa.png, ponha
+    # MG4_ELISA_SHOW_OD = False (o jogo para de escrevê-los) e preencha
+    # MG4_ELISA_FIXED com EXATAMENTE os mesmos valores da arte: o jogo usa
+    # esses valores (e não mais sorteados) para decidir o que é positivo ou
+    # negativo e para escrever as explicações. A amostra 1 (Golias) deve ser
+    # negativa. Ponto de corte = DO do controle negativo + 0,20.
+    MG4_ELISA_SHOW_OD = False
+    MG4_ELISA_SHOW_CUTOFF = True      # o texto "Ponto de corte = ..." continua na tela
+    MG4_ELISA_FIXED = {
+        "c_neg": 0.08,                      # controle negativo (C-)
+        "c_pos": 1.25,                      # controle positivo (C+)
+        "samples": [0.09, 0.95, 0.12, 0.78],   # amostras 1 a 4 (1 = Golias)
+    }
     MG4_RESULT_SCORE_POS = (960, 470)                # "Pontuação: N / M" (centralizado)
     MG4_RESULT_VERDICT_POS = (960, 560)              # frase final (centralizada)
 
@@ -369,21 +384,28 @@ init python:
             answers.append([f["answer"] for f in st["fields"]] if n else [])
             hints.append([f["hint"] for f in st["fields"]] if n else [])
 
-        # ---- ELISA: DO sorteadas; a amostra 1 (Golias) é sempre negativa ----
-        c_neg = round(renpy.random.uniform(0.04, 0.10), 2)
-        c_pos = round(renpy.random.uniform(1.00, 1.60), 2)
-        cutoff = round(c_neg + 0.20, 2)
-        positives = [False, True, False, True]        # amostras 1..4 (1 = Golias)
-        extra = [renpy.random.choice([True, False]) for k in range(2)]
-        positives[2], positives[3] = extra
-        if not any(positives):
-            positives[3] = True
-        ods = []
-        for pos in positives:
-            if pos:
-                ods.append(round(renpy.random.uniform(0.55, 1.40), 2))
-            else:
-                ods.append(round(renpy.random.uniform(0.05, 0.15), 2))
+        # ---- ELISA: valores fixos (embutidos na arte) ou sorteados ---------
+        if not MG4_ELISA_SHOW_OD:
+            c_neg = MG4_ELISA_FIXED["c_neg"]
+            c_pos = MG4_ELISA_FIXED["c_pos"]
+            ods = list(MG4_ELISA_FIXED["samples"])
+            cutoff = round(c_neg + 0.20, 2)
+        else:
+            # sorteados; a amostra 1 (Golias) é sempre negativa
+            c_neg = round(renpy.random.uniform(0.04, 0.10), 2)
+            c_pos = round(renpy.random.uniform(1.00, 1.60), 2)
+            cutoff = round(c_neg + 0.20, 2)
+            positives = [False, True, False, True]        # amostras 1..4 (1 = Golias)
+            extra = [renpy.random.choice([True, False]) for k in range(2)]
+            positives[2], positives[3] = extra
+            if not any(positives):
+                positives[3] = True
+            ods = []
+            for pos in positives:
+                if pos:
+                    ods.append(round(renpy.random.uniform(0.55, 1.40), 2))
+                else:
+                    ods.append(round(renpy.random.uniform(0.05, 0.15), 2))
 
         es = [s["id"] for s in MG4_STEPS].index("elisa")
         for f, od in enumerate(ods):
@@ -642,7 +664,7 @@ screen minigame4_gameplay():
 
             # ELISA: valores de DO e ponto de corte escritos pelo jogo
             if step["id"] == "elisa":
-                for i in range(len(mg4_od)):
+                for i in range(len(mg4_od) if MG4_ELISA_SHOW_OD else 0):
                     $ od_text = mg4_od[i]
                     text "[od_text]":
                         pos MG4_OD_POS[i]
@@ -650,10 +672,11 @@ screen minigame4_gameplay():
                         size 32
                         bold True
                         color "#ffffff"
-                text "[mg4_cutoff!t]":
-                    pos MG4_CUTOFF_POS
-                    size 28
-                    color "#ffe9a3"
+                if MG4_ELISA_SHOW_CUTOFF:
+                    text "[mg4_cutoff!t]":
+                        pos MG4_CUTOFF_POS
+                        size 28
+                        color "#ffe9a3"
 
             for f in range(len(step["fields"])):
 
