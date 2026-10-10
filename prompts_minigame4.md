@@ -22,11 +22,21 @@ Regras visuais para tudo ficar da mesma família:
 - **Lúdico, não gore:** o vírus é um "monstrinho" redondo com espinhos e uma carinha neutra (olhos pequenos) ou sem rosto, nunca assustador.
 - **Sprites e fundos separados** (a IA erra posições exatas): gere fundos vazios e sprites em fundo verde `#00FF00`; você posiciona no Aseprite pelas coordenadas.
 
-### Regra de ouro da fase 1: a arte NÃO pode entregar a resposta
-O desafio é **saber** quais anticorpos reconhecem o vírus da AIE (anti-p26, anti-gp90, anti-gp45), lendo o nome. Por isso:
-- **Os 6 anticorpos são visualmente IDÊNTICOS** (mesmo Y, mesmas cores, mesmas pontas). Só o **texto** do cartão diferencia.
-- **O vírus tem 3 encaixes iguais** (todos do mesmo formato), sem formas diferentes.
-- O "encaixar" só aparece **depois** do clique, nas artes `acoplado_*` e `mg4_complexo` (e, se errar, no overlay vermelho `mg4_errado_*`).
+### A mecânica "chave e fechadura" da fase 1 (ideia de design)
+O vírus (antígeno) tem **3 encaixes de formas diferentes**: ▲ triângulo, ● círculo, ■ quadrado. Cada anticorpo tem uma **ponta colorida com uma forma**. Os 3 anticorpos corretos (os nº 2, 3 e 5) têm as pontas **▲ ● ■** que **combinam** com os encaixes; os 3 errados (nº 1, 4 e 6) têm formas que **não existem no vírus** (estrela ★, losango ◆, meia-lua ☾). Assim o jogador descobre a ideia de especificidade antígeno–anticorpo brincando. **Os cartões NÃO levam nome de doença nem de proteína** (isso entregaria a resposta e vira prova de leitura): só a imagem do anticorpo, sem texto. Os nomes (anti-p26, anti-gp90 etc.) aparecem apenas na explicação depois do clique.
+
+Mapeamento (a ordem dos encaixes é de cima para baixo):
+
+| Encaixe do vírus | Forma | Anticorpo que encaixa |
+|---|---|---|
+| 1 (alto) | ▲ triângulo | `anticorpo_2` (anti-p26) |
+| 2 (meio) | ● círculo | `anticorpo_3` (anti-gp90) |
+| 3 (baixo) | ■ quadrado | `anticorpo_5` (anti-gp45) |
+| — | ★ estrela | `anticorpo_1` (errado) |
+| — | ◆ losango | `anticorpo_4` (errado) |
+| — | ☾ meia-lua | `anticorpo_6` (errado) |
+
+**Cores das pontas (as mesmas dos cartões de teste do jogo):** 1 ★ amarelo · 2 ▲ roxo · 3 ● laranja · 4 ◆ verde · 5 ■ vermelho · 6 ☾ rosa. Corpo do Y: azul-claro `#cfe4f5` com sombra `#8fb8dc`.
 
 ---
 
@@ -41,23 +51,26 @@ A magnified microscope view of a blood serum sample, pixel art: a deep soft-blue
 ### 2.2 Vírus / antígeno (sprite)
 ```
 [STYLE MASTER]
-On a flat solid #00FF00 background, a single cute-but-neutral virus particle seen from the side, large and centered: a round purple body (#7a4a9a, light #a070c0, shadow #4f2d68) with small spikes all around, no mouth, two small simple eyes optional. On the RIGHT edge of its body, exactly three identical rounded notches (docking sockets) stacked vertically and evenly spaced, all the SAME shape and size, with a dark interior. Do not draw any antibody. No text.
+On a flat solid #00FF00 background, a single cute-but-neutral virus particle seen from the side, large and centered: a round purple body (#7a4a9a, light #a070c0, shadow #4f2d68) with small spikes all around, no mouth, two small simple eyes optional. On the RIGHT edge of its body, three clear notches (docking sockets) stacked vertically and evenly spaced, each with a DIFFERENT shape, from top to bottom: (1) a triangle socket, (2) a circle socket, (3) a square socket. The three sockets must be large, clear, high-contrast (dark interior) and about the same size. Do not draw any antibody. No text.
 ```
-Posição final: centro do vírus ≈ (95, 262); os encaixes ficam em x≈150 e y≈192, 262 e 332. Ajuste no Aseprite.
+Posição final: centro do vírus ≈ (95, 262); os encaixes ficam em x≈150 e y≈192 (▲), 262 (●), 332 (■). Ajuste no Aseprite.
 
-### 2.3 Os 6 anticorpos (sprite) — todos IGUAIS
+### 2.3 Os 6 anticorpos (sprites)
 ```
 [STYLE MASTER]
-On a flat solid #00FF00 background, ONE antibody molecule, a simple cute Y shape, pale-blue-and-white body (#cfe4f5 base, #8fb8dc shadow, 1-pixel dark outline), no face, with two small round blue tips (#4880c8) at the ends of the two arms. Centered, large and clear, no text.
+On a flat solid #00FF00 background, six antibody molecules in a 3 columns x 2 rows grid, evenly spaced, identical Y shape and size, all with the same pale-blue-and-white body (#cfe4f5 base, #8fb8dc shadow, 1-pixel dark outline), simple and cute, no faces. The only difference is the colored TIP of the two arms (the part that binds), each tip has a different clearly readable shape and color, shown pointing to the right:
+row 1: (1) a yellow STAR tip, (2) a purple TRIANGLE tip, (3) an orange CIRCLE tip;
+row 2: (4) a green DIAMOND tip, (5) a red SQUARE tip, (6) a pink CRESCENT-MOON tip.
+Tips must be large and crisp. No text.
 ```
-Gere **uma vez** e use a mesma imagem nos 6 cartões (`anticorpo_1…6`), só mudando o texto do nome. Nada de cor ou forma diferente por anticorpo.
+Observação: **a numeração da grade = números dos arquivos** `anticorpo_1…6`. As cores das pontas dos corretos (2,3,5) precisam combinar com a "cor interna" dos encaixes do vírus; se não combinarem, repinte no Aseprite (use as mesmas formas ▲ ● ■).
 
 ### 2.4 Anticorpo encaixado e imunocomplexo (sprites)
 ```
 [STYLE MASTER]
-Using the attached virus and antibody designs exactly, on a flat solid #00FF00 background: the purple virus on the left with THREE pale-blue Y antibodies attached to its three right-side sockets (each blue round tip fitted into a socket), the antibody bodies extending to the right. Small happy sparkle pixels and a soft golden glow around the junctions to show the immune complex is formed. Clean, centered, no text.
+Using the attached virus and antibody designs exactly, on a flat solid #00FF00 background: the purple virus on the left with THREE pale-blue Y antibodies attached to its three right-side sockets (top: triangle tip fitted in the triangle socket, middle: circle tip in the circle socket, bottom: square tip in the square socket), the antibody bodies extending to the right. Small happy sparkle pixels and a soft golden glow around the junctions to show the immune complex is formed. Clean, centered, no text.
 ```
-Use essa imagem para `mg4_complexo.png` (região ≈ x 70–380, y 140–380) e **recorte um anticorpo de cada vez** do mesmo desenho para `acoplado_2/3/5.png` (cada um na posição do seu encaixe: x 150–260; y 165, 235, 305).
+Use essa imagem para `mg4_complexo.png` (região ≈ x 70–380, y 140–380) e **recorte um antibody de cada vez** do mesmo desenho para `acoplado_2/3/5.png` (cada um na posição do seu encaixe: x 150–260; y 165, 235, 305).
 
 ---
 
@@ -109,7 +122,7 @@ Lab bench scene, pixel art, front view, in the left 50% of the image: on the upp
 
 Essas você faz no Aseprite com o kit de UI (botões e painéis madeira/pergaminho dos outros minigames) para ficar igual:
 - `mg4_fase_<dock|idga|elisa|teste>.png` — título + enunciado (painel pergaminho no canto superior direito, ≈ x 500–940, y 85–140).
-- `anticorpo_<n>.png` — cartão (moldura madeira) com o anticorpo da seção 2.3 + texto do nome; 2 colunas × 3 linhas na coluna da direita (cada cartão ≈ 215x90).
+- `anticorpo_<n>.png` — cartão (moldura madeira) com o anticorpo da seção 2.3, **sem texto**; 2 colunas × 3 linhas na coluna da direita (cada cartão ≈ 215x90).
 - `idga_<1-3>_*`, `elisa_<1-4>_*`, `teste_<1-5>_*` — campos de resposta (`vazio`, `positivo`/`negativo`, `idga`/`elisa`).
 - `mg4_ligado_n`, `mg4_errado_n`, `mg4_campo_certo_n`, `mg4_campo_errado_n` — overlays verde/vermelho.
 - Botões `mg4_confirmar_*`, `mg4_seguir_*`, `mg4_continuar_*`, `mg4_close_*`, painéis `mg4_resultado`, `mg4_instructions_*`: reaproveite o estilo dos minigames 1–3 (já gerei os placeholders no kit de UI).
@@ -123,7 +136,7 @@ Essas você faz no Aseprite com o kit de UI (botões e painéis madeira/pergamin
 
 ## 8. Checklist
 - [ ] Fundos sem texto; cantos esquerdos calmos; coluna direita vazia
-- [ ] Vírus com 3 encaixes iguais; os 6 anticorpos IDÊNTICOS (a arte não revela os corretos)
+- [ ] Vírus com os 3 encaixes ▲ ● ■ visíveis; anticorpos 2, 3, 5 com as pontas que combinam
 - [ ] IDGA: linhas conforme o layout (amostras 1 e 3 positivas, 2 negativa)
 - [ ] ELISA: 6 poços neutros nas posições x = 80…430, y = 350
 - [ ] Tudo em 960x540, nomes de arquivo como na tabela acima
