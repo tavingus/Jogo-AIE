@@ -23,7 +23,7 @@ Regras visuais para tudo ficar da mesma família:
 - **Sprites e fundos separados** (a IA erra posições exatas): gere fundos vazios e sprites em fundo verde `#00FF00`; você posiciona no Aseprite pelas coordenadas.
 
 ### A mecânica "chave e fechadura" da fase 1 (ideia de design)
-O vírus (antígeno) tem **3 encaixes de formas diferentes**: ▲ triângulo, ● círculo, ■ quadrado. Cada anticorpo tem uma **ponta colorida com uma forma**. Os 3 anticorpos corretos (os nº 2, 3 e 5) têm as pontas **▲ ● ■** que **combinam** com os encaixes; os 3 errados (nº 1, 4 e 6) têm formas que **não existem no vírus** (estrela ★, losango ◆, meia-lua ☾). Assim o jogador descobre a ideia de especificidade antígeno–anticorpo brincando. **Os cartões NÃO levam nome de doença nem de proteína** (isso entregaria a resposta e vira prova de leitura): só a imagem do anticorpo, sem texto. Os nomes (anti-p26, anti-gp90 etc.) aparecem apenas na explicação depois do clique.
+O vírus (antígeno) tem **3 encaixes de formas diferentes**: ▲ triângulo, ● círculo, ■ quadrado. Cada anticorpo tem uma **ponta colorida com uma forma**. Os 3 anticorpos corretos (os nº 2, 3 e 5) têm as pontas **▲ ● ■** que **combinam** com os encaixes; os 3 errados (nº 1, 4 e 6) têm formas que **não existem no vírus** (estrela ★, losango ◆, meia-lua ☾). Assim o jogador descobre a ideia de especificidade antígeno–anticorpo brincando. **Cada cartão leva o NOME do anticorpo** (ex.: "Anticorpo anti-p26"), mas **sem a doença/vírus** entre parênteses (nada de "EIAV", "influenza", "herpesvírus"): o jogador aprende o nome e a forma, e a explicação (de qual vírus é cada proteína) vem depois do clique.
 
 Mapeamento (a ordem dos encaixes é de cima para baixo):
 
@@ -122,7 +122,7 @@ Lab bench scene, pixel art, front view, in the left 50% of the image: on the upp
 
 Essas você faz no Aseprite com o kit de UI (botões e painéis madeira/pergaminho dos outros minigames) para ficar igual:
 - `mg4_fase_<dock|idga|elisa|teste>.png` — título + enunciado (painel pergaminho no canto superior direito, ≈ x 500–940, y 85–140).
-- `anticorpo_<n>.png` — cartão (moldura madeira) com o anticorpo da seção 2.3, **sem texto**; 2 colunas × 3 linhas na coluna da direita (cada cartão ≈ 215x90).
+- `anticorpo_<n>.png` — cartão (moldura madeira) com o anticorpo da seção 2.3 à esquerda + o nome (só "Anticorpo anti-…") à direita; 2 colunas × 3 linhas na coluna da direita (cada cartão ≈ 215x90).
 - `idga_<1-3>_*`, `elisa_<1-4>_*`, `teste_<1-5>_*` — campos de resposta (`vazio`, `positivo`/`negativo`, `idga`/`elisa`).
 - `mg4_ligado_n`, `mg4_errado_n`, `mg4_campo_certo_n`, `mg4_campo_errado_n` — overlays verde/vermelho.
 - Botões `mg4_confirmar_*`, `mg4_seguir_*`, `mg4_continuar_*`, `mg4_close_*`, painéis `mg4_resultado`, `mg4_instructions_*`: reaproveite o estilo dos minigames 1–3 (já gerei os placeholders no kit de UI).

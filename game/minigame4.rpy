@@ -93,18 +93,18 @@ init python:
     # (texto, encaixa?, feedback), na ordem EXATA das artes anticorpo_1 ... _6
     # (esquerda->direita, cima->baixo). "encaixa" = específico do vírus da AIE.
     MG4_CANDIDATES = [
-        (_("Anticorpo anti-hemaglutinina (influenza equina)"), False,
-         _("Esse anticorpo reconhece outro vírus e não encaixa no antígeno da AIE.")),
-        (_("Anticorpo anti-p26 (proteína do capsídeo do EIAV)"), True,
-         _("Encaixou! O anticorpo anti-p26 reconhece o antígeno do vírus da AIE.")),
-        (_("Anticorpo anti-gp90 (glicoproteína do envelope do EIAV)"), True,
-         _("Encaixou! Anticorpos contra o envelope do vírus também se ligam ao antígeno.")),
-        (_("Anticorpo anti-glicoproteína (herpesvírus equino)"), False,
-         _("Esse anticorpo é específico de outro vírus: não reconhece o antígeno da AIE.")),
-        (_("Anticorpo anti-gp45 (glicoproteína transmembrana do EIAV)"), True,
-         _("Encaixou! Mais um anticorpo específico ligado ao vírus.")),
-        (_("Anticorpo anti-proteína E (vírus do Nilo Ocidental)"), False,
-         _("Esse anticorpo não é específico do vírus da AIE e não se liga ao antígeno.")),
+        (_("Anticorpo anti-hemaglutinina"), False,
+         _("Não encaixa: a hemaglutinina é uma proteína do vírus da influenza equina, outro vírus, e não do vírus da AIE.")),
+        (_("Anticorpo anti-p26"), True,
+         _("Encaixou! O anti-p26 reconhece a p26, proteína do capsídeo do vírus da AIE (EIAV).")),
+        (_("Anticorpo anti-gp90"), True,
+         _("Encaixou! O anti-gp90 reconhece a gp90, glicoproteína do envelope do vírus da AIE.")),
+        (_("Anticorpo anti-glicoproteína"), False,
+         _("Não encaixa: essa glicoproteína é do herpesvírus equino, outro vírus, e o anticorpo não reconhece o antígeno da AIE.")),
+        (_("Anticorpo anti-gp45"), True,
+         _("Encaixou! O anti-gp45 reconhece a gp45, glicoproteína transmembrana do vírus da AIE.")),
+        (_("Anticorpo anti-proteína E"), False,
+         _("Não encaixa: a proteína E é do vírus do Nilo Ocidental, não do vírus da AIE.")),
     ]
     MG4_DOCK_TOTAL = sum(1 for c in MG4_CANDIDATES if c[1])
     MG4_COMPLEX_FEEDBACK = _("Imunocomplexo formado! É ele que os testes detectam: no IDGA ele aparece como uma linha de precipitação no gel; no ELISA, é revelado por uma reação de cor.")
