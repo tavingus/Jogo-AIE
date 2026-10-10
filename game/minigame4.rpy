@@ -263,7 +263,7 @@ init python:
     # IMAGEM: minigame4/mg4_bg_complexo.png — FUNDO CHEIO da fase 1 com o
     # imunocomplexo já formado (vírus + os 3 anticorpos acoplados, brilho etc.).
     # Quando o jogador acopla o último anticorpo certo, este fundo SUBSTITUI o
-    # mg4_bg_dock.png (e os acoplado_N deixam de ser desenhados). Canvas 960x540,
+    # mg4_bg_dock.png (e somem os 6 cartões, o título da fase e os acoplado_N). Canvas 960x540,
     # com a mesma cena do mg4_bg_dock (só o vírus acoplado muda). Se o PNG não
     # existir, vale o esquema antigo: acoplado_N + um aviso placeholder.
     MG4_BG_COMPLEX_REAL = renpy.loadable(MG4_ART_DIR + "mg4_bg_complexo.png")
@@ -593,29 +593,33 @@ screen minigame4_gameplay():
 
     if not mg4_finished:
 
-        # Título + enunciado da fase (arte própria de cada fase)
-        add MG4_HEADER_ART[mg4_step]
+        # Título + enunciado da fase (arte própria de cada fase). Some quando
+        # o fundo mg4_bg_complexo entra (ele traz tudo o que precisa).
+        if not complex_bg:
+            add MG4_HEADER_ART[mg4_step]
 
         # ---- Fase 1: anticorpos candidatos ------------------------------
         if step["kind"] == "dock":
 
-            for n in range(len(MG4_CANDIDATES)):
+            # Os 6 cartões somem quando o fundo do imunocomplexo entra
+            if not complex_bg:
+                for n in range(len(MG4_CANDIDATES)):
 
-                $ cand_bound = n in mg4_docked
-                $ cand_tried = n in mg4_tried
+                    $ cand_bound = n in mg4_docked
+                    $ cand_tried = n in mg4_tried
 
-                button:
-                    xysize (1920, 1080)
-                    background None
-                    focus_mask True
-                    sensitive not (cand_bound or cand_tried or len(mg4_docked) >= MG4_DOCK_TOTAL)
-                    action Function(mg4_dock, n)
-                    hovered Function(mg4_sfx, "hover")
-                    add MG4_CAND_ART[n]
-                    if cand_bound:
-                        add MG4_CAND_BOUND[n]
-                    elif cand_tried:
-                        add MG4_CAND_WRONG[n]
+                    button:
+                        xysize (1920, 1080)
+                        background None
+                        focus_mask True
+                        sensitive not (cand_bound or cand_tried or len(mg4_docked) >= MG4_DOCK_TOTAL)
+                        action Function(mg4_dock, n)
+                        hovered Function(mg4_sfx, "hover")
+                        add MG4_CAND_ART[n]
+                        if cand_bound:
+                            add MG4_CAND_BOUND[n]
+                        elif cand_tried:
+                            add MG4_CAND_WRONG[n]
 
             # Anticorpos já encaixados no antígeno (à esquerda)
             if not complex_bg:
