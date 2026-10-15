@@ -76,6 +76,16 @@ Two versions of the SAME insect on a flat solid #00FF00 background, side by side
 [STYLE MASTER]
 Two versions of the SAME insect on a flat solid #00FF00 background, side by side, same size (slightly smaller than a horsefly), seen from above, each centered with equal margin, no text. A common housefly, a HARMLESS non-biting fly: slim light grey body with four faint dark stripes on the back, small red eyes, clear transparent pale wings, NO sharp proboscis (only a tiny soft tip), neutral friendly look. Version 1: wings spread wide. Version 2: wings half-folded over the body. Simple readable silhouette even at tiny size.
 ```
+### 2d. As duas moscas lado a lado, fundo transparente, diferenças CLARAS
+```
+[STYLE MASTER]
+Two flying insects side by side on a TRANSPARENT background (PNG with alpha; if transparency is not possible, a flat solid #00FF00 background), same top-down view with wings spread, centered with equal margin, each fitting a square, bold simple silhouettes that stay readable when shrunk to 70x70 pixels. No text, no shadows, no ground.
+LEFT, the DANGEROUS blood-sucking horsefly: BIGGER and bulky, DARK and heavy colors (near-black body with dark red and burnt-orange stripes on the abdomen), huge glowing green eyes with a menacing angry shape, smoky dark wings, and a long sharp black needle-like proboscis pointing forward. Aggressive, spiky look.
+RIGHT, the HARMLESS non-biting housefly: clearly SMALLER and slimmer, LIGHT pastel colors (pale silvery-grey body with soft blue-grey tones), small round friendly red eyes, clear transparent white wings, NO proboscis, soft rounded shape, cute and calm look.
+The two must contrast strongly in size, color value (dark vs light), eye shape and proboscis, so a player can tell them apart in one second.
+```
+**Como usar no jogo:** recorte cada mosca e redimensione para **70x70** (nearest neighbor). O jogo tem 2 arquivos por tipo (`fly_correct_1/2`, `fly_wrong_1/2`): use a mesma imagem nos dois (ou espelhe uma delas horizontalmente para dar variedade).
+
 **Se a diferença ficar pouco clara em 70x70:** peça `Make the horsefly darker and bigger, with exaggerated green eyes, and the housefly lighter and smaller with clearly transparent wings.`
 
 **Mais variedade (opcional):** mosca-dos-estábulos (*Stomoxys*, hematófaga, parecida com a doméstica mas com probóscide pontuda) e mosca-varejeira verde ou mosca-da-fruta (inofensivas). Me diga se quer e eu adiciono arquivos no código.
