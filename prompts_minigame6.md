@@ -11,37 +11,51 @@ Pixel art, 16-bit era look (SNES / GBA style), crisp hard pixel edges, NO anti-a
 
 ---
 
-## O que o jogo precisa (arquivos)
+## O que o jogo precisa (arquivos, pasta `images/minigame6/`)
 
 | Arquivo | O que é | Tamanho final |
 |---|---|---|
-| `minigame6/mg6_bg.png` | fundo cheio com o cavalo central já posicionado | 960x540 |
-| `minigame6/fly_correct_1.png`, `fly_correct_2.png` | moscas **hematófagas** (o jogador clica) — mutuca | 70x70 cada |
-| `minigame6/fly_wrong_1.png`, `fly_wrong_2.png` | moscas **inofensivas** (o jogador ignora) — mosca-doméstica | 70x70 cada |
+| `mg6_bg.png` | **só o cenário** (haras, feno no chão), centro livre | 960x540 |
+| `mg6_cavalo.png` | cavalo pastando, visão 3/4, **no centro**, fundo transparente | 960x540 (canvas inteiro, cavalo já posicionado) |
+| `mg6_cavalo_picada.png` | o mesmo cavalo **surpreso com a picada**, mesma posição e tamanho | 960x540 (canvas inteiro) |
+| `fly_correct_1.png`, `fly_correct_2.png` | mosca **hematófaga** (mutuca), clicar | **70x70** cada |
+| `fly_wrong_1.png`, `fly_wrong_2.png` | mosca **inofensiva** (doméstica), ignorar | **70x70** cada |
 
-As moscas são sprites individuais com fundo transparente (não são canvas inteiro). O fundo (cenário + cavalo) você monta no Aseprite juntando o cenário vazio com o cavalo, nos 960x540 de sempre.
+Se `mg6_cavalo.png` não existir, o jogo usa o esquema antigo (cavalo já dentro do `mg6_bg.png`). A imagem de picada só toca se existir.
+
+### Tamanho das moscas e onde elas pousam
+- Cada mosca é um PNG de **70x70** (o jogo amplia 2x para 140x140 na tela).
+- Elas pousam numa área do **centro** do canvas: o **centro** de cada mosca cai em **x 295 a 665, y 165 a 375** (no canvas 960x540).
+- Por isso o **corpo do cavalo deve cobrir mais ou menos essa caixa**: **x ≈ 290 a 670, y ≈ 160 a 380** (≈ 380x220). Assim as moscas sempre pousam em cima do cavalo.
+- Se o cavalo ficar menor ou maior que isso, me diga o tamanho e eu ajusto a área de pouso no código (`MG6_SPAWN_AREA`).
 
 ---
 
-## 1. Cavalo central (sprite) — Golias relaxado
+## 1. Cena: fundo + cavalo pastando + cavalo surpreso
 
-Dois prompts: um sprite isolado e, se quiser, o cenário vazio para você montar a composição.
+Mantenha a mesma conversa e anexe a ficha do Golias (seção 2.1 do arquivo principal).
 
-**1a. Cavalo sozinho (fundo verde para recortar):**
+### 1a. Fundo — haras com feno no chão (`mg6_bg.png`)
 ```
 [STYLE MASTER]
-The chestnut-bay horse Golias (attached reference) standing relaxed, perfectly SIDE VIEW facing right, full body visible with a little margin around, head slightly lowered, one ear flicking, tail swishing to one side as if shooing a fly. Large and clear, centered, on a flat solid #00FF00 background. No ground, no shadow, no other objects. No text.
+A peaceful horse farm (haras) paddock at golden hour, wide landscape, pixel art. Wooden fences, a red-roofed stable building and a few trees in the background, a dirt-and-grass ground, and on the ground in the CENTER area a scatter of golden hay, a half-open hay bale, a feed bucket and a small manure-free dirt patch (things that attract flies). A few wildflowers at the edges. The CENTER of the image, about the middle 45% width and middle 50% height, is open and calm with only the ground and loose hay, because a horse sprite will be placed there later. No animals, no people, no text.
 ```
-**1b. (opcional) Mesma pose, 2 variações para dar vida (cauda para cima e cauda para baixo):**
-```
-[STYLE MASTER]
-Same horse, same pose and size as the attached image, two versions side by side on a flat solid #00FF00 background: (left) tail raised mid-swish, (right) tail down and still, head a little higher. Identical body, only tail and head differ. No text.
-```
-**1c. Cenário vazio (onde você coloca o cavalo no centro):**
+
+### 1b. Cavalo pastando, visão 3/4 (`mg6_cavalo.png`)
 ```
 [STYLE MASTER]
-A peaceful farm pasture at golden hour, wide landscape, tall grass, a few wildflowers, a wooden fence and blue mountains in the distance, soft warm light. The CENTER of the image is open, calm and empty (nothing in the middle 40%), so a horse can be placed there later. No animals, no people, no text.
+The chestnut-bay horse Golias (attached reference), full body, three-quarter view (3/4 view, body angled slightly toward the viewer, head toward the lower left), head lowered grazing on hay on the ground, relaxed, tail resting. Large and clear, centered. Flat solid #00FF00 background, no ground, no shadow, no other objects. No text.
 ```
+O cavalo deve caber em ≈ 380x220 px do canvas 960x540 (veja o tamanho acima).
+
+### 1c. Cavalo surpreso com a picada (`mg6_cavalo_picada.png`)
+Peça **na mesma conversa**, anexando a imagem do cavalo pastando:
+```
+Use the attached image as the exact reference: same horse, same 3/4 body angle, same size and same position in the frame, same colors and pixel-art style. Change ONLY the reaction: the horse has just been bitten by a fly, startled. Head snapped up and turned toward its flank, eyes wide, ears pinned back, nostrils flared, the front hoof slightly lifted, the tail flicking up. A tiny white "pop" burst near the flank (a few small white pixels), NO blood, no wound, no gore. Flat solid #00FF00 background, no ground, no shadow, no text. The silhouette must stay within the same bounding box as the attached image.
+```
+Dicas:
+- Para o efeito "tocar rapidinho" funcionar, o cavalo da picada precisa ficar **no mesmo lugar e na mesma escala** do cavalo pastando (o jogo só troca uma imagem pela outra por 0,7 s).
+- Se o GPT mudar o tamanho: `Same image, but keep the horse exactly the same size and position as the attached reference.`
 
 ---
 

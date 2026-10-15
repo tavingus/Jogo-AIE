@@ -50,6 +50,21 @@ init python:
     # no centro). Tamanho final: 1920x1080 → exporte o PNG a 960x540.
     MG6_BG = mg6_art("mg6_bg.png", (1920, 1080), "FUNDO: cavalo no centro\n(mg6_bg.png)", "#3a4a2a")
 
+    # IMAGEM (opcional): minigame6/mg6_cavalo.png — o cavalo pastando (visão 3/4),
+    # no CENTRO, em canvas inteiro 960x540 com fundo transparente. Se existir,
+    # o mg6_bg.png deve ser só o cenário (sem cavalo). Se não existir, vale o
+    # esquema antigo (cavalo já desenhado dentro do mg6_bg.png).
+    MG6_HORSE_REAL = renpy.loadable(MG6_ART_DIR + "mg6_cavalo.png")
+    MG6_HORSE = mg6_art("mg6_cavalo.png", (1920, 1080), "", "#00000000")
+
+    # IMAGEM (opcional): minigame6/mg6_cavalo_picada.png — o cavalo SURPRESO com
+    # a picada (mesma posição e tamanho do mg6_cavalo.png, canvas 960x540,
+    # fundo transparente). Aparece por MG6_BITE_TIME segundos quando uma mosca
+    # hematófaga some sem ser clicada ("picou o cavalo").
+    MG6_HORSE_BITE_REAL = renpy.loadable(MG6_ART_DIR + "mg6_cavalo_picada.png")
+    MG6_HORSE_BITE = mg6_art("mg6_cavalo_picada.png", (1920, 1080), "", "#00000000")
+    MG6_BITE_TIME = 0.7
+
     # Tamanho de exibição de cada mosca. Tamanho final: 140x140 → exporte
     # cada PNG a 70x70.
     MG6_FLY_SIZE = (140, 140)
@@ -106,6 +121,7 @@ init python:
             "click": "audio/sfx_click.ogg",
             "correct": "audio/sfx_correct.ogg",
             "wrong": "audio/sfx_wrong.ogg",
+            "bite": "audio/sfx_horse_angry.ogg",
         }
         path = files.get(kind)
         if path and renpy.loadable(path):
@@ -262,6 +278,18 @@ transform mg6_fly_move(start_x, start_y, target_x, target_y, duration):
 ##    clicar.)
 ## -----------------------------------------------------------------------
 
+# Cenário + cavalo (pastando ou surpreso com a picada)
+screen mg6_scene(bitten=False):
+
+    add MG6_BG
+
+    if MG6_HORSE_REAL:
+        if bitten and MG6_HORSE_BITE_REAL:
+            add MG6_HORSE_BITE
+        else:
+            add MG6_HORSE
+
+
 # HUD: pontuação atual e progresso (quantas moscas já passaram)
 screen minigame6_hud():
 
@@ -284,7 +312,7 @@ screen minigame6_fly():
 
     modal True
 
-    add MG6_BG
+    use mg6_scene
 
     use minigame6_hud
 
@@ -304,12 +332,24 @@ screen minigame6_fly():
     timer MG6_FLY_TOTAL_TIME action Return("expired")
 
 
+# Reação do cavalo à picada (toca rapidinho e volta ao jogo)
+screen minigame6_bitten():
+
+    modal True
+
+    use mg6_scene(bitten=True)
+
+    use minigame6_hud
+
+    timer MG6_BITE_TIME action Return(True)
+
+
 # Fim de partida: mostra o placar final e volta ao mapa sozinho
 screen minigame6_end():
 
     modal True
 
-    add MG6_BG
+    use mg6_scene
 
     use minigame6_hud
 
@@ -351,7 +391,12 @@ label minigame_6_gameplay:
     # Uma mosca por vez, até acabarem
     while mg6_next_fly():
         call screen minigame6_fly
-        $ mg6_resolve_fly(_return)
+        $ fly_result = _return
+        $ was_bitten = (fly_result == "expired" and mg6_current_fly["type"] == "correct")
+        $ mg6_resolve_fly(fly_result)
+        if was_bitten and MG6_HORSE_BITE_REAL:
+            $ mg6_sfx("bite")
+            call screen minigame6_bitten
 
     call screen minigame6_end   # placar final; volta sozinho após MG6_END_DELAY
 
