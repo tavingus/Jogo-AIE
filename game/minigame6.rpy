@@ -247,7 +247,7 @@ screen minigame6_instructions():
         add MG6_INSTR_PANEL
 
         # Texto de regras de exemplo — edite como quiser
-        text _("Moscas estão atacando o cavalo!\n\nClique apenas nas moscas hematófagas (que podem transmitir doenças). Clicar na mosca certa marca pontos; clicar na errada tira pontos.\n\nFique atento: elas somem rápido!") style "mg6_instructions_text" xalign 0.5 yalign 0.5
+        text _("Moscas estão rondando o cavalo!\n\nClique nas moscas HEMATÓFAGAS (as que picam e podem transmitir a doença) antes que sumam. Se uma delas escapar, ela pica o cavalo e você perde pontos.\n\nIgnore as moscas inofensivas: clicar nelas também tira pontos.") style "mg6_instructions_text" xalign 0.5 yalign 0.5
 
     # Botão "Entendi" / "Fechar". Tamanho final: 240x80 → exporte a 120x40.
     imagebutton:

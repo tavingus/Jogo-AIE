@@ -357,8 +357,10 @@ screen minigame1_instructions():
 
     add MG1_INSTR_PANEL
 
-    # Texto de regras de exemplo — edite conforme as regras reais do minigame
-    text _("Regras do Minigame 1:\n\n- Explique aqui o objetivo.\n- Explique aqui os controles.\n- Explique aqui a condição de vitória/derrota.") style "mg1_instructions_text" pos (960, 490) anchor (0.5, 0.5)
+    # Texto de regras (os números vêm das constantes)
+    $ instr_text = _("Vamos identificar o vírus da Anemia Infecciosa Equina!\n\nClique na imagem da esquerda para trocar a morfologia do vírus e clique em cada categoria taxonômica para trocar a opção. Monte a classificação correta de todas.\n\nTirar do lugar uma resposta que já estava certa é um erro e custa %d pontos. Com o %dº erro, a rodada falha.") % (MG1_ERROR_PENALTY, MG1_MAX_ERRORS + 1)
+
+    text "[instr_text]" style "mg1_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
     # Botão "Entendi" / "Fechar" — libera o jogador para o minigame (arte de
     # canvas inteiro, ver MG1_CLOSE_IDLE/HOVER acima).
