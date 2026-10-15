@@ -323,7 +323,7 @@ init python:
 
 style mg7_instructions_text:
     text_align 0.5
-    color "#ffffff"
+    color MG_INSTR_TEXT_COLOR
     size 28
     xsize 1000
 

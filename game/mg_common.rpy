@@ -23,6 +23,11 @@
 # constantes MGC_*_RECT abaixo (só servem aos placeholders; a arte real ignora).
 ################################################################################
 
+## Cor do texto das telas de instruções de todos os minigames (escuro, para
+## ler bem sobre a moldura clara de pergaminho). Se um dia a moldura for escura,
+## troque aqui (ex.: "#ffffff") e vale para os 7 minigames.
+define -2 MG_INSTR_TEXT_COLOR = "#372412"
+
 init python:
 
     MGC_ART_DIR = "images/common/"

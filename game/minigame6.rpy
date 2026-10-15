@@ -229,7 +229,7 @@ style mg6_instructions_text:
     xalign 0.5
     yalign 0.5
     text_align 0.5
-    color "#ffffff"
+    color MG_INSTR_TEXT_COLOR
     size 30
     xsize 1000
 
