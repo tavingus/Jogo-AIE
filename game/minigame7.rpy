@@ -130,16 +130,19 @@ init python:
     # SEMPRE", com o texto desenhado). Canvas 960x540.
     MG7_TITLE_PANEL = mg7_art("mg7_titulo.png", MG7_TITLE_RECT, "7 - IMPEDIR REUTILIZAÇÃO DE AGULHA\n(mg7_titulo.png)", "#4a3a20")
 
-    # IMAGEM: minigame7/cavalo_calmo.png, cavalo_bravo.png e cavalo_picado.png —
-    # o cavalo (canvas 960x540, na posição dele, fundo transparente):
-    #   calmo  = normal (também usado quando a agulha é nova e aceita)
-    #   bravo  = EXPRESSÃO BRAVA ao ser clicado (recusando a agulha)
-    #   picado = reação à picada com agulha usada
+    # IMAGEM: minigame7/cavalo_calmo.png, cavalo_bravo.png, cavalo_feliz.png e
+    # cavalo_triste.png — o cavalo (canvas 960x540, na posição dele, fundo
+    # transparente, MESMA posição e tamanho nas 4):
+    #   calmo  = normal (durante a tentativa; é o botão clicável)
+    #   bravo  = EXPRESSÃO BRAVA: o jogador reagiu (cavalo recusando a agulha)
+    #   feliz  = agulha NOVA aplicada com segurança (o jogador deixou passar)
+    #   triste = agulha USADA foi aplicada (picada contaminada)
     # O cavalo calmo é o BOTÃO clicável (focus_mask: só os pixels dele).
     MG7_HORSE_ART = {
         "calmo": mg7_art("cavalo_calmo.png", MG7_HORSE_RECT, "CAVALO CALMO\n(cavalo_calmo.png)", "#7a5a3a"),
         "bravo": mg7_art("cavalo_bravo.png", MG7_HORSE_RECT, "CAVALO BRAVO!\n(cavalo_bravo.png)", "#a03a2a"),
-        "picado": mg7_art("cavalo_picado.png", MG7_HORSE_RECT, "CAVALO PICADO\n(cavalo_picado.png)", "#6a2a2a"),
+        "feliz": mg7_art("cavalo_feliz.png", MG7_HORSE_RECT, "CAVALO FELIZ\n(cavalo_feliz.png)", "#3a7a4a"),
+        "triste": mg7_art("cavalo_triste.png", MG7_HORSE_RECT, "CAVALO TRISTE\n(cavalo_triste.png)", "#4a4a7a"),
     }
 
     # IMAGEM: minigame7/tratador_<estado>.png — o tratador (canvas 960x540,
@@ -275,7 +278,9 @@ init python:
         if store.mg7_outcome in ("dodge", "unneeded", "early"):
             return "bravo"
         if store.mg7_outcome == "prick":
-            return "picado"
+            return "triste"
+        if store.mg7_outcome == "safe":
+            return "feliz"
         return "calmo"
 
     def mg7_handler_state():
@@ -434,7 +439,7 @@ screen minigame7_decision():
     timer mg7_window action Return("prick")
 
 
-# 3) Resultado da tentativa: cavalo bravo / picado / calmo + carimbo + motivo.
+# 3) Resultado da tentativa: cavalo bravo / triste / feliz / calmo + carimbo + motivo.
 # Avança sozinho depois de MG7_OUTCOME_TIME s (ou ao clicar em qualquer lugar).
 screen minigame7_outcome():
 
