@@ -98,13 +98,30 @@ No blood on any person or animal, no wounds, no text.
 ### 3c. Ordem em que cada pose aparece no jogo
 1. `tratador_chegando` (agulha escondida) → 2. `tratador_nova` **ou** `tratador_usada` (a agulha aparece) → 3. resultado: `tratador_aplicando` (nova, deixou passar), `tratador_picou` (suja, deixou passar) ou `tratador_recuo` (o jogador reagiu).
 
-### 3d. (Opcional, mas o jogo usa) as 2 poses que faltam
-Sem elas aparecem placeholders nesses momentos. Anexe a imagem do tratador já pronto:
+### 3d. As 2 poses que faltam: tratador CHEGANDO e RECUANDO
+
+Use na MESMA conversa das 4 poses do tratador e **anexe a imagem delas** (ou a ficha do tratador). Regras de jogo importantes:
+- Em **CHEGANDO** a agulha **não pode ser vista** de jeito nenhum (é o momento em que o jogador ainda não sabe se ela é nova ou usada). Por isso a agulha fica toda coberta por uma **tampa azul opaca** e escondida na mão e no corpo.
+- Em **RECUO** também esconda a agulha (tampa), para o desenho não revelar se era nova ou suja.
+- As duas poses têm o **mesmo tamanho, o mesmo corpo e os pés na mesma linha** das outras 4, de lado, virado para a **ESQUERDA**, sem cavalo.
+
+**Prompt (as duas numa imagem, para saírem iguais):**
 ```
-Use the attached image as the exact reference: same farmhand, same size and ground line, side view facing left, flat solid #00FF00 background, no horse, no text.
-(1) ARRIVING: walking toward the left holding the syringe close against his chest, the NEEDLE HIDDEN under the blue needle cap and partly behind his hand, so the needle cannot be seen. Neutral expression.
-(2) RECOILING: startled, stepping back, both hands up, the syringe held away from him, eyes wide. Sweat drop pixel. No horse, no blood.
+Use the attached image as the exact design reference: the same farmhand (straw hat, blue work shirt with rolled sleeves, brown trousers, boots, short mustache), same size, same proportions, same pixel-art style, side view FACING LEFT.
+[STYLE MASTER]
+On a flat solid #00FF00 background, two versions of this SAME farmhand side by side, evenly spaced, no overlap, each fully visible with a little margin, exactly the same size as the attached poses, feet on the same ground line, no ground, no shadow, no horse, no animals, no text.
+(1) ARRIVING: walking calmly toward the left, one foot forward, holding the syringe low against his body with the hand wrapped around it, the needle completely covered by an OPAQUE BLUE needle cap and hidden behind his hand and thigh, so NO needle, NO metal and NO red can be seen at all. Relaxed, neutral expression, looking left.
+(2) RECOILING: startled, leaning back and stepping away to the right with one foot lifted, both hands raised in front of him, the syringe held away at arm's length with the needle fully covered by the opaque blue cap (no needle visible), eyes wide, eyebrows raised, mouth open in surprise, two small sweat drops near his head and a few short white surprise lines around him.
+Clean readable silhouettes. No blood, no wounds, no needle visible.
 ```
+
+**Se a agulha aparecer na pose 1 ou 2:** `The needle must NOT be visible. Cover the whole needle with an opaque blue cap and hide it behind the hand. Change nothing else.`
+
+**Se o tamanho ou a pose não bater com as outras 4:** `Make both poses exactly the same size and body as the attached ones, with feet on the same ground line, and change only the pose.`
+
+**Para refazer só uma** (anexe a imagem): `Redraw only version [1 ARRIVING / 2 RECOILING], same farmhand, same size and ground line, the needle fully capped and hidden, flat solid #00FF00 background, no horse, no text.`
+
+**Montagem:** recorte cada pose, posicione no canvas **960x540 transparente** na mesma caixa das outras (corpo em x 510–770, y 150–470) e salve como `tratador_chegando.png` e `tratador_recuo.png`. Em "chegando" o tratador entra deslizando pela direita, então deixe-o na posição final.
 
 ---
 
