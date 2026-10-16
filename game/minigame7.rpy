@@ -326,6 +326,20 @@ init python:
 ## -----------------------------------------------------------------------
 init python:
 
+    def mg7_demo_art(state, color, label):
+        """Miniatura de uma pose do tratador (a mesma arte tratador_<estado>.png,
+        recortada ao redor dele e reduzida) para a tela de instruções. Sem o
+        PNG, aparece um quadrado colorido com o nome."""
+        path = MG7_ART_DIR + "tratador_%s.png" % state
+        if renpy.loadable(path):
+            return Transform(Image(path, nearest_neighbor=True), crop=(450, 140, 340, 340), zoom=0.6)
+        return Fixed(
+            Solid(color, xysize=(204, 204)),
+            Text(label, size=24, color="#ffffff", xalign=0.5, yalign=0.5,
+                 text_align=0.5, xmaximum=190),
+            xysize=(204, 204),
+        )
+
     # IMAGEM: minigame7/mg7_instructions_bg.png — fundo cheio. Canvas 960x540.
     MG7_INSTR_BG = mg7_art("mg7_instructions_bg.png", (0, 0, 1920, 1080),
                            "FUNDO: instruções\n(mg7_instructions_bg.png)", "#2a2418")
@@ -355,10 +369,44 @@ screen minigame7_instructions():
     add MG7_INSTR_BG
     add MG7_INSTR_PANEL
 
-    # Texto de regras de exemplo — edite como quiser (os números vêm das constantes)
-    $ instr_text = _("Um tratador vai aplicar %d injeções no cavalo, mas às vezes tenta REUTILIZAR uma agulha já usada!\n\nQuando a agulha aparecer, se ela for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada. Se a agulha for NOVA, deixe a aplicação acontecer. Não clique antes de ver a agulha!\n\nHora errada tira pontos, e terminar sem nenhuma picada contaminada dá um bônus.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % MG7_ATTEMPTS
+    # Texto de regras (à esquerda); as duas agulhas ficam à direita
+    $ instr_text = _("Um tratador vai aplicar %d injeções no cavalo, mas às vezes tenta REUTILIZAR uma agulha já usada!\n\nQuando a agulha aparecer, olhe bem: se for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada. Se for NOVA, deixe a aplicação acontecer.\n\nNão clique antes de ver a agulha! Hora errada tira pontos; terminar sem picada contaminada dá bônus.\n\nNo final você vê o que acertou e errou, e pode jogar de novo.") % MG7_ATTEMPTS
 
-    text "[instr_text]" style "mg7_instructions_text" pos (960, 490) anchor (0.5, 0.5)
+    text "[instr_text]" style "mg7_instructions_text" pos (400, 236) xsize 640 text_align 0.0 size 24
+
+    # As duas agulhas, para o jogador saber qual é qual
+    $ demo_new = mg7_demo_art("nova", "#2e7d32", _("AGULHA NOVA"))
+    $ demo_used = mg7_demo_art("usada", "#8a2c2c", _("AGULHA USADA"))
+
+    add demo_new pos (1080, 250)
+    text _("NOVA"):
+        pos (1182, 466)
+        anchor (0.5, 0.0)
+        size 38
+        bold True
+        color "#2e7d32"
+    text _("Deixe a aplicação acontecer"):
+        pos (1182, 516)
+        anchor (0.5, 0.0)
+        xmaximum 210
+        text_align 0.5
+        size 22
+        color MG_INSTR_TEXT_COLOR
+
+    add demo_used pos (1300, 250)
+    text _("USADA"):
+        pos (1402, 466)
+        anchor (0.5, 0.0)
+        size 38
+        bold True
+        color "#a02a22"
+    text _("Suja de sangue: clique no cavalo!"):
+        pos (1402, 516)
+        anchor (0.5, 0.0)
+        xmaximum 210
+        text_align 0.5
+        size 22
+        color MG_INSTR_TEXT_COLOR
 
     imagebutton:
         idle MG7_CLOSE_IDLE
