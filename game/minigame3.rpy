@@ -359,6 +359,7 @@ init python:
         store.mg3_finished = False
         store.mg3_feedback = ""
         store.mg3_feedback_ok = True
+        mg_review_clear()
 
     def mg3_set_feedback(text, ok):
         store.mg3_feedback = text
@@ -380,19 +381,30 @@ init python:
         mg3_sfx("wrong")
 
     # ---- Etapas de escolha ---------------------------------------------------
+    def mg3_right_option(step):
+        for o in step["options"]:
+            if o[1]:
+                return o
+        return step["options"][0]
+
     def mg3_choose(opt):
-        """Clique na opção opt (0, 1, 2) de uma etapa de escolha."""
-        if store.mg3_finished or opt in store.mg3_tried:
+        """Clique na opção opt (0, 1, 2) de uma etapa de escolha. Uma tentativa
+        só: acerto ou erro, a etapa avança e o motivo aparece na revisão final."""
+        if store.mg3_finished:
             return
-        text, correct, feedback = MG3_STEPS[store.mg3_step]["options"][opt]
+        step = MG3_STEPS[store.mg3_step]
+        text, correct, feedback = step["options"][opt]
+        mg_review_group(step["title"])
         if correct:
             mg3_hit()
-            mg3_set_feedback(feedback, True)
-            mg3_advance()
+            mg3_set_feedback(_("Correto!"), True)
+            mg_review_add("ok", text, feedback)
         else:
-            store.mg3_tried.append(opt)
             mg3_miss()
-            mg3_set_feedback(feedback, False)
+            mg3_set_feedback(_("Errado!"), False)
+            mg_review_add("bad", _("Você escolheu: %s") % text, feedback)
+            mg_review_add("miss", _("O correto era: %s") % mg3_right_option(step)[0], mg3_right_option(step)[2])
+        mg3_advance()
 
     # ---- Etapas de campos (etiqueta e resenha) -----------------------------
     def mg3_field_art(f):
@@ -411,32 +423,31 @@ init python:
         mg3_sfx("click")
 
     def mg3_confirm():
-        """Confirma os campos da etapa: trava os certos (+pontos), marca os
-        errados (-pontos) e só avança quando todos estiverem certos."""
+        """Confirma os campos da etapa: cada campo certo dá pontos, cada
+        errado tira pontos; a etapa avança e o detalhe fica na revisão final."""
         s = store.mg3_step
         if store.mg3_finished:
             return
+        mg_review_group(MG3_STEPS[s]["title"])
         any_wrong = False
         for f, field in enumerate(MG3_STEPS[s]["fields"]):
-            if store.mg3_locked[s][f]:
-                continue
             pos = store.mg3_values[s][f]
             if pos < 0:
                 continue
+            chosen = field["options"][pos][0]
+            right = [o[0] for o in field["options"] if o[1]][0]
             if field["options"][pos][1]:
-                store.mg3_locked[s][f] = True
-                store.mg3_wrong[s][f] = False
                 mg3_hit()
+                mg_review_add("ok", "%s: %s" % (field["label"], chosen))
             else:
-                store.mg3_wrong[s][f] = True
                 any_wrong = True
                 mg3_miss()
-
-        if all(store.mg3_locked[s]):
-            mg3_set_feedback(_("Tudo certo! Etapa concluída."), True)
-            mg3_advance()
-        elif any_wrong:
-            mg3_set_feedback(_("Há campos errados (em vermelho). Confira a ficha do animal e corrija."), False)
+                mg_review_add("bad", _("%s: você marcou \"%s\". O correto é \"%s\".") % (field["label"], chosen, right))
+        if any_wrong:
+            mg3_set_feedback(_("Há erros!"), False)
+        else:
+            mg3_set_feedback(_("Tudo certo!"), True)
+        mg3_advance()
 
     def mg3_all_filled():
         """Todos os campos da etapa atual já foram escolhidos?"""
@@ -448,7 +459,9 @@ init python:
         """Pula uma etapa opcional (a resenha): sem penalidade, sem pontos."""
         if store.mg3_finished or not MG3_STEPS[store.mg3_step].get("skippable"):
             return
-        mg3_set_feedback(_("Resenha não preenchida."), False)
+        mg_review_group(MG3_STEPS[store.mg3_step]["title"])
+        mg_review_add("miss", _("Resenha não preenchida."), _("A resenha (idade, sexo e pelagem) identifica o animal e faz parte do exame."))
+        mg3_set_feedback(_("Resenha pulada."), False)
         mg3_advance()
 
     def mg3_verdict():
@@ -499,7 +512,7 @@ screen minigame3_instructions():
     add MG3_INSTR_PANEL
 
     # Texto de regras de exemplo — edite como quiser
-    text _("O campeão \"Golias da Natureza\" vai viajar para uma competição e precisa do exame de AIE!\n\nRealize a coleta passo a passo: escolha o tubo, a via de coleta, identifique a amostra, preencha a resenha e coloque a amostra na caixa refrigerada.\n\nCada conduta correta marca pontos; cada erro tira pontos.") style "mg3_instructions_text" pos (960, 490) anchor (0.5, 0.5)
+    text _("O campeão \"Golias da Natureza\" vai viajar para uma competição e precisa do exame de AIE!\n\nRealize a coleta passo a passo: escolha o tubo, a via de coleta, identifique a amostra, preencha a resenha e coloque a amostra na caixa refrigerada.\n\nCada conduta correta marca pontos; cada erro tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg3_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
     imagebutton:
         idle MG3_CLOSE_IDLE
@@ -600,43 +613,16 @@ screen minigame3_gameplay():
         if mg3_feedback:
             text "[mg3_feedback!t]":
                 pos MG3_FEEDBACK_POS
-                size 24
+                size 30
                 xmaximum MG3_FEEDBACK_W
                 color ("#b9f5b9" if mg3_feedback_ok else "#ffb3b3")
+                outlines [(3, "#2a1a0c", 0, 0)]
+            timer 1.6 action SetVariable("mg3_feedback", "")
 
-    # ---- Fim: resultado final --------------------------------------------
+    # ---- Fim: a tela de resultado e revisão é a "mg_result" (mg_common.rpy) ----
     else:
 
-        $ verdict = mg3_verdict()
-
-        button:
-            xfill True
-            yfill True
-            background "#000000aa"
-            action NullAction()
-
-        add MG3_RESULT_PANEL
-
-        text _("Pontuação: [mg3_score] / [MG3_MAX_SCORE]"):
-            pos MG3_RESULT_SCORE_POS
-            anchor (0.5, 0.5)
-            size 40
-            color "#ffffff"
-
-        text "[verdict!t]":
-            pos MG3_RESULT_VERDICT_POS
-            anchor (0.5, 0.0)
-            text_align 0.5
-            size 28
-            color "#ffffff"
-            xmaximum 880
-
-        imagebutton:
-            idle MG3_CONTINUE_IDLE
-            hover MG3_CONTINUE_HOVER
-            focus_mask True
-            action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-            hovered Function(mg3_sfx, "hover")
+        timer 0.5 action Return(True)
 
 
 ## -----------------------------------------------------------------------
@@ -662,9 +648,15 @@ label minigame_3_gameplay:
 label minigame_3_entry:
 
     call screen minigame3_instructions
-    call minigame_3_gameplay
 
-    $ mg_report_score(3, mg3_score, MG3_MAX_SCORE)  # registra o placar e a medalha, se for o caso
-    $ mg_complete(3)                                 # marca como concluído e libera o 4
+    $ mg_again = True
+    while mg_again:
+        call minigame_3_gameplay
+
+        $ mg_report_score(3, mg3_score, MG3_MAX_SCORE)  # registra o placar e a medalha, se for o caso
+        $ mg_complete(3)                                 # marca como concluído e libera o 4
+
+        call screen mg_result(mg3_score, MG3_MAX_SCORE, mg3_verdict())
+        $ mg_again = (_return == "replay")
 
     return

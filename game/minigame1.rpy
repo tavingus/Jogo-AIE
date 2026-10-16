@@ -88,6 +88,11 @@ init python:
         "morfologia_5.png",
     ]
     MG1_MORPH_CORRECT = 2  # índice (começa em 0) da morfologia correta => morfologia_3.png
+    # Descrição da morfologia certa (aparece na revisão final). Edite conforme
+    # a sua arte. Se ficar None, a revisão diz só o número da imagem.
+    MG1_MORPH_NAME = None
+    # Nome de cada linha de categoria (mesma ordem de MG1_CATEGORIES), para a revisão.
+    MG1_CAT_NAMES = [_("Ordem"), _("Família"), _("Subfamília"), _("Gênero"), _("Espécie"), _("Espécies afetadas")]
 
     # ---- Categorias taxonômicas ----------------------------------------
     # Cada opção é uma imagem própria (desenhada no Aseprite, já com o texto
@@ -294,6 +299,36 @@ init python:
         """Pontuação desta rodada (0 erros = máxima)."""
         return max(0, MG1_MAX_SCORE - mg1_errors * MG1_ERROR_PENALTY)
 
+    def mg1_verdict():
+        """Frase final conforme o desempenho."""
+        if mg1_failed:
+            return _("Muitos erros! Esta rodada não conta. Revise a classificação abaixo e tente de novo.")
+        if mg1_errors == 0:
+            return _("Perfeito! Você identificou o vírus da AIE sem nenhum erro.")
+        return _("Você identificou o vírus, mas tirou do lugar respostas que já estavam certas. Confira abaixo.")
+
+    def mg1_build_review():
+        """Monta a revisão final (estado atual de cada resposta)."""
+        mg_review_clear()
+        mg_review_group(_("Classificação do vírus da AIE"))
+
+        if mg1_morph_index == MG1_MORPH_CORRECT:
+            mg_review_add("ok", _("Morfologia: correta."), MG1_MORPH_NAME or "")
+        else:
+            why = MG1_MORPH_NAME or (_("A morfologia certa era a imagem nº %d das opções.") % (MG1_MORPH_CORRECT + 1))
+            mg_review_add("bad", _("Morfologia: a imagem que ficou escolhida estava errada."), why)
+
+        for i, cat in enumerate(MG1_CATEGORIES):
+            name = MG1_CAT_NAMES[i]
+            right = cat["options_debug"][cat["correct"]]
+            now = cat["options_debug"][mg1_cat_indices[i]]
+            if mg1_cat_indices[i] == cat["correct"]:
+                mg_review_add("ok", "%s: %s" % (name, right))
+            else:
+                mg_review_add("bad", _("%s: você deixou \"%s\". O correto é \"%s\".") % (name, now, right))
+
+        mg_review_note(_("Erros: %d (tirar do lugar uma resposta que já estava certa custa %d pontos).") % (mg1_errors, MG1_ERROR_PENALTY))
+
     def mg1_click_morph():
         """Clique na imagem da esquerda: passa para a próxima morfologia."""
         global mg1_morph_index
@@ -358,7 +393,7 @@ screen minigame1_instructions():
     add MG1_INSTR_PANEL
 
     # Texto de regras (os números vêm das constantes)
-    $ instr_text = _("Vamos identificar o vírus da Anemia Infecciosa Equina!\n\nClique na imagem da esquerda para trocar a morfologia do vírus e clique em cada categoria taxonômica para trocar a opção. Monte a classificação correta de todas.\n\nTirar do lugar uma resposta que já estava certa é um erro e custa %d pontos. Com o %dº erro, a rodada falha.") % (MG1_ERROR_PENALTY, MG1_MAX_ERRORS + 1)
+    $ instr_text = _("Vamos identificar o vírus da Anemia Infecciosa Equina!\n\nClique na imagem da esquerda para trocar a morfologia do vírus e clique em cada categoria taxonômica para trocar a opção. Monte a classificação correta de todas.\n\nTirar do lugar uma resposta que já estava certa é um erro e custa %d pontos. Com o %dº erro, a rodada falha.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % (MG1_ERROR_PENALTY, MG1_MAX_ERRORS + 1)
 
     text "[instr_text]" style "mg1_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
@@ -417,6 +452,7 @@ screen minigame1_gameplay():
         ypos 980
         size 24
         color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     # ---- Página direita: categorias taxonômicas -------------------------
     for i, cat in enumerate(MG1_CATEGORIES):
@@ -452,6 +488,7 @@ screen minigame1_gameplay():
         pos MG1_ERRORS_POS
         size 32
         color ("#ffb3b3" if mg1_errors > 0 else "#ffffff")
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     # ---- Vitória: bloqueia cliques, mostra o selo e encerra sozinho -----
     if mg1_won:
@@ -464,12 +501,6 @@ screen minigame1_gameplay():
             action NullAction()
 
         add MG1_SUCCESS
-
-        text _("Pontuação: [final_score] / [final_max]"):
-            xalign 0.5
-            ypos 780
-            size 40
-            color "#ffffff"
 
         timer MG1_WIN_DELAY action Return(True)
 
@@ -496,7 +527,8 @@ label minigame_1_gameplay:
     $ mg1_reset()              # sorteia o estado inicial (permite rejogar do zero)
 
     scene black
-    call screen minigame1_gameplay   # só retorna quando tudo estiver correto
+    call screen minigame1_gameplay   # só retorna quando tudo estiver correto (ou errar demais)
+    $ mg1_build_review()
 
     $ quick_menu = True
     return
@@ -509,11 +541,18 @@ label minigame_1_gameplay:
 label minigame_1_entry:
 
     call screen minigame1_instructions
-    call minigame_1_gameplay
 
-    # Errou demais (4 ou mais erros): não conclui, volta ao mapa e é só tentar de novo
-    if not mg1_failed:
-        $ mg_report_score(1, mg1_score(), MG1_MAX_SCORE)  # pontuação máxima = medalha (definido em progress.rpy)
-        $ mg_complete(1)  # marca o minigame 1 como concluído e libera o 2
+    $ mg_again = True
+    while mg_again:
+        call minigame_1_gameplay
+
+        # Errou demais (4 ou mais erros): não conclui, mas dá para jogar de novo
+        if not mg1_failed:
+            $ mg_report_score(1, mg1_score(), MG1_MAX_SCORE)  # pontuação máxima = medalha (definido em progress.rpy)
+            $ mg_complete(1)  # marca o minigame 1 como concluído e libera o 2
+
+        $ result_score = 0 if mg1_failed else mg1_score()
+        call screen mg_result(result_score, MG1_MAX_SCORE, mg1_verdict())
+        $ mg_again = (_return == "replay")
 
     return

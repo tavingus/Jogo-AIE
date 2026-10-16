@@ -133,6 +133,7 @@ default mg6_flies_sequence = []  # ordem embaralhada ("correct"/"wrong") desta p
 default mg6_fly_index = 0        # quantas moscas já apareceram (inclui a atual)
 default mg6_score = 0            # pontuação atual
 default mg6_current_fly = None   # dict da mosca na tela agora: type/file/posições
+default mg6_stats = {}           # contagens da partida (para a revisão final)
 
 
 init python:
@@ -159,6 +160,8 @@ init python:
         store.mg6_fly_index = 0
         store.mg6_score = 0
         store.mg6_current_fly = None
+        store.mg6_stats = {"hit_bug": 0, "miss_bug": 0, "ignored_ok": 0, "clicked_bad": 0}
+        mg_review_clear()
 
     def mg6_next_fly():
         """Prepara a próxima mosca da lista, em posição aleatória. Devolve
@@ -201,12 +204,56 @@ init python:
         else:
             acted_correctly = (result == "expired")
 
+        kind = store.mg6_current_fly["type"]
+        if kind == "correct":
+            store.mg6_stats["hit_bug" if acted_correctly else "miss_bug"] += 1
+        else:
+            store.mg6_stats["ignored_ok" if acted_correctly else "clicked_bad"] += 1
+
         if acted_correctly:
             store.mg6_score += MG6_POINTS_CORRECT
             mg6_sfx("correct")
         else:
             store.mg6_score = max(0, store.mg6_score + MG6_POINTS_WRONG)
             mg6_sfx("wrong")
+
+
+init python:
+
+    def mg6_verdict():
+        """Frase final conforme o desempenho."""
+        ratio = float(store.mg6_score) / max(1, MG6_MAX_SCORE)
+        if ratio >= 1.0:
+            return _("Perfeito! Nenhuma mosca hematófaga escapou e nenhuma inofensiva foi atacada.")
+        elif ratio >= 0.6:
+            return _("Bom trabalho! Mas algumas moscas foram tratadas do jeito errado.")
+        else:
+            return _("Revise como identificar as moscas hematófagas e tente de novo.")
+
+    def mg6_build_review():
+        """Revisão final: o que o jogador fez com cada tipo de mosca."""
+        st = store.mg6_stats
+        n_bug = MG6_CORRECT_COUNT
+        n_ok = MG6_TOTAL_FLIES - MG6_CORRECT_COUNT
+        mg_review_clear()
+
+        mg_review_group(_("Moscas hematófagas (picam e podem transmitir o vírus)"))
+        if st["hit_bug"]:
+            mg_review_add("ok", _("Você clicou em %d de %d moscas hematófagas.") % (st["hit_bug"], n_bug),
+                          _("Certo: elas precisam ser afastadas antes de picar o cavalo."))
+        if st["miss_bug"]:
+            mg_review_add("bad", _("%d moscas hematófagas escaparam e picaram o cavalo.") % st["miss_bug"],
+                          _("Cada picada pode levar o vírus da AIE de um animal para outro."))
+
+        mg_review_group(_("Moscas inofensivas (não picam)"))
+        if st["ignored_ok"]:
+            mg_review_add("ok", _("Você ignorou %d de %d moscas inofensivas.") % (st["ignored_ok"], n_ok),
+                          _("Certo: elas não oferecem risco para o cavalo."))
+        if st["clicked_bad"]:
+            mg_review_add("bad", _("Você clicou em %d moscas inofensivas por engano.") % st["clicked_bad"],
+                          _("Clicar nelas tira pontos: o desafio é reconhecer quais realmente picam."))
+
+        mg_review_note(_("Na AIE, a transmissão ocorre principalmente pelo sangue, por insetos hematófagos (como mutucas e moscas-dos-estábulos) e por agulhas ou instrumentos contaminados."))
 
 
 ## -----------------------------------------------------------------------
@@ -247,7 +294,7 @@ screen minigame6_instructions():
         add MG6_INSTR_PANEL
 
         # Texto de regras de exemplo — edite como quiser
-        text _("Moscas estão rondando o cavalo!\n\nClique nas moscas HEMATÓFAGAS (as que picam e podem transmitir a doença) antes que sumam. Se uma delas escapar, ela pica o cavalo e você perde pontos.\n\nIgnore as moscas inofensivas: clicar nelas também tira pontos.") style "mg6_instructions_text" xalign 0.5 yalign 0.5
+        text _("Moscas estão rondando o cavalo!\n\nClique nas moscas HEMATÓFAGAS (as que picam e podem transmitir a doença) antes que sumam. Se uma delas escapar, ela pica o cavalo e você perde pontos.\n\nIgnore as moscas inofensivas: clicar nelas também tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg6_instructions_text" xalign 0.5 yalign 0.5
 
     # Botão "Entendi" / "Fechar". Tamanho final: 240x80 → exporte a 120x40.
     imagebutton:
@@ -298,12 +345,14 @@ screen minigame6_hud():
         ypos 40
         size 36
         color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     text "[mg6_fly_index]/[MG6_TOTAL_FLIES]":
         xalign 0.97
         ypos 40
         size 30
         color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
 
 
 # Uma mosca. Retorna "clicked" se o jogador clicou, ou "expired" quando o
@@ -344,38 +393,6 @@ screen minigame6_bitten():
     timer MG6_BITE_TIME action Return(True)
 
 
-# Fim de partida: mostra o placar final e volta ao mapa sozinho
-screen minigame6_end():
-
-    modal True
-
-    use mg6_scene
-
-    use minigame6_hud
-
-    button:
-        xfill True
-        yfill True
-        background "#000000aa"
-        action NullAction()
-
-    vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 20
-
-        text _("Fim de partida!"):
-            xalign 0.5
-            size 48
-            color "#ffffff"
-
-        text "[_('Pontuação final')]: [mg6_score] / [MG6_MAX_SCORE]":
-            xalign 0.5
-            size 36
-            color "#ffffff"
-
-    timer MG6_END_DELAY action Return(True)
-
 
 ## -----------------------------------------------------------------------
 ## 4) LABELS: GAMEPLAY E PONTO DE ENTRADA
@@ -398,7 +415,7 @@ label minigame_6_gameplay:
             $ mg6_sfx("bite")
             call screen minigame6_bitten
 
-    call screen minigame6_end   # placar final; volta sozinho após MG6_END_DELAY
+    $ mg6_build_review()
 
     $ quick_menu = True
     return
@@ -407,9 +424,15 @@ label minigame_6_gameplay:
 label minigame_6_entry:
 
     call screen minigame6_instructions
-    call minigame_6_gameplay
 
-    $ mg_report_score(6, mg6_score, MG6_MAX_SCORE)  # registra o placar e a medalha, se for o caso
-    $ mg_complete(6)                                 # marca como concluído e libera o próximo
+    $ mg_again = True
+    while mg_again:
+        call minigame_6_gameplay
+
+        $ mg_report_score(6, mg6_score, MG6_MAX_SCORE)  # registra o placar e a medalha, se for o caso
+        $ mg_complete(6)                                 # marca como concluído e libera o próximo
+
+        call screen mg_result(mg6_score, MG6_MAX_SCORE, mg6_verdict())
+        $ mg_again = (_return == "replay")
 
     return

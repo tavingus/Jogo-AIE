@@ -101,6 +101,177 @@ init python:
 
 
 ## -----------------------------------------------------------------------
+## RESULTADO + REVISÃO (igual para todos os minigames)
+##
+## Durante o jogo só aparece um sinal curto (som, carimbo, cor). No FIM, esta
+## tela mostra a pontuação, uma frase de feedback e a REVISÃO: tudo o que o
+## jogador acertou e errou, com a resposta certa e o porquê. Dois botões:
+## "Jogar de novo" e "Continuar".
+##
+## Como um minigame usa:
+##   $ mg_review_clear()                         (no começo da partida)
+##   $ mg_review_group("Título do bloco")        (opcional: cabeçalho)
+##   $ mg_review_add("ok" | "bad" | "miss", "texto", "explicação (opcional)")
+##   $ mg_review_note("texto solto")             (opcional)
+##   call screen mg_result(pontos, maximo, frase)
+##   -> retorna "replay" (jogar de novo) ou "continue".
+##
+## ARTE (canvas 960x540, em images/common/): mg_resultado_painel.png (painel
+## com moldura da lista; SEM título nem textos), mg_resultado_jogar_idle/hover
+## e mg_resultado_continuar_idle/hover (botões, textos já desenhados). Os
+## retângulos abaixo (tela 1920x1080) só servem aos placeholders e às posições
+## dos textos escritos pelo jogo.
+## -----------------------------------------------------------------------
+default mg_review = []
+
+init python:
+
+    MG_RESULT_PANEL_RECT = (200, 70, 1520, 940)
+    MG_RESULT_TITLE_POS = (960, 126)            # título (centralizado)
+    MG_RESULT_SCORE_POS = (960, 208)            # "Pontuação: N / M" (centralizado)
+    MG_RESULT_VERDICT_POS = (960, 252)          # frase de feedback (centralizada, até 2 linhas)
+    MG_RESULT_LIST = (268, 334, 1380, 468)      # área da revisão: x, y, largura, altura
+    MG_RESULT_BAR = (1654, 334, 20, 468)        # barra de rolagem
+    MG_RESULT_REPLAY_RECT = (340, 864, 460, 100)
+    MG_RESULT_CONTINUE_RECT = (1120, 864, 460, 100)
+
+    MG_RESULT_PANEL = mgc_art("mg_resultado_painel.png", MG_RESULT_PANEL_RECT, "", "#ead9a8")
+    MG_RESULT_REPLAY_IDLE = mgc_art("mg_resultado_jogar_idle.png", MG_RESULT_REPLAY_RECT, "JOGAR DE NOVO", "#486898")
+    MG_RESULT_REPLAY_HOVER = mgc_art("mg_resultado_jogar_hover.png", MG_RESULT_REPLAY_RECT, "JOGAR DE NOVO", "#6286bc")
+    MG_RESULT_CONTINUE_IDLE = mgc_art("mg_resultado_continuar_idle.png", MG_RESULT_CONTINUE_RECT, "CONTINUAR", "#568e48")
+    MG_RESULT_CONTINUE_HOVER = mgc_art("mg_resultado_continuar_hover.png", MG_RESULT_CONTINUE_RECT, "CONTINUAR", "#74b25c")
+
+    MG_MARK_GLYPH = {"ok": u"\u2713", "bad": u"\u2717", "miss": "!"}
+    MG_MARK_COLOR = {"ok": "#2e7d32", "bad": "#a02a22", "miss": "#b07a10"}
+
+    def mg_review_clear():
+        store.mg_review = []
+
+    def mg_review_group(text):
+        store.mg_review.append({"kind": "group", "text": text})
+
+    def mg_review_note(text):
+        store.mg_review.append({"kind": "note", "text": text})
+
+    def mg_review_add(mark, text, why=""):
+        store.mg_review.append({"kind": "item", "mark": mark, "text": text, "why": why})
+
+
+screen mg_result(score, max_score, verdict, title=None):
+
+    modal True
+    zorder 150
+
+    add Solid("#000000bb")
+    add MG_RESULT_PANEL
+
+    $ title_text = title if title else _("RESULTADO")
+    $ score_line = _("Pontuação: %d / %d") % (score, max_score)
+
+    text "[title_text!t]":
+        pos MG_RESULT_TITLE_POS
+        anchor (0.5, 0.5)
+        size 46
+        bold True
+        color MG_INSTR_TEXT_COLOR
+
+    text "[score_line!t]":
+        pos MG_RESULT_SCORE_POS
+        anchor (0.5, 0.5)
+        size 38
+        color MG_INSTR_TEXT_COLOR
+
+    text "[verdict!t]":
+        pos MG_RESULT_VERDICT_POS
+        anchor (0.5, 0.0)
+        text_align 0.5
+        size 26
+        xmaximum 1300
+        color "#5a3a14"
+
+    viewport:
+        id "mg_review_vp"
+        pos (MG_RESULT_LIST[0], MG_RESULT_LIST[1])
+        xysize (MG_RESULT_LIST[2], MG_RESULT_LIST[3])
+        mousewheel True
+        draggable True
+
+        vbox:
+            spacing 10
+            xsize MG_RESULT_LIST[2] - 20
+
+            for it in mg_review:
+
+                $ it_kind = it["kind"]
+                $ it_text = it["text"]
+
+                if it_kind == "group":
+                    text it_text:
+                        substitute False
+                        size 30
+                        bold True
+                        color "#6a3a10"
+                        xmaximum 1340
+                elif it_kind == "note":
+                    text it_text:
+                        substitute False
+                        size 24
+                        italic True
+                        color "#5a4a38"
+                        xmaximum 1340
+                else:
+                    $ it_mark = it["mark"]
+                    $ it_why = it["why"]
+                    $ it_glyph = MG_MARK_GLYPH[it_mark]
+                    $ it_color = MG_MARK_COLOR[it_mark]
+                    hbox:
+                        spacing 14
+                        text it_glyph:
+                            font "DejaVuSans.ttf"
+                            size 30
+                            bold True
+                            color it_color
+                            min_width 34
+                            substitute False
+                        vbox:
+                            spacing 2
+                            text it_text:
+                                substitute False
+                                size 26
+                                color MG_INSTR_TEXT_COLOR
+                                xmaximum 1280
+                            if it_why:
+                                text it_why:
+                                    substitute False
+                                    size 22
+                                    color "#5a4a38"
+                                    xmaximum 1280
+
+    vbar:
+        value YScrollValue("mg_review_vp")
+        pos (MG_RESULT_BAR[0], MG_RESULT_BAR[1])
+        xysize (MG_RESULT_BAR[2], MG_RESULT_BAR[3])
+        top_bar Solid("#00000000")
+        bottom_bar Solid("#00000000")
+        thumb Solid("#6a4a22", xysize=(18, 80))
+        unscrollable "hide"
+
+    imagebutton:
+        idle MG_RESULT_REPLAY_IDLE
+        hover MG_RESULT_REPLAY_HOVER
+        focus_mask True
+        action [Function(sfx, "click"), Return("replay")]
+        hovered Function(sfx, "hover")
+
+    imagebutton:
+        idle MG_RESULT_CONTINUE_IDLE
+        hover MG_RESULT_CONTINUE_HOVER
+        focus_mask True
+        action [Function(sfx, "click"), Return("continue")]
+        hovered Function(sfx, "hover")
+
+
+## -----------------------------------------------------------------------
 ## Botão de pausa: fica por cima de qualquer minigame (zorder alto).
 ## Mostrado/escondido pelo roadmap.rpy ao redor de "call expression minigame_N_entry".
 ## -----------------------------------------------------------------------

@@ -83,7 +83,7 @@ init python:
     MG7_WINDOW_LAST = 1.0             # s de janela na última (fica mais rápido)
     MG7_SLIDE_FROM = 700              # px: de onde o tratador entra (à direita)
     MG7_LUNGE = 60                    # px: quanto ele avança até a picada
-    MG7_OUTCOME_TIME = 2.2            # s mostrando o resultado de cada tentativa
+    MG7_OUTCOME_TIME = 1.6            # s mostrando o resultado de cada tentativa (só o sinal; o motivo vai para a revisão)
 
     MG7_POINTS_DODGE = 10             # agulha usada evitada
     MG7_POINTS_SAFE = 5               # agulha nova aceita
@@ -220,6 +220,7 @@ init python:
         store.mg7_window = MG7_WINDOW_FIRST
         store.mg7_outcome = ""
         store.mg7_reason = ""
+        mg_review_clear()
 
     def mg7_start_attempt():
         """Prepara a tentativa atual (janela de reação desta rodada)."""
@@ -264,6 +265,19 @@ init python:
 
         store.mg7_outcome = outcome
         store.mg7_reason = reason
+
+        # Revisão final: uma linha por tentativa
+        n = store.mg7_index + 1
+        needle_name = _("agulha USADA") if needle == "reused" else _("agulha NOVA")
+        what = {
+            "dodge": _("você tirou o cavalo a tempo"),
+            "safe": _("aplicação segura"),
+            "prick": _("você deixou a picada acontecer"),
+            "unneeded": _("você recusou sem necessidade"),
+            "early": _("você reagiu antes de ver a agulha"),
+        }[outcome]
+        mg_review_add("ok" if outcome in ("dodge", "safe") else "bad",
+                      _("Tentativa %d (%s): %s.") % (n, needle_name, what), reason)
         # Cavalo brabo relincha (se o áudio existir); senão toca o som de acerto/erro
         if outcome in ("dodge", "unneeded", "early") and renpy.loadable("audio/sfx_horse_angry.ogg"):
             mg7_sfx("angry")
@@ -293,6 +307,7 @@ init python:
         if store.mg7_pricks == 0:
             store.mg7_bonus = MG7_BONUS_NO_PRICK
             store.mg7_score += MG7_BONUS_NO_PRICK
+            mg_review_note(_("Bônus de +%d pontos: nenhuma picada com agulha contaminada.") % MG7_BONUS_NO_PRICK)
 
     def mg7_verdict():
         """Frase final conforme o desempenho."""
@@ -341,7 +356,7 @@ screen minigame7_instructions():
     add MG7_INSTR_PANEL
 
     # Texto de regras de exemplo — edite como quiser (os números vêm das constantes)
-    $ instr_text = _("Um tratador vai aplicar %d injeções no cavalo, mas às vezes tenta REUTILIZAR uma agulha já usada!\n\nQuando a agulha aparecer, se ela for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada. Se a agulha for NOVA, deixe a aplicação acontecer. Não clique antes de ver a agulha!\n\nHora errada tira pontos, e terminar sem nenhuma picada contaminada dá um bônus.") % MG7_ATTEMPTS
+    $ instr_text = _("Um tratador vai aplicar %d injeções no cavalo, mas às vezes tenta REUTILIZAR uma agulha já usada!\n\nQuando a agulha aparecer, se ela for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada. Se a agulha for NOVA, deixe a aplicação acontecer. Não clique antes de ver a agulha!\n\nHora errada tira pontos, e terminar sem nenhuma picada contaminada dá um bônus.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % MG7_ATTEMPTS
 
     text "[instr_text]" style "mg7_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
@@ -385,16 +400,19 @@ screen mg7_hud():
         pos MG7_ATTEMPT_POS
         size 32
         color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     text _("Pontos: [mg7_score]"):
         pos MG7_SCORE_POS
         size 32
         color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     text _("Picadas: [mg7_pricks]"):
         pos MG7_PRICKS_POS
         size 32
         color ("#ffb3b3" if mg7_pricks > 0 else "#ffffff")
+        outlines [(3, "#2a1a0c", 0, 0)]
 
 
 # O cavalo como botão: clicar nele o tira do lugar. focus_mask = só os pixels
@@ -455,12 +473,6 @@ screen minigame7_outcome():
     add MG7_HORSE_ART[horse_key]
     add (MG7_STAMP_OK if outcome_ok else MG7_STAMP_BAD)
 
-    text "[mg7_reason!t]":
-        pos MG7_REASON_POS
-        size 28
-        xmaximum MG7_REASON_W
-        color ("#b9f5b9" if outcome_ok else "#ffb3b3")
-
     button:
         xfill True
         yfill True
@@ -469,52 +481,6 @@ screen minigame7_outcome():
 
     timer MG7_OUTCOME_TIME action Return(True)
 
-
-# Resultado final
-screen minigame7_result():
-
-    modal True
-
-    $ verdict = mg7_verdict()
-    $ bonus_value = mg7_bonus
-
-    add MG7_BG
-
-    button:
-        xfill True
-        yfill True
-        background "#000000aa"
-        action NullAction()
-
-    add MG7_RESULT_PANEL
-
-    text _("Pontuação: [mg7_score] / [MG7_MAX_SCORE]"):
-        pos MG7_RESULT_SCORE_POS
-        anchor (0.5, 0.5)
-        size 40
-        color "#ffffff"
-
-    if mg7_bonus > 0:
-        text _("Sem picadas: +[bonus_value] pontos de bônus!"):
-            pos MG7_RESULT_BONUS_POS
-            anchor (0.5, 0.5)
-            size 30
-            color "#b9f5b9"
-
-    text "[verdict!t]":
-        pos MG7_RESULT_VERDICT_POS
-        anchor (0.5, 0.0)
-        text_align 0.5
-        size 28
-        color "#ffffff"
-        xmaximum 880
-
-    imagebutton:
-        idle MG7_CONTINUE_IDLE
-        hover MG7_CONTINUE_HOVER
-        focus_mask True
-        action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-        hovered Function(mg7_sfx, "hover")
 
 
 ## -----------------------------------------------------------------------
@@ -543,7 +509,7 @@ label minigame_7_gameplay:
         $ mg7_index += 1
 
     $ mg7_finish()             # bônus de "sem picadas", se for o caso
-    call screen minigame7_result   # só retorna quando o jogador clica em "Continuar"
+    # (a tela de resultado e revisão é a "mg_result", chamada no entry)
 
     $ quick_menu = True
     return
@@ -556,9 +522,15 @@ label minigame_7_gameplay:
 label minigame_7_entry:
 
     call screen minigame7_instructions
-    call minigame_7_gameplay
 
-    $ mg_report_score(7, mg7_score, MG7_MAX_SCORE)  # registra o placar e a medalha, se for o caso
-    $ mg_complete(7)                                 # marca como concluído e libera o 8
+    $ mg_again = True
+    while mg_again:
+        call minigame_7_gameplay
+
+        $ mg_report_score(7, mg7_score, MG7_MAX_SCORE)  # registra o placar e a medalha, se for o caso
+        $ mg_complete(7)                                 # marca como concluído e libera o 8
+
+        call screen mg_result(mg7_score, MG7_MAX_SCORE, mg7_verdict())
+        $ mg_again = (_return == "replay")
 
     return

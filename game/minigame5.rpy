@@ -84,8 +84,7 @@ init python:
     MG5_RULE_POS = (1020, 478)                        # regra de validade
     MG5_COUNTER_POS = (60, 40)                        # "Cavalo n/5"
     MG5_SCORE_POS = (60, 90)                          # "Pontos: N"
-    MG5_REASON_POS = (130, 950)                       # motivo (tela de feedback): embaixo, à direita do botão de pausa
-    MG5_REASON_W = 820
+    MG5_STAMP_TIME = 1.4                              # s do carimbo CORRETO/ERRADO entre os cavalos
     MG5_RESULT_SCORE_POS = (960, 470)                 # "Pontuação: N / M" (centralizado)
     MG5_RESULT_VERDICT_POS = (960, 560)               # frase final (centralizada)
 
@@ -265,6 +264,7 @@ init python:
         store.mg5_score = 0
         store.mg5_last_ok = False
         store.mg5_last_reason = ""
+        mg_review_clear()
 
     def mg5_result_text(case):
         return {"negativo": _("Negativo"),
@@ -286,17 +286,21 @@ init python:
         case = store.mg5_horses[store.mg5_index]
         correct = MG5_KIND_DEST[case["kind"]]
         reason = mg5_correct_text(case)
+        dest_names = dict(MG5_DESTS)
         if choice == correct:
             store.mg5_score += MG5_POINTS_HIT
             store.mg5_last_ok = True
-            store.mg5_last_reason = _("Correto! ") + reason
+            store.mg5_last_reason = ""
+            mg_review_add("ok", "%s: %s" % (case["name"], dest_names[correct]), reason)
             mg5_sfx("correct")
         else:
             store.mg5_last_ok = False
+            store.mg5_last_reason = ""
             if choice == "timeout":
-                store.mg5_last_reason = _("Tempo esgotado! ") + reason
+                mg_review_add("bad", _("%s: o tempo esgotou.") % case["name"], "")
             else:
-                store.mg5_last_reason = _("Destino errado! ") + reason
+                mg_review_add("bad", _("%s: você escolheu %s.") % (case["name"], dest_names[choice]), "")
+            mg_review_add("miss", _("O correto era: %s") % dest_names[correct], reason)
             mg5_sfx("wrong")
 
     def mg5_verdict():
@@ -347,7 +351,7 @@ screen minigame5_instructions():
     add MG5_INSTR_PANEL
 
     # Texto de regras de exemplo — edite como quiser (os números vêm das constantes)
-    $ instr_text = _("Chegaram %d cavalos para a triagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Você tem %d segundos por cavalo:\n\n• Negativo e recente: Estábulo\n• Negativo e vencido: Nova coleta\n• Positivo: Notificar o MAPA\n\nCada acerto marca pontos.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
+    $ instr_text = _("Chegaram %d cavalos para a triagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Você tem %d segundos por cavalo:\n\n• Negativo e recente: Estábulo\n• Negativo e vencido: Nova coleta\n• Positivo: Notificar o MAPA\n\nCada acerto marca pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
 
     text "[instr_text]" style "mg5_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
@@ -459,7 +463,8 @@ screen minigame5_horse():
     timer MG5_TIME_PER_HORSE action Return("timeout")
 
 
-# Feedback depois de cada cavalo: carimbo + motivo + botão Próximo
+# Sinal rápido depois de cada cavalo: só o carimbo CORRETO/ERRADO (o motivo
+# fica na revisão final). Avança sozinho ou ao clicar em qualquer lugar.
 screen minigame5_feedback():
 
     modal True
@@ -468,58 +473,14 @@ screen minigame5_feedback():
 
     add (MG5_STAMP_OK if mg5_last_ok else MG5_STAMP_BAD)
 
-    text "[mg5_last_reason!t]":
-        pos MG5_REASON_POS
-        size 28
-        xmaximum MG5_REASON_W
-        color ("#b9f5b9" if mg5_last_ok else "#ffb3b3")
-        outlines [(3, "#2a1a0c", 0, 0)]
-
-    imagebutton:
-        idle MG5_NEXT_IDLE
-        hover MG5_NEXT_HOVER
-        focus_mask True
-        action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-        hovered Function(mg5_sfx, "hover")
-
-
-# Resultado final
-screen minigame5_result():
-
-    modal True
-
-    $ verdict = mg5_verdict()
-
-    add MG5_BG
-
     button:
         xfill True
         yfill True
-        background "#000000aa"
-        action NullAction()
+        background None
+        action Return(True)
 
-    add MG5_RESULT_PANEL
+    timer MG5_STAMP_TIME action Return(True)
 
-    text _("Pontuação: [mg5_score] / [MG5_MAX_SCORE]"):
-        pos MG5_RESULT_SCORE_POS
-        anchor (0.5, 0.5)
-        size 40
-        color "#ffffff"
-
-    text "[verdict!t]":
-        pos MG5_RESULT_VERDICT_POS
-        anchor (0.5, 0.0)
-        text_align 0.5
-        size 28
-        color "#ffffff"
-        xmaximum 880
-
-    imagebutton:
-        idle MG5_CONTINUE_IDLE
-        hover MG5_CONTINUE_HOVER
-        focus_mask True
-        action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-        hovered Function(mg5_sfx, "hover")
 
 
 ## -----------------------------------------------------------------------
@@ -540,7 +501,7 @@ label minigame_5_gameplay:
         call screen minigame5_feedback
         $ mg5_index += 1
 
-    call screen minigame5_result   # só retorna quando o jogador clica em "Continuar"
+    # (a tela de resultado e revisão é a "mg_result", chamada no entry)
 
     $ quick_menu = True
     return
@@ -553,9 +514,15 @@ label minigame_5_gameplay:
 label minigame_5_entry:
 
     call screen minigame5_instructions
-    call minigame_5_gameplay
 
-    $ mg_report_score(5, mg5_score, MG5_MAX_SCORE)  # registra o placar e a medalha, se for o caso
-    $ mg_complete(5)                                 # marca como concluído e libera o 6
+    $ mg_again = True
+    while mg_again:
+        call minigame_5_gameplay
+
+        $ mg_report_score(5, mg5_score, MG5_MAX_SCORE)  # registra o placar e a medalha, se for o caso
+        $ mg_complete(5)                                 # marca como concluído e libera o 6
+
+        call screen mg_result(mg5_score, MG5_MAX_SCORE, mg5_verdict())
+        $ mg_again = (_return == "replay")
 
     return

@@ -432,6 +432,7 @@ init python:
         store.mg4_finished = False
         store.mg4_feedback = ""
         store.mg4_feedback_ok = True
+        mg_review_clear()
 
     def mg4_set_feedback(text, ok):
         store.mg4_feedback = text
@@ -464,17 +465,30 @@ init python:
             store.mg4_docked.append(n)
             mg4_hit()
             if mg4_dock_done():
-                mg4_set_feedback(MG4_COMPLEX_FEEDBACK, True)
+                mg4_set_feedback(_("Imunocomplexo formado!"), True)
             else:
-                mg4_set_feedback(feedback, True)
+                mg4_set_feedback(_("Encaixou!"), True)
         else:
             store.mg4_tried.append(n)
             mg4_miss()
-            mg4_set_feedback(feedback, False)
+            mg4_set_feedback(_("Não encaixa!"), False)
 
     def mg4_dock_continue():
         if mg4_dock_done():
+            mg4_build_dock_review()
             mg4_advance()
+
+    def mg4_build_dock_review():
+        """Revisão da fase 1: cada anticorpo, o que o jogador fez e por quê."""
+        mg_review_group(MG4_STEPS[0]["title"])
+        for n, (text, fits, feedback) in enumerate(MG4_CANDIDATES):
+            if fits:
+                mg_review_add("ok", _("Encaixou: %s") % text, feedback)
+            elif n in store.mg4_tried:
+                mg_review_add("bad", _("Você tentou: %s") % text, feedback)
+            else:
+                mg_review_add("ok", _("Não encaixa (certo ter deixado): %s") % text, feedback)
+        mg_review_note(MG4_COMPLEX_FEEDBACK)
 
     # ---- Fases de campos ---------------------------------------------------
     def mg4_field_art(f):
@@ -493,34 +507,33 @@ init python:
         mg4_sfx("click")
 
     def mg4_confirm():
-        """Confirma os campos da fase: trava os certos (+pontos), marca os
-        errados (-pontos, com a explicação) e só avança quando todos estiverem
-        certos."""
+        """Confirma os campos da fase: cada campo certo dá pontos, cada errado
+        tira pontos; a fase avança e o detalhe (com a explicação) fica na
+        revisão final."""
         s = store.mg4_step
         if store.mg4_finished:
             return
-        first_hint = None
-        for f in range(len(MG4_STEPS[s]["fields"])):
-            if store.mg4_locked[s][f]:
-                continue
+        mg_review_group(MG4_STEPS[s]["title"])
+        any_wrong = False
+        labels = MG4_OPT_LABELS[MG4_STEPS[s]["type"]]
+        for f, field in enumerate(MG4_STEPS[s]["fields"]):
             pos = store.mg4_values[s][f]
             if pos < 0:
                 continue
-            if pos == store.mg4_answers[s][f]:
-                store.mg4_locked[s][f] = True
-                store.mg4_wrong[s][f] = False
+            right = store.mg4_answers[s][f]
+            hint = store.mg4_hints[s][f]
+            if pos == right:
                 mg4_hit()
+                mg_review_add("ok", "%s: %s" % (field["label"], labels[pos]), hint)
             else:
-                store.mg4_wrong[s][f] = True
+                any_wrong = True
                 mg4_miss()
-                if first_hint is None:
-                    first_hint = store.mg4_hints[s][f]
-
-        if all(store.mg4_locked[s]):
-            mg4_set_feedback(_("Tudo certo! Fase concluída."), True)
-            mg4_advance()
-        elif first_hint is not None:
-            mg4_set_feedback(first_hint, False)
+                mg_review_add("bad", _("%s: você marcou %s. O correto é %s.") % (field["label"], labels[pos], labels[right]), hint)
+        if any_wrong:
+            mg4_set_feedback(_("Há erros!"), False)
+        else:
+            mg4_set_feedback(_("Tudo certo!"), True)
+        mg4_advance()
 
     def mg4_all_filled():
         """Todos os campos da fase atual já foram escolhidos?"""
@@ -576,7 +589,7 @@ screen minigame4_instructions():
     add MG4_INSTR_PANEL
 
     # Texto de regras de exemplo — edite como quiser
-    text _("A amostra do Golias chegou ao laboratório!\n\nPrimeiro, forme o imunocomplexo: clique nos anticorpos que se encaixam no vírus da AIE. Depois, leia os resultados do IDGA e do ELISA e descubra qual é qual.\n\nCada conduta correta marca pontos; cada erro tira pontos.") style "mg4_instructions_text" pos (960, 490) anchor (0.5, 0.5)
+    text _("A amostra do Golias chegou ao laboratório!\n\nPrimeiro, forme o imunocomplexo: clique nos anticorpos que se encaixam no vírus da AIE. Depois, leia os resultados do IDGA e do ELISA e descubra qual é qual.\n\nCada conduta correta marca pontos; cada erro tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg4_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
     imagebutton:
         idle MG4_CLOSE_IDLE
@@ -717,40 +730,12 @@ screen minigame4_gameplay():
                 xmaximum MG4_FEEDBACK_W
                 color ("#b9f5b9" if mg4_feedback_ok else "#ffb3b3")
                 outlines [(3, "#2a1a0c", 0, 0)]
+            timer 1.6 action SetVariable("mg4_feedback", "")
 
-    # ---- Fim: resultado final --------------------------------------------
+    # ---- Fim: a tela de resultado e revisão é a "mg_result" (mg_common.rpy) ----
     else:
 
-        $ verdict = mg4_verdict()
-
-        button:
-            xfill True
-            yfill True
-            background "#000000aa"
-            action NullAction()
-
-        add MG4_RESULT_PANEL
-
-        text _("Pontuação: [mg4_score] / [MG4_MAX_SCORE]"):
-            pos MG4_RESULT_SCORE_POS
-            anchor (0.5, 0.5)
-            size 40
-            color "#ffffff"
-
-        text "[verdict!t]":
-            pos MG4_RESULT_VERDICT_POS
-            anchor (0.5, 0.0)
-            text_align 0.5
-            size 28
-            color "#ffffff"
-            xmaximum 880
-
-        imagebutton:
-            idle MG4_CONTINUE_IDLE
-            hover MG4_CONTINUE_HOVER
-            focus_mask True
-            action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-            hovered Function(mg4_sfx, "hover")
+        timer 0.5 action Return(True)
 
 
 ## -----------------------------------------------------------------------
@@ -776,9 +761,15 @@ label minigame_4_gameplay:
 label minigame_4_entry:
 
     call screen minigame4_instructions
-    call minigame_4_gameplay
 
-    $ mg_report_score(4, mg4_score, MG4_MAX_SCORE)  # registra o placar e a medalha, se for o caso
-    $ mg_complete(4)                                 # marca como concluído e libera o 5
+    $ mg_again = True
+    while mg_again:
+        call minigame_4_gameplay
+
+        $ mg_report_score(4, mg4_score, MG4_MAX_SCORE)  # registra o placar e a medalha, se for o caso
+        $ mg_complete(4)                                 # marca como concluído e libera o 5
+
+        call screen mg_result(mg4_score, MG4_MAX_SCORE, mg4_verdict())
+        $ mg_again = (_return == "replay")
 
     return

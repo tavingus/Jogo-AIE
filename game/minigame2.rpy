@@ -290,7 +290,25 @@ init python:
         store.mg2_score = max(0, score)
         store.mg2_phase = "review"
         store.mg2_area = 0
+        mg2_build_review()
         mg2_sfx("correct" if store.mg2_score >= store.mg2_max_score else "wrong")
+
+    def mg2_build_review():
+        """Revisão final: cada achado de cada área, com o que o jogador fez."""
+        mg_review_clear()
+        for area, info in enumerate(MG2_AREAS):
+            mg_review_group(info["label"])
+            for j, card in enumerate(store.mg2_cards[area]):
+                selected = store.mg2_selected[area][j]
+                text = card["text"]
+                if card["correct"] and selected:
+                    mg_review_add("ok", _("Marcou: %s") % text, _("Compatível com a AIE."))
+                elif card["correct"]:
+                    mg_review_add("miss", _("Faltou marcar: %s") % text, _("É um achado compatível com a AIE."))
+                elif selected:
+                    mg_review_add("bad", _("Marcou, mas não é compatível: %s") % text, _("Não é um achado típico da AIE."))
+                else:
+                    mg_review_add("ok", _("Deixou sem marcar (certo): %s") % text, _("Não é compatível com a AIE."))
 
     def mg2_verdict():
         """Frase de feedback conforme o desempenho."""
@@ -342,7 +360,7 @@ screen minigame2_instructions():
         add MG2_INSTR_PANEL
 
         # Texto de regras de exemplo — edite como quiser
-        text _("Um cavalo chegou para exame clínico!\n\nEm cada área do exame, marque os achados COMPATÍVEIS com a Anemia Infecciosa Equina e deixe sem marcar os que não combinam. Examine todas as áreas antes de concluir.\n\nMarcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos.") style "mg2_instructions_text" xalign 0.5 yalign 0.5
+        text _("Um cavalo chegou para exame clínico!\n\nEm cada área do exame, marque os achados COMPATÍVEIS com a Anemia Infecciosa Equina e deixe sem marcar os que não combinam. Examine todas as áreas antes de concluir.\n\nMarcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg2_instructions_text" xalign 0.5 yalign 0.5
 
     # Botão "Entendi" / "Fechar" — libera o jogador para o minigame.
     # IMAGEM: minigame2/mg2_close_idle.png e mg2_close_hover.png.
@@ -456,7 +474,7 @@ screen minigame2_gameplay():
             insensitive MG2_SUBMIT_DISABLED
             sensitive mg2_all_visited()
             focus_mask True
-            action Function(mg2_submit)
+            action [Function(mg2_submit), Return(True)]
             hovered Function(mg2_sfx, "hover")
 
         text _("Concluir exame"):
@@ -471,45 +489,7 @@ screen minigame2_gameplay():
                 ypos MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] + 8
                 size 24
                 color "#ffffff"
-
-    else:
-
-        $ verdict = mg2_verdict()
-
-        text _("Pontuação: [mg2_score] / [mg2_max_score]"):
-            xpos 40
-            ypos 980
-            size 40
-            color "#ffffff"
-
-        text "[verdict!t]":
-            xpos 40
-            ypos 1030
-            size 26
-            color "#ffffff"
-            xmaximum 900
-
-        imagebutton:
-            pos MG2_SUBMIT_POS
-            idle MG2_SUBMIT_IDLE
-            hover MG2_SUBMIT_HOVER
-            focus_mask True
-            action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-            hovered Function(mg2_sfx, "hover")
-
-        text _("Continuar"):
-            pos (MG2_SUBMIT_POS[0] + MG2_SUBMIT_SIZE[0] // 2, MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] // 2)
-            anchor (0.5, 0.5)
-            size 32
-            color "#ffffff"
-
-        # Legenda das cores da revisão
-        text _("Verde = acerto   Vermelho = marcou errado   Amarelo = faltou marcar"):
-            xpos 40
-            ypos 915
-            size 24
-            xmaximum 900
-            color "#ffffff"
+                outlines [(3, "#2a1a0c", 0, 0)]
 
 
 ## -----------------------------------------------------------------------
@@ -535,9 +515,15 @@ label minigame_2_gameplay:
 label minigame_2_entry:
 
     call screen minigame2_instructions
-    call minigame_2_gameplay
 
-    $ mg_report_score(2, mg2_score, mg2_max_score)  # registra o placar e a medalha, se for o caso
-    $ mg_complete(2)                                 # marca como concluído e libera o 3
+    $ mg_again = True
+    while mg_again:
+        call minigame_2_gameplay
+
+        $ mg_report_score(2, mg2_score, mg2_max_score)  # registra o placar e a medalha, se for o caso
+        $ mg_complete(2)                                 # marca como concluído e libera o 3
+
+        call screen mg_result(mg2_score, mg2_max_score, mg2_verdict())
+        $ mg_again = (_return == "replay")
 
     return
