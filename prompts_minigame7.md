@@ -121,6 +121,14 @@ Clean readable silhouettes. No blood, no wounds, no needle visible.
 
 **Para refazer só uma** (anexe a imagem): `Redraw only version [1 ARRIVING / 2 RECOILING], same farmhand, same size and ground line, the needle fully capped and hidden, flat solid #00FF00 background, no horse, no text.`
 
+**Se a seringa/agulha não sair igual à das outras poses (problema comum):** o GPT redesenha a seringa em cada imagem. Duas saídas:
+
+1. **Pelo prompt:** anexe a imagem das 4 poses e peça o mesmo objeto, só com a tampa:
+```
+Use the attached image as the exact reference for the SYRINGE too: same clear plastic barrel, same plunger and finger grips, same size and same pixel-art style as in the attached poses. Only change: the needle is fully covered by an opaque blue cap (the cap sits over the needle, same blue as the cap in the attached images). Do not redesign the syringe. Keep the farmhand identical.
+```
+2. **Pelo Aseprite (o mais seguro):** copie a seringa da pose `tratador_nova` e cole na mão do tratador chegando/recuo; depois pinte a ponta com um retângulo azul (a tampa) por cima da agulha. Assim a seringa é idêntica nas 6 poses.
+
 **Montagem:** recorte cada pose, posicione no canvas **960x540 transparente** na mesma caixa das outras (corpo em x 510–770, y 150–470) e salve como `tratador_chegando.png` e `tratador_recuo.png`. Em "chegando" o tratador entra deslizando pela direita, então deixe-o na posição final.
 
 ---
