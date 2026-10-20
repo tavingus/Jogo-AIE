@@ -161,6 +161,10 @@ screen roadmap_screen():
 
     add MAP_BG
 
+    # Salva sozinho toda vez que o mapa aparece (é o "Continuar" do menu).
+    # Precisa ser dentro de uma interação, por isso um timer da tela.
+    timer 0.4 action Function(prog_autosave)
+
     text _("MAPA DE DESAFIOS"):
         xalign 0.5
         ypos 40
@@ -257,8 +261,8 @@ label roadmap:
     # Música do mapa (a mesma do menu; não reinicia se já estiver tocando)
     $ mus_menu()
 
-    # Salva sozinho toda vez que o mapa aparece (é o "Continuar" do menu)
-    $ prog_autosave()
+    # (O autosave do mapa é feito pela própria tela, com um timer: o Ren'Py só
+    #  salva de verdade durante uma interação, não aqui no label.)
 
     call screen roadmap_screen with Dissolve(0.5)
     $ chosen = _return
