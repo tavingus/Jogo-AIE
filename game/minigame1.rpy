@@ -57,10 +57,12 @@ init python:
     # teste (MG1_MARK_CORRECT). A arte real das opções é canvas inteiro
     # (960x540, já na posição certa) e IGNORA estes valores. Os nomes das
     # categorias ("Ordem", "Família"...) já estão desenhados no fundo.
-    MG1_ROWS_Y0 = 300          # y da primeira linha
-    MG1_ROWS_STEP = 100        # distância vertical entre linhas
-    MG1_BTN_X = 1400           # x do placeholder que mostra a opção atual
-    MG1_BTN_SIZE = (460, 72)   # tamanho do placeholder de cada opção
+    # (valores ajustados às linhas do livro: ~87 px entre elas, caixa dentro da
+    #  página da direita, logo depois dos nomes das categorias)
+    MG1_ROWS_Y0 = 286          # y da primeira linha
+    MG1_ROWS_STEP = 87         # distância vertical entre linhas
+    MG1_BTN_X = 1232           # x do placeholder que mostra a opção atual
+    MG1_BTN_SIZE = (290, 60)   # tamanho do placeholder de cada opção
 
     # ---- Comportamento --------------------------------------------------
     MG1_MARK_CORRECT = False   # True = pinta de verde a categoria já correta (bom p/ testar)
