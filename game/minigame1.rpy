@@ -82,18 +82,13 @@ init python:
 
     # ---- Morfologia -----------------------------------------------------
     # Arquivos em game/images/minigame1/ (a ordem é a ordem do ciclo de cliques)
-    # A lista é montada sozinha: usa morfologia_1.png, morfologia_2.png, ... até
-    # o primeiro número que não existir (até 10). Com menos de 5 arquivos reais,
-    # completa até 5 com placeholders. Para ter mais opções, basta adicionar
-    # morfologia_6.png, morfologia_7.png etc.
-    MG1_MORPH_FILES = []
-    for _i in range(1, 11):
-        if renpy.loadable("images/minigame1/morfologia_%d.png" % _i):
-            MG1_MORPH_FILES.append("morfologia_%d.png" % _i)
-        else:
-            break
-    while len(MG1_MORPH_FILES) < 5:
-        MG1_MORPH_FILES.append("morfologia_%d.png" % (len(MG1_MORPH_FILES) + 1))
+    MG1_MORPH_FILES = [
+        "morfologia_1.png",
+        "morfologia_2.png",
+        "morfologia_3.png",
+        "morfologia_4.png",
+        "morfologia_5.png",
+    ]
     MG1_MORPH_CORRECT = 2  # índice (começa em 0) da morfologia correta => morfologia_3.png
     # Descrição da morfologia certa (aparece na revisão final). Edite conforme
     # a sua arte. Se ficar None, a revisão diz só o número da imagem.

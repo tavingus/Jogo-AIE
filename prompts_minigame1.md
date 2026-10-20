@@ -20,30 +20,23 @@ Top-down view of a wooden study desk in a veterinary school library, pixel art. 
 
 ---
 
-## 2. Duas novas morfologias de vírus zoonóticos (opções do jogo)
+## 2. As 5 morfologias (3 já definidas + 2 sugestões novas)
 
-Hoje a opção correta é a do **EIAV** (lentivírus): partícula **esférica e envelopada, com um cerne em forma de cone (cônico)** por dentro. Para o jogador distinguir só pela forma, as outras opções precisam ter silhuetas **bem diferentes** entre si. A morfologia "filamentosa" já existe (lembra o Ebola/Marburg), então sugiro estas duas:
+Já definidas: **esférico** (EIAV, a resposta correta), **Ebola** (filamentoso) e **raiva** (bala). Para as outras duas, as silhuetas precisam ser **bem diferentes** das três (esfera, fio e bala) para o jogador distinguir só pela forma. Minhas duas sugestões de vírus zoonóticos:
 
-### Sugestão A — Vírus da RAIVA (*Lyssavirus*, família Rhabdoviridae)
-- **Forma:** "bala de revólver": um cilindro alongado com **uma ponta arredondada e a outra reta**.
-- **Característica:** espículas curtas cobrindo a superfície, e dentro um fio enrolado (o RNA com a nucleoproteína) em espiral.
-- **Zoonose clássica:** cães, morcegos e herbívoros (inclusive equinos) transmitem raiva ao ser humano.
-- **Como desenhar no seu estilo (corpo verde com pontos vermelhos):** um "projétil" deitado, ponta redonda à direita e base reta à esquerda, pontos vermelhos de espículas por toda a superfície.
+### Sugestão 1 — POXVÍRUS (ex.: *Monkeypox/Mpox*, família Poxviridae): o "TIJOLO"
+- **Forma:** um **retângulo de cantos arredondados** (tijolo), a única opção "quadrada".
+- **Característica:** por dentro, um núcleo em formato de **haltere** (duas pontas largas ligadas por uma cintura) e na superfície filamentos enrolados.
+- **Zoonose:** o Mpox passa de roedores e primatas para as pessoas.
+- **No seu estilo:** retângulo verde de cantos arredondados, pontos vermelhos e um haltere claro no meio.
 
-### Sugestão B — CORONAVÍRUS (família Coronaviridae)
-- **Forma:** esfera com **uma "coroa" de espículas grandes em forma de clava** (daí o nome *corona*).
-- **Característica:** espículas claramente maiores e mais espaçadas que as de outros vírus, com a ponta bulbosa.
-- **Zoonose:** SARS-CoV, MERS-CoV e SARS-CoV-2 vieram de animais (morcegos, camelos).
-- **Atenção:** é redondo como o EIAV, mas as espículas em clava por fora e o interior liso o diferenciam do cone do EIAV.
-- **No seu estilo:** esfera verde com **bastões vermelhos de ponta arredondada** saindo ao redor (como um sol ou uma coroa).
+### Sugestão 2 — FLAVIVÍRUS (ex.: **vírus do Nilo Ocidental**, família Flaviviridae): o "POLIEDRO"
+- **Forma:** partícula **icosaédrica**, ou seja, um **polígono de lados retos** (hexágono) com faces geométricas, sem espículas grandes.
+- **Característica:** superfície lisa e facetada, parecida com uma bola de futebol/cristal.
+- **Zoonose e relevância:** o vírus do Nilo Ocidental passa de aves para cavalos e humanos (por mosquitos). É um vírus de equinos, então combina com o tema do jogo.
+- **No seu estilo:** hexágono verde com linhas internas formando triângulos e pequenos pontos vermelhos nos vértices.
 
-### Alternativa C — POXVÍRUS (ex.: *Monkeypox/Mpox*, família Poxviridae)
-- **Forma:** "**tijolo**" retangular com cantos arredondados, bem diferente de todos os outros.
-- **Característica:** corpo de dentro em formato de haltere (halteres) e superfície com filamentos enrolados.
-- **Zoonose:** o Mpox passa de animais para pessoas.
-- **No seu estilo:** retângulo verde de cantos arredondados, com pontos vermelhos e um "haltere" claro no meio.
-
-**Minha recomendação:** use **A (Raiva)** e **B (Coronavírus)**: são os mais conhecidos pelos estudantes e têm silhuetas muito diferentes do EIAV e do filamentoso.
+**Por que esses dois:** o coronavírus (esfera com coroa de espículas) também é famoso, mas é redondo como o EIAV e poderia confundir. O tijolo e o poliedro são formas únicas.
 
 ---
 
@@ -51,16 +44,16 @@ Hoje a opção correta é a do **EIAV** (lentivírus): partícula **esférica e 
 
 Anexe uma das morfologias que você já tem (para copiar o estilo: corpo verde, pontos vermelhos, contorno branco e roxo) e use:
 
-**A — Raiva (bala):**
+**Poxvírus (tijolo):**
 ```
 Use the attached image as the exact style reference: same pixel-art style, same palette (green body, red spots, white outline), same size and framing, on a flat solid #00FF00 background, no text.
-Draw a RABIES VIRUS particle (a rhabdovirus): a BULLET-SHAPED capsule lying horizontally, one end rounded and the other end flat, with short red spikes dotted over its whole surface, and a faint coiled strand visible inside. Centered, large and clear.
+Draw a POXVIRUS particle (Mpox): a BRICK-SHAPED rounded rectangle, wider than tall, green with red spots on the surface and a pale DUMBBELL-shaped core (two wide ends joined by a narrow waist) visible in the middle. Centered, large and clear.
 ```
 
-**B — Coronavírus (coroa):**
+**Flavivírus (poliedro):**
 ```
 Use the attached image as the exact style reference: same pixel-art style, same palette (green body, red spots, white outline), same size and framing, on a flat solid #00FF00 background, no text.
-Draw a CORONAVIRUS particle: a round green sphere with a CROWN of large club-shaped red spikes with rounded bulb tips radiating all around it, evenly spaced and clearly bigger than the spots of the attached image. Centered, large and clear.
+Draw a FLAVIVIRUS particle (West Nile virus): an ICOSAHEDRAL particle seen as a green HEXAGON with straight geometric faces, thin lighter lines forming triangular facets inside, a smooth surface with small red dots only at the corners. Centered, large and clear.
 ```
 
-**Montagem:** cada morfologia vira `morfologia_N.png` (canvas 960x540, vírus já na posição da página esquerda do livro, rótulo roxo com o nome embaixo, como as outras). A **correta** continua a nº 3 (`MG1_MORPH_CORRECT`); se você adicionar morfologias novas, me diga quantas são e eu atualizo a lista do código (`MG1_MORPH_FILES`).
+**Montagem:** cada morfologia vira `morfologia_N.png` (canvas 960x540, vírus já na posição da página esquerda do livro, com o rótulo roxo embaixo, como as outras). A **correta** (esférica, EIAV) é a nº 3.
