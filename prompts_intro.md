@@ -54,6 +54,28 @@ Same town of Equinópolis at sunrise, pixel art, hopeful and determined mood. Th
 
 ---
 
+## Cavalo torto ou esquisito na imagem (como corrigir)
+
+O gerador erra a anatomia do cavalo quando ele está numa pose complicada (de frente, em escorço, com a cabeça virada) ou quando a cena tem coisas demais. Do mais simples ao mais seguro:
+
+**1. Corrigir só o cavalo** (anexe a imagem gerada e a ficha do Golias):
+```
+Redraw ONLY the horse in this image. Keep everything else exactly the same (sky, mist, flies, syringe, fence, background, composition). The horse must have correct, natural horse anatomy: a clean SIDE VIEW standing pose, four straight legs with proper joints, a long arched neck, deep chest, strong hindquarters, correct proportions. Use the attached Golias character sheet as the exact design reference (chestnut-bay coat, white blaze, ONE white sock on the front left leg). Uneasy expression: ears pinned back. Do not change anything else.
+```
+No ChatGPT você também pode **selecionar só a região do cavalo** com a ferramenta de seleção da imagem e pedir a correção apenas ali.
+
+**2. Simplificar a pose no prompt original:** troque a descrição do cavalo por `a chestnut horse standing in simple side profile, calm silhouette, ears back` e deixe-o **menor e mais ao fundo** (cavalos pequenos erram menos). Evite "head turned", "three-quarter view" e "rearing".
+
+**3. Sem cavalo na cena, e você coloca o sprite (o mais seguro):**
+```
+Same image, but REMOVE the horse completely and leave the pasture empty (grass, fence and mist only). Keep everything else exactly the same.
+```
+Depois, no Aseprite, cole o cavalo do seu **sprite do Golias** (ou um dos 5 cavalos da triagem) na posição, na escala certa, com sombra no chão. Assim a anatomia fica garantida e o cavalo fica igual ao do resto do jogo.
+
+**4. Gerar variações:** peça 3 ou 4 versões da mesma cena e escolha a melhor, ou troque só o cavalo de uma versão pela de outra.
+
+---
+
 ## Dicas de consistência
 - **Gere as 3 em sequência na mesma conversa** e, para a 2 e a 3, anexe a imagem da cena 1 e escreva: `Keep the exact same town layout, buildings and mountains as the attached image.`
 - Se a cena 2 ficar "feia" demais: `Same image, less scary, more atmospheric, softer colors, keep it family-friendly.`
