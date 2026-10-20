@@ -353,6 +353,7 @@ label mg_pause_label:
 label mg_exit_to_map:
 
     hide screen mg_pause_button
+    $ mg_active = False
     $ quick_menu = True
 
     # limpa a pilha de "call" deixada pelo minigame (entry/gameplay)

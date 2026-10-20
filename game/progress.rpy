@@ -33,6 +33,12 @@ init python:
     # Só salvamos de propósito (no mapa), então desligamos o autosave por
     # frequência de interações do Ren'Py.
     config.autosave_frequency = None
+    # Não salvar sozinho ao fechar o jogo: se o jogador fechasse dentro de um
+    # minigame, o save guardaria o meio do minigame (e "Continuar" cairia nele).
+    config.autosave_on_quit = False
+
+
+default mg_active = False   # True enquanto um minigame está rodando (ver roadmap.rpy)
 
 
 ## -----------------------------------------------------------------------
@@ -316,13 +322,15 @@ screen achievements_screen():
 ## -----------------------------------------------------------------------
 init python:
 
-    PROG_VERSION = 2   # aumente se mudar a estrutura do save e quiser invalidar os antigos
+    PROG_VERSION = 3   # aumente se mudar a estrutura do save e quiser invalidar os antigos
     PROG_SLOT_RE = r"(auto-\d+|quick-\d+|\d+-\d+)$"   # só autosaves, quicksaves e saves manuais
 
     def _prog_save_json(d):
         """Marca todo save criado por esta versão do jogo e guarda a lista de
         conquistas dele (para a tela Conquistas do menu principal)."""
         d["prog_version"] = PROG_VERSION
+        # Save feito no meio de um minigame: o "Continuar" não usa (só saves do mapa)
+        d["in_minigame"] = bool(getattr(store, "mg_active", False))
         d["achievements"] = sorted(k for k, v in store.ach_unlocked.items() if v)
 
     config.save_json_callbacks.append(_prog_save_json)
@@ -333,6 +341,8 @@ init python:
         for slot in renpy.list_slots(PROG_SLOT_RE):
             info = renpy.slot_json(slot)
             if not info or info.get("prog_version") != PROG_VERSION:
+                continue
+            if info.get("in_minigame"):
                 continue
             t = renpy.slot_mtime(slot) or 0
             if t > best_time:

@@ -271,9 +271,11 @@ label roadmap:
         # O botão de pausa (mg_common.rpy) fica por cima do minigame; ao
         # terminar normalmente ele é escondido aqui (se o jogador sair pelo
         # menu de pausa, quem esconde é o label mg_exit_to_map).
+        $ mg_active = True
         show screen mg_pause_button
         call expression ("minigame_%d_entry" % chosen)
         hide screen mg_pause_button
+        $ mg_active = False
 
     # Volta a mostrar o mapa (com o progresso já atualizado).
     jump roadmap
