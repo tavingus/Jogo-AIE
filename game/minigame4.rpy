@@ -764,7 +764,7 @@ label minigame_4_entry:
 
     $ mg_again = True
     while mg_again:
-        call minigame_4_gameplay
+        call minigame_4_gameplay from _mg4_gameplay_call
 
         $ mg_report_score(4, mg4_score, MG4_MAX_SCORE)  # registra o placar e a medalha, se for o caso
         $ mg_complete(4)                                 # marca como concluído e libera o 5

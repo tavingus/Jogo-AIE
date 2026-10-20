@@ -546,7 +546,7 @@ label minigame_1_entry:
 
     $ mg_again = True
     while mg_again:
-        call minigame_1_gameplay
+        call minigame_1_gameplay from _mg1_gameplay_call
 
         # Errou demais (4 ou mais erros): não conclui, mas dá para jogar de novo
         if not mg1_failed:
