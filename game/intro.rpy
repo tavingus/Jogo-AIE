@@ -43,9 +43,26 @@ init python:
     INTRO_TEXT_W = 1460
     INTRO_ARROW_POS = (1770, 970)       # "▼" de "clique para continuar"
 
+    def intro_art(filename, label, color):
+        """Imagem de fundo da introdução. Se o PNG for 960x540 (o ideal), é
+        ampliado 2x com nearest neighbor. Se tiver OUTRO tamanho (ex.: 1536x1024
+        direto do gerador), é cortada ao centro para 16:9 e ajustada à tela
+        1920x1080, assim nunca fica "fora do lugar". Sem o PNG, placeholder."""
+        path = "images/" + filename
+        if not renpy.loadable(path):
+            return menu_opt_art(filename, (0, 0, 1920, 1080), label, color)
+        w, h = renpy.image_size(path)
+        if (w, h) == (960, 540):
+            return Transform(Image(path, nearest_neighbor=True), zoom=2.0)
+        if w * 9 > h * 16:                      # mais larga que 16:9: corta dos lados
+            cw, ch = int(h * 16 / 9), h
+        else:                                   # mais alta que 16:9: corta em cima e embaixo
+            cw, ch = w, int(w * 9 / 16)
+        x0, y0 = (w - cw) // 2, (h - ch) // 2
+        return Transform(Image(path), crop=(x0, y0, cw, ch), zoom=1920.0 / cw)
+
     INTRO_ART = [
-        menu_opt_art("intro/intro_%d.png" % (i + 1), (0, 0, 1920, 1080),
-                     "INTRO %d\n(intro/intro_%d.png)" % (i + 1, i + 1), c)
+        intro_art("intro/intro_%d.png" % (i + 1), "INTRO %d\n(intro/intro_%d.png)" % (i + 1, i + 1), c)
         for i, c in enumerate(["#2f5a3a", "#5a3a2f", "#2f3a5a"])
     ]
     INTRO_BOX = menu_opt_art("intro_box.png", INTRO_BOX_RECT, "CAIXA DE TEXTO\n(intro_box.png)", "#7a5a3a")
