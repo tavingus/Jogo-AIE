@@ -3,14 +3,14 @@
 # Minigame 5: "Triagem de cavalos recém-chegados"
 #
 # Como funciona:
-#   - 5 cavalos chegam, UM DE CADA VEZ. Para cada um aparecem os PAPÉIS: nome,
+#   - 5 animais estão saindo para viagem, UM DE CADA VEZ. Para cada um aparecem os PAPÉIS: nome,
 #     resultado do exame de AIE e data da coleta, junto com a DATA DE HOJE.
 #   - O jogador confere os papéis (resultado + validade do exame) e manda o
 #     cavalo para o destino certo, DENTRO DE UM LIMITE DE TEMPO por cavalo
 #     (barra de tempo). Se o tempo acabar, conta como erro.
 #
 #   Cada caso tem um destino certo:
-#     - Exame NEGATIVO e RECENTE (dentro da validade) ........ ESTÁBULO
+#     - Exame NEGATIVO e RECENTE (dentro da validade) ........ LIBERADO PARA VIAGEM
 #     - Exame NEGATIVO e VENCIDO (passou da validade) ........ NOVA COLETA
 #     - Exame POSITIVO (qualquer data) ........................ NOTIFICAR O MAPA
 #   (Cavalo com exame "em processamento" não pode ser transportado, então
@@ -105,7 +105,7 @@ init python:
     # Destinos (a ordem define a posição do botão, de cima para baixo, e o
     # nome das artes destino_<id>_*)
     MG5_DESTS = [
-        ("estabulo", _("Estábulo")),
+        ("estabulo", _("Liberar para viagem")),
         ("coleta", _("Nova coleta")),
         ("mapa", _("Notificar o MAPA")),
     ]
@@ -274,11 +274,11 @@ init python:
         """Explicação da conduta certa para o caso."""
         kind, days = case["kind"], case["days"]
         if kind == "recente":
-            return _("Exame negativo de %d dias atrás, dentro da validade de %d dias: o cavalo vai para o ESTÁBULO.") % (days, MG5_VALIDITY_DAYS)
+            return _("Exame negativo de %d dias atrás, dentro da validade de %d dias: o animal está LIBERADO para viajar.") % (days, MG5_VALIDITY_DAYS)
         elif kind == "vencido":
-            return _("Exame negativo de %d dias atrás, passou da validade de %d dias: é preciso uma NOVA COLETA.") % (days, MG5_VALIDITY_DAYS)
+            return _("Exame negativo de %d dias atrás, passou da validade de %d dias: é preciso uma NOVA COLETA e o animal não pode viajar até lá.") % (days, MG5_VALIDITY_DAYS)
         else:
-            return _("Resultado POSITIVO para AIE: a conduta é a NOTIFICAÇÃO ao MAPA, qualquer que seja a data do exame.")
+            return _("Resultado POSITIVO para AIE: a conduta é a NOTIFICAÇÃO ao MAPA, qualquer que seja a data do exame, e o animal não pode viajar.")
 
     def mg5_resolve(choice):
         """Aplica a decisão do jogador ("estabulo", "coleta", "mapa" ou
@@ -307,9 +307,9 @@ init python:
         """Frase final conforme o desempenho."""
         ratio = float(store.mg5_score) / max(1, MG5_MAX_SCORE)
         if ratio >= 1.0:
-            return _("Triagem perfeita! Todos os cavalos foram para o destino certo.")
+            return _("Triagem perfeita! Todos os animais receberam a conduta certa.")
         elif ratio >= 0.6:
-            return _("Boa triagem! Mas alguns cavalos foram para o destino errado.")
+            return _("Boa triagem! Mas alguns animais receberam a conduta errada.")
         else:
             return _("Revise as regras de triagem do exame de AIE e tente de novo.")
 
@@ -351,7 +351,7 @@ screen minigame5_instructions():
     add MG5_INSTR_PANEL
 
     # Texto de regras de exemplo — edite como quiser (os números vêm das constantes)
-    $ instr_text = _("Chegaram %d cavalos para a triagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Você tem %d segundos por cavalo:\n\n• Negativo e recente: Estábulo\n• Negativo e vencido: Nova coleta\n• Positivo: Notificar o MAPA\n\nCada acerto marca pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
+    $ instr_text = _("Estão saindo %d animais para viagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Só pode viajar quem tem exame negativo e dentro da validade. Você tem %d segundos por animal:\n\n• Negativo e recente: Liberado para viagem\n• Negativo e vencido: Nova coleta (não viaja)\n• Positivo: Notificar o MAPA (não viaja)\n\nCada acerto marca pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
 
     text "[instr_text]" style "mg5_instructions_text" pos (960, 490) anchor (0.5, 0.5)
 
