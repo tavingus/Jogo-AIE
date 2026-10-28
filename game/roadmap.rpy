@@ -261,6 +261,11 @@ label roadmap:
     # Música do mapa (a mesma do menu; não reinicia se já estiver tocando)
     $ mus_menu()
 
+    # Versão de testes: aviso na primeira vez que o mapa aparece (test_build.rpy)
+    if TEST_BUILD and not test_notice_seen:
+        call screen test_notice with Dissolve(0.3)
+        $ test_notice_seen = True
+
     # (O autosave do mapa é feito pela própria tela, com um timer: o Ren'Py só
     #  salva de verdade durante uma interação, não aqui no label.)
 

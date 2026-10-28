@@ -581,4 +581,8 @@ label minigame_7_entry:
         call screen mg_result(mg7_score, MG7_MAX_SCORE, mg7_verdict())
         $ mg_again = (_return == "replay")
 
+    # Versão de testes: agradecimento + QR code do formulário (test_build.rpy)
+    if TEST_BUILD:
+        call screen test_form_qr with Dissolve(0.3)
+
     return
