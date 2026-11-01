@@ -574,6 +574,14 @@ init python:
     MG4_CLOSE_IDLE = mg4_art("mg4_close_idle.png", MG4_CLOSE_RECT, "ENTENDI\n(mg4_close_idle.png)", "#3a5a3a")
     MG4_CLOSE_HOVER = mg4_art("mg4_close_hover.png", MG4_CLOSE_RECT, "ENTENDI\n(mg4_close_hover.png)", "#4f7a4f")
 
+init python:
+
+    _l = [MG4_BG["dock"], MG4_HEADER_ART[0]]
+    for _n in range(len(MG4_CANDIDATES)):
+        _l.append(MG4_CAND_ART[_n])
+    _l.append(mg_tut_text(_("Pontos: 0"), MG4_SCORE_POS[0], MG4_SCORE_POS[1], size=36))
+    MG4_TUTORIAL_PREVIEW = mg_tut_preview(_l)
+
 style mg4_instructions_text:
     text_align 0.5
     color MG_INSTR_TEXT_COLOR
@@ -583,23 +591,15 @@ style mg4_instructions_text:
 
 screen minigame4_instructions():
 
-    modal True  # impede qualquer clique/interação com o jogo por trás
-
-    add MG4_INSTR_BG
-    add MG4_INSTR_PANEL
-
-    # Texto de regras de exemplo — edite como quiser
-    text _("A amostra do Golias chegou ao laboratório!\n\nPrimeiro, forme o imunocomplexo: clique nos anticorpos que se encaixam no vírus da AIE. Depois, leia os resultados do IDGA e do ELISA e descubra qual é qual.\n\nCada conduta correta marca pontos; cada erro tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg4_instructions_text" pos (960, 490) anchor (0.5, 0.5)
-
-    imagebutton:
-        idle MG4_CLOSE_IDLE
-        hover MG4_CLOSE_HOVER
-        focus_mask True
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Return(True),  # devolve o controle ao "call screen" que a chamou
-        ]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG4_INSTR_BG,
+        _("A amostra do Golias chegou ao laboratório!"),
+        MG4_TUTORIAL_PREVIEW,
+        [(300, 540), (1450, 560), (1440, 225)],
+        [_("O vírus (antígeno) aparece à esquerda, com 3 encaixes."),
+         _("Clique nos anticorpos que se encaixam no vírus da AIE para formar o imunocomplexo."),
+         _("Depois, leia as placas do IDGA e do ELISA e diga se cada resultado é positivo ou negativo.")],
+        _("Cada acerto dá pontos e cada erro tira pontos. No final você vê o que acertou e errou, com a explicação, e pode jogar de novo."),
+        MG4_CLOSE_IDLE, MG4_CLOSE_HOVER)
 
 
 ## -----------------------------------------------------------------------

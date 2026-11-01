@@ -355,6 +355,15 @@ init python:
     MG7_CLOSE_IDLE = mg7_art("mg7_close_idle.png", MG7_CLOSE_RECT, "ENTENDI\n(mg7_close_idle.png)", "#3a5a3a")
     MG7_CLOSE_HOVER = mg7_art("mg7_close_hover.png", MG7_CLOSE_RECT, "ENTENDI\n(mg7_close_hover.png)", "#4f7a4f")
 
+init python:
+
+    # Miniatura para o tutorial: o tratador com a agulha USADA à mostra
+    _l = [MG7_BG, MG7_HANDLER_ART["usada"], MG7_HORSE_ART["calmo"], MG7_TITLE_PANEL,
+          mg_tut_text(_("Tentativa 3/%d") % MG7_ATTEMPTS, MG7_ATTEMPT_POS[0], MG7_ATTEMPT_POS[1], size=32),
+          mg_tut_text(_("Pontos: 20"), MG7_SCORE_POS[0], MG7_SCORE_POS[1], size=32),
+          mg_tut_text(_("Picadas: 0"), MG7_PRICKS_POS[0], MG7_PRICKS_POS[1], size=32)]
+    MG7_TUTORIAL_PREVIEW = mg_tut_preview(_l)
+
 style mg7_instructions_text:
     text_align 0.5
     color MG_INSTR_TEXT_COLOR
@@ -364,59 +373,15 @@ style mg7_instructions_text:
 
 screen minigame7_instructions():
 
-    modal True  # impede qualquer clique/interação com o jogo por trás
-
-    add MG7_INSTR_BG
-    add MG7_INSTR_PANEL
-
-    # Texto de regras (à esquerda); as duas agulhas ficam à direita
-    $ instr_text = _("Um tratador vai aplicar %d injeções no cavalo, mas às vezes tenta REUTILIZAR uma agulha já usada!\n\nQuando a agulha aparecer, olhe bem: se for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada. Se for NOVA, deixe a aplicação acontecer.\n\nNão clique antes de ver a agulha! Hora errada tira pontos; terminar sem picada contaminada dá bônus.\n\nNo final você vê o que acertou e errou, e pode jogar de novo.") % MG7_ATTEMPTS
-
-    text "[instr_text]" style "mg7_instructions_text" pos (400, 236) xsize 640 text_align 0.0 size 24
-
-    # As duas agulhas, para o jogador saber qual é qual
-    $ demo_new = mg7_demo_art("nova", "#2e7d32", _("AGULHA NOVA"))
-    $ demo_used = mg7_demo_art("usada", "#8a2c2c", _("AGULHA USADA"))
-
-    add demo_new pos (1080, 250)
-    text _("NOVA"):
-        pos (1182, 466)
-        anchor (0.5, 0.0)
-        size 38
-        bold True
-        color "#2e7d32"
-    text _("Deixe a aplicação acontecer"):
-        pos (1182, 516)
-        anchor (0.5, 0.0)
-        xmaximum 210
-        text_align 0.5
-        size 22
-        color MG_INSTR_TEXT_COLOR
-
-    add demo_used pos (1300, 250)
-    text _("USADA"):
-        pos (1402, 466)
-        anchor (0.5, 0.0)
-        size 38
-        bold True
-        color "#a02a22"
-    text _("Suja de sangue: clique no cavalo!"):
-        pos (1402, 516)
-        anchor (0.5, 0.0)
-        xmaximum 210
-        text_align 0.5
-        size 22
-        color MG_INSTR_TEXT_COLOR
-
-    imagebutton:
-        idle MG7_CLOSE_IDLE
-        hover MG7_CLOSE_HOVER
-        focus_mask True
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Return(True),  # devolve o controle ao "call screen" que a chamou
-        ]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG7_INSTR_BG,
+        _("Impeça a reutilização de agulhas!"),
+        MG7_TUTORIAL_PREVIEW,
+        [(1280, 620), (660, 620), (1700, 90)],
+        [_("O tratador chega com a seringa. Espere a agulha aparecer: ela pode ser NOVA ou USADA."),
+         _("Se for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada."),
+         _("Se for NOVA, deixe a aplicação acontecer. Cada tentativa fica mais rápida.")],
+        _("Não clique antes de ver a agulha! Hora errada tira pontos; terminar sem picada contaminada dá bônus. No final você vê o que acertou e errou."),
+        MG7_CLOSE_IDLE, MG7_CLOSE_HOVER)
 
 
 ## -----------------------------------------------------------------------

@@ -338,6 +338,30 @@ init python:
     MG2_INSTR_PANEL = mg2_art("mg2_instructions_panel.png", (1200, 600),
                               "MOLDURA DE TEXTO\n(mg2_instructions_panel.png)", "#4a3a20")
 
+init python:
+
+    MG2_CLOSE_IDLE = mg2_art("mg2_close_idle.png", (240, 80), "ENTENDI\n(mg2_close_idle.png)", "#3a5a3a")
+    MG2_CLOSE_HOVER = mg2_art("mg2_close_hover.png", (240, 80), "ENTENDI\n(mg2_close_hover.png)", "#4f7a4f")
+
+    # Miniatura para o tutorial (mesma arte, estado inicial, a 40%)
+    _l = [MG2_BG,
+          mg_tut_at(MG2_TITLE_PANEL, 60, 40),
+          mg_tut_text(_("2 - EXAME CLÍNICO"), 90, 65, size=34),
+          mg_tut_text(_("Marque os achados compatíveis com a AIE em cada área do exame."), 90, 135, size=24)]
+    for _i, _area in enumerate(MG2_AREAS):
+        _y = MG2_TABS_Y0 + _i * MG2_TABS_STEP
+        _l.append(mg_tut_at(MG2_TAB_ART["active" if _i == 0 else "idle"], MG2_TABS_X, _y))
+        _l.append(mg_tut_text(_area["label"], MG2_TABS_X + 30, _y + 28, size=30))
+    _l.append(mg_tut_text(MG2_AREAS[0]["label"], MG2_CARDS_X, 200, size=44, bold=True))
+    _ex = [MG2_AREAS[0]["correct"][0], MG2_AREAS[0]["wrong"][0], MG2_AREAS[0]["correct"][1], MG2_AREAS[0]["wrong"][1]]
+    for _j, _t in enumerate(_ex):
+        _y = MG2_CARDS_Y0 + _j * MG2_CARDS_STEP
+        _l.append(mg_tut_at(MG2_CARD_ART["idle"], MG2_CARDS_X, _y))
+        _l.append(mg_tut_text(_t, MG2_CARDS_X + 40, _y + 45, size=28))
+    _l.append(mg_tut_at(MG2_SUBMIT_IDLE, MG2_SUBMIT_POS[0], MG2_SUBMIT_POS[1]))
+    _l.append(mg_tut_text(_("Concluir exame"), MG2_SUBMIT_POS[0] + 150, MG2_SUBMIT_POS[1] + 28, size=32))
+    MG2_TUTORIAL_PREVIEW = mg_tut_preview(_l)
+
 style mg2_instructions_text:
     xalign 0.5
     yalign 0.5
@@ -349,33 +373,15 @@ style mg2_instructions_text:
 
 screen minigame2_instructions():
 
-    modal True  # impede qualquer clique/interação com o jogo por trás
-
-    add MG2_INSTR_BG
-
-    fixed:
-        xalign 0.5
-        yalign 0.45
-        xysize (1200, 600)
-        add MG2_INSTR_PANEL
-
-        # Texto de regras de exemplo — edite como quiser
-        text _("Um cavalo chegou para exame clínico!\n\nEm cada área do exame, marque os achados COMPATÍVEIS com a Anemia Infecciosa Equina e deixe sem marcar os que não combinam. Examine todas as áreas antes de concluir.\n\nMarcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg2_instructions_text" xalign 0.5 yalign 0.5
-
-    # Botão "Entendi" / "Fechar" — libera o jogador para o minigame.
-    # IMAGEM: minigame2/mg2_close_idle.png e mg2_close_hover.png.
-    # Tamanho final: 240x80 → exporte cada PNG a 120x40.
-    imagebutton:
-        xalign 0.5
-        yalign 0.85
-        idle mg2_art("mg2_close_idle.png", (240, 80), "ENTENDI\n(mg2_close_idle.png)", "#3a5a3a")
-        hover mg2_art("mg2_close_hover.png", (240, 80), "ENTENDI\n(mg2_close_hover.png)", "#4f7a4f")
-        focus_mask True
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Return(True),  # devolve o controle ao "call screen" que a chamou
-        ]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG2_INSTR_BG,
+        _("Um cavalo chegou para exame clínico!"),
+        MG2_TUTORIAL_PREVIEW,
+        [(230, 415), (1610, 505), (1610, 965)],
+        [_("Clique em uma área do exame (Temperatura, Mucosas...) para ver os achados."),
+         _("Clique nos achados compatíveis com a AIE para marcá-los. Clique de novo para desmarcar."),
+         _("Examine as 6 áreas e clique em CONCLUIR EXAME.")],
+        _("Marcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos. No final você vê o que acertou e errou, com a explicação."),
+        MG2_CLOSE_IDLE, MG2_CLOSE_HOVER, (0.5, 0.85))
 
 
 ## -----------------------------------------------------------------------

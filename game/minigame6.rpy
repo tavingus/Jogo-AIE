@@ -272,6 +272,21 @@ init python:
     MG6_INSTR_PANEL = mg6_art("mg6_instructions_panel.png", (1200, 600),
                                "MOLDURA DE TEXTO\n(mg6_instructions_panel.png)", "#4a3a20")
 
+init python:
+
+    MG6_CLOSE_IDLE = mg6_art("mg6_close_idle.png", (240, 80), "ENTENDI\n(mg6_close_idle.png)", "#3a5a3a")
+    MG6_CLOSE_HOVER = mg6_art("mg6_close_hover.png", (240, 80), "ENTENDI\n(mg6_close_hover.png)", "#4f7a4f")
+
+    # Miniatura para o tutorial: o cenário com as duas moscas, no tamanho do jogo
+    _l = [MG6_BG]
+    if MG6_HORSE_REAL:
+        _l.append(MG6_HORSE)
+    _l.append(mg_tut_at(mg6_fly_art("correct", MG6_CORRECT_FILES[0]), 780, 430))
+    _l.append(mg_tut_at(mg6_fly_art("wrong", MG6_WRONG_FILES[0]), 1080, 560))
+    _l.append(mg_tut_text(_("Pontos: 0"), 60, 40, size=36))
+    _l.append(mg_tut_text("3/%d" % MG6_TOTAL_FLIES, 1700, 40, size=30))
+    MG6_TUTORIAL_PREVIEW = mg_tut_preview(_l)
+
 style mg6_instructions_text:
     xalign 0.5
     yalign 0.5
@@ -283,54 +298,15 @@ style mg6_instructions_text:
 
 screen minigame6_instructions():
 
-    modal True
-
-    add MG6_INSTR_BG
-
-    fixed:
-        xalign 0.5
-        yalign 0.45
-        xysize (1200, 600)
-        add MG6_INSTR_PANEL
-
-        # Texto de regras (curto: o resto é mostrado pelas duas moscas abaixo)
-        text _("Moscas estão rondando o cavalo!\n\nClique nas moscas HEMATÓFAGAS (as que picam e podem transmitir a doença) antes que sumam: se uma escapar, ela pica o cavalo e você perde pontos.\n\nIgnore as INOFENSIVAS: clicar nelas também tira pontos.\n\nNo final você vê o que acertou e errou, e pode jogar de novo.") style "mg6_instructions_text" xalign 0.5 yanchor 0.0 ypos 34 size 27
-
-        # As duas moscas, para o jogador saber qual é qual
-        $ demo_bug = mg6_fly_art("correct", MG6_CORRECT_FILES[0])
-        $ demo_ok = mg6_fly_art("wrong", MG6_WRONG_FILES[0])
-
-        add demo_bug pos (150, 410)
-        text _("CLIQUE"):
-            pos (310, 418)
-            size 40
-            bold True
-            color "#2e7d32"
-        text _("Hematófaga: pica o cavalo"):
-            pos (310, 466)
-            size 26
-            color MG_INSTR_TEXT_COLOR
-
-        add demo_ok pos (650, 410)
-        text _("IGNORE"):
-            pos (810, 418)
-            size 40
-            bold True
-            color "#a02a22"
-        text _("Inofensiva: não pica"):
-            pos (810, 466)
-            size 26
-            color MG_INSTR_TEXT_COLOR
-
-    # Botão "Entendi" / "Fechar". Tamanho final: 240x80 → exporte a 120x40.
-    imagebutton:
-        xalign 0.5
-        yalign 0.85
-        idle mg6_art("mg6_close_idle.png", (240, 80), "ENTENDI\n(mg6_close_idle.png)", "#3a5a3a")
-        hover mg6_art("mg6_close_hover.png", (240, 80), "ENTENDI\n(mg6_close_hover.png)", "#4f7a4f")
-        focus_mask True
-        action [Play("sound", "audio/sfx_click.ogg"), Return(True)]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG6_INSTR_BG,
+        _("Moscas estão rondando o cavalo!"),
+        MG6_TUTORIAL_PREVIEW,
+        [(850, 500), (1150, 630), (1760, 60)],
+        [_("HEMATÓFAGA (pica e pode transmitir a doença): CLIQUE nela antes que suma."),
+         _("INOFENSIVA (não pica): IGNORE. Clicar nela tira pontos."),
+         _("O contador mostra quantas moscas já apareceram, de %d no total.") % MG6_TOTAL_FLIES],
+        _("Se uma hematófaga escapar, ela pica o cavalo e você perde pontos. No final você vê o que acertou e errou, e pode jogar de novo."),
+        MG6_CLOSE_IDLE, MG6_CLOSE_HOVER, (0.5, 0.85))
 
 
 ## -----------------------------------------------------------------------

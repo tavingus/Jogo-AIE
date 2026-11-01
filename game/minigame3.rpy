@@ -497,6 +497,14 @@ init python:
     MG3_CLOSE_IDLE = mg3_art("mg3_close_idle.png", MG3_CLOSE_RECT, "ENTENDI\n(mg3_close_idle.png)", "#3a5a3a")
     MG3_CLOSE_HOVER = mg3_art("mg3_close_hover.png", MG3_CLOSE_RECT, "ENTENDI\n(mg3_close_hover.png)", "#4f7a4f")
 
+init python:
+
+    _l = [MG3_BG, MG3_TITLE_PANEL, MG3_STEP_ART[0]]
+    for _k in range(len(MG3_STEPS[0]["options"])):
+        _l.append(MG3_OPTION_ART[MG3_STEPS[0]["id"]][_k])
+    _l.append(mg_tut_text(_("Pontos: 0"), MG3_SCORE_POS[0], MG3_SCORE_POS[1], size=36))
+    MG3_TUTORIAL_PREVIEW = mg_tut_preview(_l)
+
 style mg3_instructions_text:
     text_align 0.5
     color MG_INSTR_TEXT_COLOR
@@ -506,23 +514,15 @@ style mg3_instructions_text:
 
 screen minigame3_instructions():
 
-    modal True  # impede qualquer clique/interação com o jogo por trás
-
-    add MG3_INSTR_BG
-    add MG3_INSTR_PANEL
-
-    # Texto de regras de exemplo — edite como quiser
-    text _("O campeão \"Golias da Natureza\" vai viajar para uma competição e precisa do exame de AIE!\n\nRealize a coleta passo a passo: escolha o tubo, a via de coleta, identifique a amostra, preencha a resenha e coloque a amostra na caixa refrigerada.\n\nCada conduta correta marca pontos; cada erro tira pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") style "mg3_instructions_text" pos (960, 490) anchor (0.5, 0.5)
-
-    imagebutton:
-        idle MG3_CLOSE_IDLE
-        hover MG3_CLOSE_HOVER
-        focus_mask True
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Return(True),  # devolve o controle ao "call screen" que a chamou
-        ]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG3_INSTR_BG,
+        _("O campeão Golias da Natureza vai viajar e precisa do exame de AIE!"),
+        MG3_TUTORIAL_PREVIEW,
+        [(1440, 225), (1440, 440), (130, 58)],
+        [_("Leia a pergunta de cada etapa da coleta."),
+         _("Escolha a opção certa. Em cada etapa você tem uma tentativa só."),
+         _("Cada acerto dá pontos e cada erro tira pontos. A pontuação fica no canto.")],
+        _("Nas etapas da ficha (identificação e resenha), clique em cada campo para trocar a opção e depois em CONFIRMAR. No final você vê o que acertou, com a explicação."),
+        MG3_CLOSE_IDLE, MG3_CLOSE_HOVER)
 
 
 ## -----------------------------------------------------------------------

@@ -359,7 +359,7 @@ init python:
     for _row, _cat in enumerate(MG1_CATEGORIES):
         _layers.append(MG1_CATEGORY_ART[_row][0 if _cat["correct"] != 0 else 1])
     _layers.append(MG1_CONCLUDE_IDLE)
-    MG1_TUTORIAL_PREVIEW = Transform(Fixed(*_layers, xysize=(1920, 1080)), zoom=0.4)
+    MG1_TUTORIAL_PREVIEW = mg_tut_preview(_layers)
 
 style mg1_instructions_text:
     text_align 0.5
@@ -368,85 +368,17 @@ style mg1_instructions_text:
     xsize 1000
 
 
-## Selo numerado (amarelo, com contorno) para apontar partes da miniatura
-screen mg1_badge(n, x, y):
-    fixed:
-        pos (x - 24, y - 24)
-        xysize (48, 48)
-        add Solid("#372412", xysize=(48, 48))
-        add Solid("#f2c230", xysize=(42, 42)) pos (3, 3)
-        text "[n]":
-            xalign 0.5
-            yalign 0.5
-            size 34
-            bold True
-            color "#372412"
-
-
-## Um passo do tutorial: selo numerado + texto
-screen mg1_step(n, txt, y):
-    use mg1_badge(n, 1124, y + 24)
-    text "[txt!t]":
-        pos (1166, y)
-        size 26
-        xmaximum 470
-        color MG_INSTR_TEXT_COLOR
-
-
 screen minigame1_instructions():
 
-    modal True  # impede qualquer clique/interação com o jogo por trás
-
-    add MG1_INSTR_BG
-    add Solid("#000000aa")
-    add MG_RESULT_PANEL
-
-    text _("COMO JOGAR"):
-        pos MG_RESULT_TITLE_POS
-        anchor (0.5, 0.5)
-        size 46
-        bold True
-        color MG_INSTR_TEXT_COLOR
-
-    text _("Monte a classificação do vírus da Anemia Infecciosa Equina"):
-        pos MG_RESULT_SCORE_POS
-        anchor (0.5, 0.5)
-        size 34
-        color MG_INSTR_TEXT_COLOR
-
-    # ---- Miniatura da tela do jogo (a própria arte), com os números ----
-    add Solid("#372412", xysize=(776, 440)) pos (286, 346)
-    add MG1_TUTORIAL_PREVIEW pos (290, 350)
-
-    use mg1_badge(1, 554, 548)    # imagem do vírus
-    use mg1_badge(2, 841, 556)    # opções do livro
-    use mg1_badge(3, 841, 744)    # botão Concluir
-
-    # ---- Os 3 passos ----
-    $ step1 = _("Clique na imagem do vírus para trocar a morfologia.")
-    $ step2 = _("Clique em cada linha do livro (ordem, família, gênero...) para trocar a opção.")
-    $ step3 = _("Quando achar que está tudo certo, clique em CONCLUIR. Não há tempo limite.")
-
-    use mg1_step(1, step1, 346)
-    use mg1_step(2, step2, 456)
-    use mg1_step(3, step3, 566)
-
-    text _("No final você vê o que acertou e errou, com a resposta certa e a explicação, e pode jogar de novo. Cada resposta certa vale 10 pontos."):
-        pos (1100, 676)
-        size 22
-        italic True
-        xmaximum 540
-        color "#5a4a38"
-
-    imagebutton:
-        idle MG1_CLOSE_IDLE
-        hover MG1_CLOSE_HOVER
-        focus_mask True
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Return(True),  # devolve o controle ao "call screen" que a chamou
-        ]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG1_INSTR_BG,
+        _("Monte a classificação do vírus da Anemia Infecciosa Equina"),
+        MG1_TUTORIAL_PREVIEW,
+        [(659, 496), (1377, 520), (1377, 972)],
+        [_("Clique na imagem do vírus para trocar a morfologia."),
+         _("Clique em cada linha do livro (ordem, família, gênero...) para trocar a opção."),
+         _("Quando achar que está tudo certo, clique em CONCLUIR. Não há tempo limite.")],
+        _("No final você vê o que acertou e errou, com a resposta certa e a explicação, e pode jogar de novo. Cada resposta certa vale 10 pontos."),
+        MG1_CLOSE_IDLE, MG1_CLOSE_HOVER)
 
 
 ## -----------------------------------------------------------------------

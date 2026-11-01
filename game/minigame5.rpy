@@ -336,6 +336,26 @@ init python:
     MG5_CLOSE_IDLE = mg5_art("mg5_close_idle.png", MG5_CLOSE_RECT, "ENTENDI\n(mg5_close_idle.png)", "#3a5a3a")
     MG5_CLOSE_HOVER = mg5_art("mg5_close_hover.png", MG5_CLOSE_RECT, "ENTENDI\n(mg5_close_hover.png)", "#4f7a4f")
 
+init python:
+
+    # Miniatura para o tutorial (mesma arte, a 40%)
+    _ex_date = mg5_fmt_date(MG5_TODAY - datetime.timedelta(days=25))
+    _ex_today = mg5_fmt_date(MG5_TODAY)
+    _dark = "#3a2410"
+    _l = [MG5_BG, MG5_HORSE_ART[1], MG5_TITLE_PANEL,
+          mg_tut_text(_("Cavalo 1/5"), MG5_COUNTER_POS[0], MG5_COUNTER_POS[1], size=36),
+          mg_tut_text(_("Pontos: 0"), MG5_SCORE_POS[0], MG5_SCORE_POS[1], size=32),
+          MG5_PAPERS,
+          Transform(Text("Trovão", size=36, bold=True, color=_dark), pos=MG5_NAME_POS),
+          Transform(Text(_("Negativo"), size=36, bold=True, color=_dark), pos=MG5_RESULT_POS),
+          Transform(Text(_ex_date, size=36, color=_dark), pos=MG5_EXAMDATE_POS),
+          Transform(Text(_ex_today, size=36, color=_dark), pos=MG5_TODAY_POS),
+          Transform(Text(_("Exame negativo válido por %d dias") % MG5_VALIDITY_DAYS, size=24, color=_dark), pos=MG5_RULE_POS),
+          MG5_TIMER_FRAME, MG5_TIMER_FILL]
+    for _id, _label in MG5_DESTS:
+        _l.append(MG5_DEST_IDLE[_id])
+    MG5_TUTORIAL_PREVIEW = mg_tut_preview(_l)
+
 style mg5_instructions_text:
     text_align 0.5
     color MG_INSTR_TEXT_COLOR
@@ -345,25 +365,19 @@ style mg5_instructions_text:
 
 screen minigame5_instructions():
 
-    modal True  # impede qualquer clique/interação com o jogo por trás
+    $ tut5_steps = [
+        _("Confira os papéis: o resultado do exame e a data da coleta, comparando com a data de hoje."),
+        _("Atenção à barra de tempo: você tem %d segundos por animal.") % int(MG5_TIME_PER_HORSE),
+        _("Escolha a conduta: liberar para viagem, nova coleta ou notificar o MAPA."),
+    ]
 
-    add MG5_INSTR_BG
-    add MG5_INSTR_PANEL
-
-    # Texto de regras de exemplo — edite como quiser (os números vêm das constantes)
-    $ instr_text = _("Estão saindo %d animais para viagem!\n\nConfira os papéis de cada um e compare a data do exame com a data de hoje (a validade é de %d dias). Só pode viajar quem tem exame negativo e dentro da validade. Você tem %d segundos por animal:\n\n• Negativo e recente: Liberado para viagem\n• Negativo e vencido: Nova coleta (não viaja)\n• Positivo: Notificar o MAPA (não viaja)\n\nCada acerto marca pontos.\n\nNo final você vê o que acertou e o que errou, com a explicação, e pode jogar de novo.") % (MG5_TOTAL, MG5_VALIDITY_DAYS, int(MG5_TIME_PER_HORSE))
-
-    text "[instr_text]" style "mg5_instructions_text" pos (960, 490) anchor (0.5, 0.5)
-
-    imagebutton:
-        idle MG5_CLOSE_IDLE
-        hover MG5_CLOSE_HOVER
-        focus_mask True
-        action [
-            Play("sound", "audio/sfx_click.ogg"),
-            Return(True),  # devolve o controle ao "call screen" que a chamou
-        ]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    use mg_tutorial(MG5_INSTR_BG,
+        _("Estão saindo %d animais para viagem!") % MG5_TOTAL,
+        MG5_TUTORIAL_PREVIEW,
+        [(1450, 350), (1440, 152), (1440, 700)],
+        tut5_steps,
+        _("Só viaja quem tem exame negativo dentro da validade de %d dias. Positivo: notificar o MAPA. Vencido: nova coleta. No final você vê o que acertou e errou.") % MG5_VALIDITY_DAYS,
+        MG5_CLOSE_IDLE, MG5_CLOSE_HOVER)
 
 
 ## -----------------------------------------------------------------------

@@ -272,6 +272,121 @@ screen mg_result(score, max_score, verdict, title=None):
 
 
 ## -----------------------------------------------------------------------
+## TUTORIAL COM IMAGENS (igual para todos os minigames)
+##
+## Tela "Como jogar": à esquerda, uma MINIATURA da própria tela do minigame
+## (a mesma arte, a 40%), com selos numerados apontando as partes importantes;
+## à direita, os 3 passos. Cada minigame monta a sua miniatura e chama:
+##
+##   use mg_tutorial(bg, subtitulo, miniatura, [(x, y), ...], [passo1, ...],
+##                   nota, close_idle, close_hover, close_align)
+##
+## Os selos (x, y) são em coordenadas da TELA DO JOGO (1920x1080); a tela
+## converte para a miniatura. close_align = None (arte de canvas inteiro) ou
+## (xalign, yalign) para o botão antigo de peça solta (minigames 2 e 6).
+## -----------------------------------------------------------------------
+init python:
+
+    MG_TUT_SCALE = 0.4
+    MG_TUT_POS = (290, 350)          # canto da miniatura na tela (768x432)
+
+    def mg_tut_preview(layers):
+        """Miniatura (40%) de uma lista de camadas desenhadas em 1920x1080."""
+        return Transform(Fixed(*layers, xysize=(1920, 1080)), zoom=MG_TUT_SCALE)
+
+    def mg_tut_at(displayable, x, y):
+        """Posiciona uma camada na miniatura (coordenadas da tela do jogo)."""
+        return Transform(displayable, pos=(x, y))
+
+    def mg_tut_text(txt, x, y, size=30, color="#ffffff", bold=False):
+        """Texto do jogo (placar, rótulos) como camada da miniatura."""
+        return Transform(Text(txt, size=size, color=color, bold=bold,
+                              outlines=[(3, "#2a1a0c", 0, 0)]), pos=(x, y))
+
+
+screen mg_badge(n, x, y):
+    fixed:
+        pos (x - 24, y - 24)
+        xysize (48, 48)
+        add Solid("#372412", xysize=(48, 48))
+        add Solid("#f2c230", xysize=(42, 42)) pos (3, 3)
+        text "[n]":
+            xalign 0.5
+            yalign 0.5
+            size 34
+            bold True
+            color "#372412"
+
+
+screen mg_step(n, txt, y):
+    use mg_badge(n, 1124, y + 24)
+    text "[txt!t]":
+        pos (1166, y)
+        size 26
+        xmaximum 470
+        color MG_INSTR_TEXT_COLOR
+
+
+screen mg_tutorial(bg, subtitle, preview, badges, steps, note, close_idle, close_hover, close_align=None):
+
+    modal True
+
+    add bg
+    add Solid("#000000aa")
+    add MG_RESULT_PANEL
+
+    text _("COMO JOGAR"):
+        pos MG_RESULT_TITLE_POS
+        anchor (0.5, 0.5)
+        size 46
+        bold True
+        color MG_INSTR_TEXT_COLOR
+
+    text "[subtitle!t]":
+        pos MG_RESULT_SCORE_POS
+        anchor (0.5, 0.5)
+        size 34
+        color MG_INSTR_TEXT_COLOR
+
+    # Miniatura da tela do minigame + selos numerados
+    add Solid("#372412", xysize=(776, 440)) pos (MG_TUT_POS[0] - 4, MG_TUT_POS[1] - 4)
+    add preview pos MG_TUT_POS
+
+    for i, b in enumerate(badges):
+        $ badge_x = MG_TUT_POS[0] + int(b[0] * MG_TUT_SCALE)
+        $ badge_y = MG_TUT_POS[1] + int(b[1] * MG_TUT_SCALE)
+        use mg_badge(i + 1, badge_x, badge_y)
+
+    # Passos (até 3) e nota
+    for i, st in enumerate(steps):
+        use mg_step(i + 1, st, 346 + i * 110)
+
+    text "[note!t]":
+        pos (1100, 676)
+        size 21
+        italic True
+        xmaximum 540
+        color "#5a4a38"
+
+    if close_align:
+        imagebutton:
+            xalign close_align[0]
+            yalign close_align[1]
+            idle close_idle
+            hover close_hover
+            focus_mask True
+            action [Function(sfx, "click"), Return(True)]
+            hovered Function(sfx, "hover")
+    else:
+        imagebutton:
+            idle close_idle
+            hover close_hover
+            focus_mask True
+            action [Function(sfx, "click"), Return(True)]
+            hovered Function(sfx, "hover")
+
+
+## -----------------------------------------------------------------------
 ## Botão de pausa: fica por cima de qualquer minigame (zorder alto).
 ## Mostrado/escondido pelo roadmap.rpy ao redor de "call expression minigame_N_entry".
 ## -----------------------------------------------------------------------
