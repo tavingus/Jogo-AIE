@@ -247,6 +247,14 @@ init python:
         store.mg2_visited[i] = True
         mg2_sfx("click")
 
+    def mg2_next():
+        """Avança para a próxima área (sem voltar)."""
+        if store.mg2_phase != "exam" or store.mg2_area >= len(MG2_AREAS) - 1:
+            return
+        store.mg2_area += 1
+        store.mg2_visited[store.mg2_area] = True
+        mg2_sfx("click")
+
     def mg2_toggle(area, j):
         """Marca/desmarca a carta j da área. Travado na fase de revisão."""
         if store.mg2_phase != "exam":
@@ -277,7 +285,7 @@ init python:
 
     def mg2_submit():
         """Conclui o exame: calcula a pontuação e entra na fase de revisão."""
-        if store.mg2_phase != "exam" or not mg2_all_visited():
+        if store.mg2_phase != "exam" or store.mg2_area < len(MG2_AREAS) - 1:
             return
         score = 0
         for area in range(len(store.mg2_cards)):
@@ -354,19 +362,20 @@ init python:
     _l = [MG2_BG,
           mg_tut_at(MG2_TITLE_PANEL, 60, 40),
           mg_tut_text(_("2 - EXAME CLÍNICO"), 90, 65, size=34),
-          mg_tut_text(_("Marque os achados compatíveis com a AIE em cada área do exame."), 90, 135, size=24)]
+          mg_tut_text(_("Examine uma área de cada vez e marque os achados compatíveis com a AIE."), 90, 135, size=24)]
     for _i, _area in enumerate(MG2_AREAS):
         _y = MG2_TABS_Y0 + _i * MG2_TABS_STEP
         _l.append(mg_tut_at(MG2_TAB_ART["active" if _i == 0 else "idle"], MG2_TABS_X, _y))
         _l.append(mg_tut_text(_area["label"], MG2_TABS_X + 30, _y + 28, size=30))
     _l.append(mg_tut_text(MG2_AREAS[0]["label"], MG2_CARDS_X, 200, size=44, bold=True))
+    _l.append(mg_tut_text(_("Marque TODOS os compatíveis (pode ser mais de um)"), MG2_CARDS_X, 248, size=22))
     _ex = [MG2_AREAS[0]["correct"][0], MG2_AREAS[0]["wrong"][0], MG2_AREAS[0]["correct"][1], MG2_AREAS[0]["wrong"][1]]
     for _j, _t in enumerate(_ex):
         _y = MG2_CARDS_Y0 + _j * MG2_CARDS_STEP
         _l.append(mg_tut_at(MG2_CARD_ART["idle"], MG2_CARDS_X, _y))
         _l.append(mg_tut_text(_t, MG2_CARDS_X + 40, _y + 45, size=28))
     _l.append(mg_tut_at(MG2_SUBMIT_IDLE, MG2_SUBMIT_POS[0], MG2_SUBMIT_POS[1]))
-    _l.append(mg_tut_text(_("Concluir exame"), MG2_SUBMIT_POS[0] + 150, MG2_SUBMIT_POS[1] + 28, size=32))
+    _l.append(mg_tut_text(_("Continuar"), MG2_SUBMIT_POS[0] + 190, MG2_SUBMIT_POS[1] + 28, size=32))
     MG2_TUTORIAL_PREVIEW = mg_tut_preview(_l)
 
 style mg2_instructions_text:
@@ -383,11 +392,11 @@ screen minigame2_instructions():
     use mg_tutorial(MG2_INSTR_BG,
         _("Um cavalo chegou para exame clínico!"),
         MG2_TUTORIAL_PREVIEW,
-        [(230, 415), (1610, 505), (1610, 965)],
-        [_("Clique em uma área do exame (Temperatura, Mucosas...) para ver os achados."),
-         _("Clique nos achados compatíveis com a AIE para marcá-los. Clique de novo para desmarcar."),
-         _("Examine as 6 áreas e clique em CONCLUIR EXAME.")],
-        _("Marcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos. No final você vê o que acertou e errou, com a explicação."),
+        [(230, 330), (1610, 505), (1610, 965)],
+        [_("O exame é feito por etapas: comece pela Temperatura e vá avançando, uma área de cada vez."),
+         _("Marque TODOS os achados compatíveis com a AIE — pode ser mais de um (ou nenhum). Clique de novo para desmarcar."),
+         _("Quando terminar a área, clique em CONTINUAR. Na última, CONCLUIR EXAME.")],
+        _("Atenção: não dá para voltar a uma área depois de continuar. Marcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos. No final você vê o que acertou e errou, com a explicação."),
         MG2_CLOSE_IDLE, MG2_CLOSE_HOVER, (0.5, 0.85))
 
 
@@ -411,36 +420,33 @@ screen minigame2_gameplay():
             ypos 25
             size 34
             color "#ffffff"
-        text _("Marque os achados compatíveis com a AIE em cada área do exame."):
+        text _("Examine uma área de cada vez e marque os achados compatíveis com a AIE."):
             xpos 30
             ypos 95
             size 24
             color "#ffffff"
             xmaximum 760
 
-    # ---- Abas: as 6 áreas do exame ---------------------------------------
+    # ---- Etapas: as 6 áreas do exame (só indicam o progresso) ------------
     for i, area in enumerate(MG2_AREAS):
 
         $ tab_label = area["label"]
         $ tab_art = MG2_TAB_ART["active"] if i == mg2_area else MG2_TAB_ART["idle"]
-        $ tab_visited = mg2_visited[i]
         $ tab_marked = mg2_marked_count(i)
 
-        button:
+        fixed:
             pos (MG2_TABS_X, MG2_TABS_Y0 + i * MG2_TABS_STEP)
             xysize MG2_TAB_SIZE
-            background None
-            focus_mask True
-            action Function(mg2_select_area, i)
-            hovered Function(mg2_sfx, "hover")
+            if i > mg2_area:
+                alpha 0.45
             add tab_art
             text "[tab_label!t]":
                 xpos 30
                 yalign 0.5
                 size 30
                 color "#ffffff"
-            # "✓" = área já examinada; número = quantos achados marcados nela
-            if tab_visited:
+            # "✓" = área já concluída
+            if i < mg2_area:
                 text "✓ [tab_marked]":
                     xalign 0.96
                     yalign 0.5
@@ -456,6 +462,24 @@ screen minigame2_gameplay():
         size 44
         bold True
         color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
+
+    $ area_step = mg2_area + 1
+    $ area_total = len(MG2_AREAS)
+    text _("Área [area_step] de [area_total]"):
+        xpos MG2_CARDS_X + MG2_CARD_SIZE[0]
+        xanchor 1.0
+        ypos 214
+        size 28
+        color "#ffffff"
+        outlines [(3, "#2a1a0c", 0, 0)]
+
+    text _("Marque TODOS os achados compatíveis com a AIE (pode ser mais de um)."):
+        xpos MG2_CARDS_X
+        ypos 248
+        size 22
+        color "#ffe9a8"
+        outlines [(3, "#2a1a0c", 0, 0)]
 
     for j, card in enumerate(mg2_cards[mg2_area]):
 
@@ -480,29 +504,25 @@ screen minigame2_gameplay():
     # ---- Rodapé: concluir (jogando) ou resultado + continuar (revisão) ---
     if mg2_phase == "exam":
 
+        $ last_area = (mg2_area >= len(MG2_AREAS) - 1)
+
         imagebutton:
             pos MG2_SUBMIT_POS
             idle MG2_SUBMIT_IDLE
             hover MG2_SUBMIT_HOVER
-            insensitive MG2_SUBMIT_DISABLED
-            sensitive mg2_all_visited()
             focus_mask True
-            action [Function(mg2_submit), Return(True)]
+            if last_area:
+                action [Function(mg2_submit), Return(True)]
+            else:
+                action Function(mg2_next)
             hovered Function(mg2_sfx, "hover")
 
-        text _("Concluir exame"):
+        text (_("Concluir exame") if last_area else _("Continuar")):
             pos (MG2_SUBMIT_POS[0] + MG2_SUBMIT_SIZE[0] // 2, MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] // 2)
             anchor (0.5, 0.5)
             size 32
             color "#ffffff"
-
-        if not mg2_all_visited():
-            text _("Examine todas as áreas para poder concluir."):
-                xpos MG2_SUBMIT_POS[0]
-                ypos MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] + 8
-                size 24
-                color "#ffffff"
-                outlines [(3, "#2a1a0c", 0, 0)]
+            outlines [(3, "#2a1a0c", 0, 0)]
 
 
 ## -----------------------------------------------------------------------
