@@ -127,7 +127,7 @@ init python:
         fill=False = só o texto, sem retângulo."""
         path = MG5_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG5_ZOOM)
+            return mg_canvas_art(path)
 
         x, y, w, h = rect
         text = Text(label, size=26, color="#ffffff", xalign=0.5, yalign=0.5,

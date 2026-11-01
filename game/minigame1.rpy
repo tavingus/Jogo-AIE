@@ -141,7 +141,7 @@ init python:
         já no tamanho final indicado, caso o arquivo ainda não exista."""
         path = MG1_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG1_ZOOM)
+            return mg_canvas_art(path)
         return Fixed(
             Solid(color, xysize=size),
             Text(label, size=28, color="#ffffff", xalign=0.5, yalign=0.5,
@@ -157,7 +157,7 @@ init python:
         de 1920x1080 (assim ele se comporta igual à arte real)."""
         path = MG1_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG1_ZOOM)
+            return mg_canvas_art(path)
         x, y, w, h = rect
         box = Fixed(
             Solid(color, xysize=(w, h)),

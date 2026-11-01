@@ -206,7 +206,7 @@ init python:
         fill=False = só o texto, sem retângulo."""
         path = MG4_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG4_ZOOM)
+            return mg_canvas_art(path)
 
         x, y, w, h = rect
         text = Text(label, size=26, color="#ffffff", xalign=0.5, yalign=0.5,
@@ -223,7 +223,7 @@ init python:
         semitransparente sobre o retângulo "rect"."""
         path = MG4_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG4_ZOOM)
+            return mg_canvas_art(path)
         x, y, w, h = rect
         return Fixed(Transform(Solid(color, xysize=(w, h)), pos=(x, y)),
                      xysize=(1920, 1080))

@@ -28,6 +28,23 @@
 ## troque aqui (ex.: "#ffffff") e vale para os 7 minigames.
 define -2 MG_INSTR_TEXT_COLOR = "#372412"
 
+init -10 python:
+
+    def mg_canvas_art(path):
+        """Arte de canvas inteiro. Se o PNG for 960x540 (ideal): zoom 2 com
+        nearest neighbor. Se tiver OUTRO tamanho (ex.: 1536x1024 direto do
+        gerador de imagens): corta ao centro para 16:9 e ajusta a 1920x1080,
+        para nunca ficar fora do lugar."""
+        w, h = renpy.image_size(path)
+        if (w, h) == (960, 540):
+            return Transform(Image(path, nearest_neighbor=True), zoom=2.0)
+        if w * 9 > h * 16:
+            cw, ch = int(h * 16 / 9), h
+        else:
+            cw, ch = w, int(w * 9 / 16)
+        x0, y0 = (w - cw) // 2, (h - ch) // 2
+        return Transform(Image(path), crop=(x0, y0, cw, ch), zoom=1920.0 / cw)
+
 init python:
 
     MGC_ART_DIR = "images/common/"
@@ -54,7 +71,7 @@ init python:
         retângulo colorido com texto na posição "rect" = (x, y, largura, altura)."""
         path = MGC_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MGC_ZOOM)
+            return mg_canvas_art(path)
 
         x, y, w, h = rect
         text = Text(label, size=24, color="#ffffff", xalign=0.5, yalign=0.5,

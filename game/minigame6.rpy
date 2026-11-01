@@ -38,7 +38,7 @@ init python:
         senão um retângulo colorido com texto no tamanho final indicado."""
         path = MG6_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG6_ZOOM)
+            return mg_canvas_art(path)
         return Fixed(
             Solid(color, xysize=size),
             Text(label, size=24, color="#ffffff", xalign=0.5, yalign=0.5,

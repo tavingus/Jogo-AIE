@@ -144,7 +144,7 @@ init python:
         já no tamanho final."""
         path = MG2_ART_DIR + filename
         if renpy.loadable(path):
-            return Transform(Image(path, nearest_neighbor=True), zoom=MG2_ZOOM)
+            return mg_canvas_art(path)
         return Fixed(
             Solid(color, xysize=size),
             Text(label, size=26, color="#ffffff", xalign=0.5, yalign=0.5,
