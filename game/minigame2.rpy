@@ -437,7 +437,7 @@ screen minigame2_gameplay():
         fixed:
             pos (MG2_TABS_X, MG2_TABS_Y0 + i * MG2_TABS_STEP)
             xysize MG2_TAB_SIZE
-            alpha (0.45 if i > mg2_area else 1.0)
+            at Transform(alpha=(0.45 if i > mg2_area else 1.0))
             add tab_art
             text "[tab_label!t]":
                 xpos 30
