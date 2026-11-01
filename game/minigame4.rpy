@@ -486,6 +486,7 @@ init python:
             for prefix in (_("Encaixou! "), _("Não encaixa: ")):
                 if why.startswith(prefix):
                     why = why[len(prefix):]
+                    why = why[:1].upper() + why[1:]
             if fits:
                 mg_review_add("ok", text, _("Encaixa no vírus. Você clicou: certo. ") + why)
             elif n in store.mg4_tried:
