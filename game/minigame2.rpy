@@ -368,7 +368,7 @@ init python:
         _l.append(mg_tut_at(MG2_TAB_ART["active" if _i == 0 else "idle"], MG2_TABS_X, _y))
         _l.append(mg_tut_text(_area["label"], MG2_TABS_X + 30, _y + 28, size=30))
     _l.append(mg_tut_text(MG2_AREAS[0]["label"], MG2_CARDS_X, 200, size=44, bold=True))
-    _l.append(mg_tut_text(_("Marque TODOS os compatíveis (pode ser mais de um)"), MG2_CARDS_X, 248, size=22))
+    _l.append(mg_tut_text(_("Marque TODOS os compatíveis (pode ser mais de um)"), MG2_CARDS_X, 252, size=20))
     _ex = [MG2_AREAS[0]["correct"][0], MG2_AREAS[0]["wrong"][0], MG2_AREAS[0]["correct"][1], MG2_AREAS[0]["wrong"][1]]
     for _j, _t in enumerate(_ex):
         _y = MG2_CARDS_Y0 + _j * MG2_CARDS_STEP
@@ -392,11 +392,11 @@ screen minigame2_instructions():
     use mg_tutorial(MG2_INSTR_BG,
         _("Um cavalo chegou para exame clínico!"),
         MG2_TUTORIAL_PREVIEW,
-        [(230, 330), (1610, 505), (1610, 965)],
-        [_("O exame é feito por etapas: comece pela Temperatura e vá avançando, uma área de cada vez."),
-         _("Marque TODOS os achados compatíveis com a AIE — pode ser mais de um (ou nenhum). Clique de novo para desmarcar."),
-         _("Quando terminar a área, clique em CONTINUAR. Na última, CONCLUIR EXAME.")],
-        _("Atenção: não dá para voltar a uma área depois de continuar. Marcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos. No final você vê o que acertou e errou, com a explicação."),
+        [(395, 305), (1860, 420), (1860, 965)],
+        [_("Comece pela Temperatura e avance uma área de cada vez."),
+         _("Marque TODOS os achados compatíveis com a AIE (pode ser mais de um)."),
+         _("Ao terminar a área, clique em CONTINUAR (na última: CONCLUIR).")],
+        _("Atenção: não dá para voltar a uma área depois de continuar. Clique de novo num achado para desmarcar. Marcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos. No final você vê o que acertou e errou, com a explicação."),
         MG2_CLOSE_IDLE, MG2_CLOSE_HOVER, (0.5, 0.85))
 
 
@@ -473,10 +473,11 @@ screen minigame2_gameplay():
         color "#ffffff"
         outlines [(3, "#2a1a0c", 0, 0)]
 
-    text _("Marque TODOS os achados compatíveis com a AIE (pode ser mais de um)."):
+    text _("Marque TODOS os compatíveis (pode ser mais de um)"):
         xpos MG2_CARDS_X
-        ypos 248
-        size 22
+        ypos 252
+        xmaximum 560
+        size 20
         color "#ffe9a8"
         outlines [(3, "#2a1a0c", 0, 0)]
 
