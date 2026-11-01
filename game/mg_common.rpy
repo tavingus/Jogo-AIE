@@ -247,6 +247,13 @@ screen mg_result(score, max_score, verdict, title=None):
                                     color "#5a4a38"
                                     xmaximum 1280
 
+    text _("✓ acertou     ✗ errou     ! faltou fazer"):
+        font "DejaVuSans.ttf"
+        pos (960, 822)
+        anchor (0.5, 0.0)
+        size 22
+        color "#5a4a38"
+
     vbar:
         value YScrollValue("mg_review_vp")
         pos (MG_RESULT_BAR[0], MG_RESULT_BAR[1])

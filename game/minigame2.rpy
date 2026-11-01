@@ -294,21 +294,28 @@ init python:
         mg2_sfx("correct" if store.mg2_score >= store.mg2_max_score else "wrong")
 
     def mg2_build_review():
-        """Revisão final: cada achado de cada área, com o que o jogador fez."""
+        """Revisão final: cada achado, o que o jogador fez e se isso estava certo.
+        Linha de cima = o achado. Linha de baixo = "você marcou / não marcou" e a
+        verdade (é ou não é compatível com a AIE)."""
         mg_review_clear()
         for area, info in enumerate(MG2_AREAS):
-            mg_review_group(info["label"])
-            for j, card in enumerate(store.mg2_cards[area]):
+            cards = store.mg2_cards[area]
+            right = 0
+            for j, card in enumerate(cards):
+                if store.mg2_selected[area][j] == card["correct"]:
+                    right += 1
+            mg_review_group(_("%s: %d de %d decisões certas") % (info["label"], right, len(cards)))
+            for j, card in enumerate(cards):
                 selected = store.mg2_selected[area][j]
                 text = card["text"]
                 if card["correct"] and selected:
-                    mg_review_add("ok", _("Marcou: %s") % text, _("Compatível com a AIE."))
+                    mg_review_add("ok", text, _("Você marcou. Certo: é compatível com a AIE."))
                 elif card["correct"]:
-                    mg_review_add("miss", _("Faltou marcar: %s") % text, _("É um achado compatível com a AIE."))
+                    mg_review_add("miss", text, _("Você NÃO marcou, mas é compatível com a AIE: devia ter marcado."))
                 elif selected:
-                    mg_review_add("bad", _("Marcou, mas não é compatível: %s") % text, _("Não é um achado típico da AIE."))
+                    mg_review_add("bad", text, _("Você marcou, mas NÃO é compatível com a AIE."))
                 else:
-                    mg_review_add("ok", _("Deixou sem marcar (certo): %s") % text, _("Não é compatível com a AIE."))
+                    mg_review_add("ok", text, _("Você não marcou. Certo: não é compatível com a AIE."))
 
     def mg2_verdict():
         """Frase de feedback conforme o desempenho."""

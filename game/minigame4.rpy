@@ -479,15 +479,19 @@ init python:
             mg4_advance()
 
     def mg4_build_dock_review():
-        """Revisão da fase 1: cada anticorpo, o que o jogador fez e por quê."""
+        """Revisão da fase 1: cada anticorpo, se encaixa ou não, e o que o jogador fez."""
         mg_review_group(MG4_STEPS[0]["title"])
         for n, (text, fits, feedback) in enumerate(MG4_CANDIDATES):
+            why = feedback
+            for prefix in (_("Encaixou! "), _("Não encaixa: ")):
+                if why.startswith(prefix):
+                    why = why[len(prefix):]
             if fits:
-                mg_review_add("ok", _("Encaixou: %s") % text, feedback)
+                mg_review_add("ok", text, _("Encaixa no vírus. Você clicou: certo. ") + why)
             elif n in store.mg4_tried:
-                mg_review_add("bad", _("Você tentou: %s") % text, feedback)
+                mg_review_add("bad", text, _("NÃO encaixa no vírus, mas você clicou. ") + why)
             else:
-                mg_review_add("ok", _("Não encaixa (certo ter deixado): %s") % text, feedback)
+                mg_review_add("ok", text, _("Não encaixa no vírus. Você não clicou: certo. ") + why)
         mg_review_note(MG4_COMPLEX_FEEDBACK)
 
     # ---- Fases de campos ---------------------------------------------------
