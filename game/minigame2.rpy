@@ -437,8 +437,7 @@ screen minigame2_gameplay():
         fixed:
             pos (MG2_TABS_X, MG2_TABS_Y0 + i * MG2_TABS_STEP)
             xysize MG2_TAB_SIZE
-            if i > mg2_area:
-                alpha 0.45
+            alpha (0.45 if i > mg2_area else 1.0)
             add tab_art
             text "[tab_label!t]":
                 xpos 30
@@ -511,13 +510,12 @@ screen minigame2_gameplay():
             idle MG2_SUBMIT_IDLE
             hover MG2_SUBMIT_HOVER
             focus_mask True
-            if last_area:
-                action [Function(mg2_submit), Return(True)]
-            else:
-                action Function(mg2_next)
+            action ([Function(mg2_submit), Return(True)] if last_area else Function(mg2_next))
             hovered Function(mg2_sfx, "hover")
 
-        text (_("Concluir exame") if last_area else _("Continuar")):
+        $ footer_label = _("Concluir exame") if last_area else _("Continuar")
+
+        text "[footer_label!t]":
             pos (MG2_SUBMIT_POS[0] + MG2_SUBMIT_SIZE[0] // 2, MG2_SUBMIT_POS[1] + MG2_SUBMIT_SIZE[1] // 2)
             anchor (0.5, 0.5)
             size 32
