@@ -18,7 +18,7 @@
 #   Para IMAGENS reais, coloque PNG/JPG em game/images/notebook/ com o nome
 #   pagina_<N>_1.png, pagina_<N>_2.png (N = número do minigame). Elas aparecem
 #   na coluna da direita, só depois de a página ser desbloqueada, encaixadas
-#   em 500x340 (sem distorcer).
+#   em 600x300 (sem distorcer).
 ################################################################################
 
 init python:
@@ -87,7 +87,7 @@ init python:
         if not isinstance(answer, tuple):
             answer = (answer,)
         if unlocked:
-            fill = tuple("{b}{color=#1f6b2a}%s{/color}{/b}" % a for a in answer)
+            fill = tuple("{b}{color=#1f3f8f}%s{/color}{/b}" % a for a in answer)
         else:
             fill = tuple(NOTEBOOK_BLANK for a in answer)
         return template % fill
@@ -100,11 +100,15 @@ init python:
                 for ext in ("png", "jpg", "jpeg", "webp"):
                     p = "images/notebook/pagina_%d_%d.%s" % (n, k, ext)
                     if renpy.loadable(p):
-                        out.append(Transform(Image(p), xysize=(500, 340), fit="contain"))
+                        out.append(Transform(Image(p), xysize=(600, 300), fit="contain"))
                         break
         return out
 
-    NB_TAB_W, NB_TAB_H, NB_TAB_X, NB_TAB_Y0, NB_TAB_STEP = 360, 84, 210, 210, 98
+    NB_TAB_COLORS = ["#d9534f", "#e8a43a", "#e0c83a", "#58a55c", "#4a90c8", "#8a63c0", "#d8648e"]
+    # IMAGEM: notebook_panel.png — o caderno aberto (canvas 960x540). O jogo
+    # escreve os textos por cima: página esquerda x 96-932, direita x 948-1784
+    # (tela 1920x1080), margens vermelhas em x 160 e 1012.
+    NB_PANEL_ART = menu_opt_art("notebook_panel.png", (60, 48, 1760, 984), "CADERNO\n(notebook_panel.png)", "#ecdcb2")
 
     ABOUT_TITLE = _("Sobre")
     ABOUT_LINES = [
@@ -123,90 +127,152 @@ screen notebook_screen():
 
     add Solid("#000000bb")
     key "game_menu" action [Function(sfx, "window_close"), Hide("notebook_screen")]
+    key "K_LEFT" action [SetScreenVariable("page_n", max(0, page_n - 1)), Function(sfx, "click")]
+    key "K_RIGHT" action [SetScreenVariable("page_n", min(len(NOTEBOOK_PAGES) - 1, page_n + 1)), Function(sfx, "click")]
 
-    # Folha do caderno
-    add Solid("#371f12") pos (160, 80) xysize (1600, 920)
-    add Solid("#ecdcb2") pos (166, 86) xysize (1588, 908)
-    add Solid("#c9a96e") pos (580, 100) xysize (4, 880)
-
-    text _("Caderno da AIE"):
-        pos (210, 110)
-        size 48
-        bold True
-        color "#3a2410"
+    # O caderno aberto (arte: images/notebook_panel.png; canvas 960x540)
+    add NB_PANEL_ART
 
     $ done = nb_completed()
-    $ got_n = len([p for p in NOTEBOOK_PAGES if p["mg"] in done])
+    $ got_n = len([q for q in NOTEBOOK_PAGES if q["mg"] in done])
     $ tot_n = len(NOTEBOOK_PAGES)
-    text "[got_n]/[tot_n]":
-        pos (1560, 118)
-        size 36
-        bold True
-        color "#3a2410"
-
-    # Abas (uma por página)
-    for i, pg in enumerate(NOTEBOOK_PAGES):
-        $ unl = pg["mg"] in done
-        $ tab_title = pg["title"] if unl else "???"
-        $ tab_no = pg["mg"]
-        button:
-            pos (NB_TAB_X, NB_TAB_Y0 + i * NB_TAB_STEP)
-            xysize (NB_TAB_W, NB_TAB_H)
-            background Solid("#568e48" if i == page_n else ("#8a7a5a" if unl else "#a39a85"))
-            hover_background Solid("#74b25c" if unl or i == page_n else "#b3aa95")
-            action [SetScreenVariable("page_n", i), Function(sfx, "click")]
-            hovered Function(sfx, "hover")
-            text "[tab_no]. [tab_title!t]":
-                xpos 20
-                yalign 0.5
-                size 28
-                color ("#ffffff" if i == page_n else ("#3a2410" if unl else "#5c5444"))
-
-    # Conteúdo da página aberta
     $ pg = NOTEBOOK_PAGES[page_n]
     $ unlocked = pg["mg"] in done
     $ pg_title = pg["title"]
     $ pg_mg = pg["mg"]
+    $ pg_no = page_n + 1
 
-    text "[pg_mg]. [pg_title!t]":
-        pos (630, 190)
-        size 44
-        bold True
-        color "#3a2410"
+    # ---- Página da ESQUERDA: título, imagens ------------------------------
+    text "Minigame [pg_mg]":
+        pos (190, 112)
+        size 24
+        color "#8a5a30"
+    if unlocked:
+        text "[pg_title!t]":
+            pos (190, 144)
+            size 50
+            bold True
+            color "#1f3f8f"
+            xmaximum 700
+        text _("ANOTADO!"):
+            pos (640, 880)
+            size 54
+            bold True
+            color "#2e7d32"
+            outlines [(2, "#ffffff88", 0, 0)]
+            at Transform(rotate=-10)
+        $ imgs = nb_images(pg_mg, True)
+        vbox:
+            pos (190, 250)
+            spacing 24
+            for im in imgs:
+                add im
+        if not imgs and config.developer:
+            text _("(coloque aqui as imagens: images/notebook/pagina_[pg_mg]_1.png)"):
+                pos (190, 300)
+                size 22
+                italic True
+                color "#8a5a30"
+                xmaximum 700
+    else:
+        text "???":
+            pos (190, 144)
+            size 60
+            bold True
+            color "#9a9078"
+        text _("Página em branco.\nConclua o minigame [pg_mg] para anotar aqui o que você aprendeu."):
+            pos (190, 300)
+            size 30
+            italic True
+            color "#6a5a40"
+            xmaximum 640
 
+    # ---- Página da DIREITA: as anotações com lacunas -----------------------
+    text _("Anotações [got_n]/[tot_n]"):
+        pos (1030, 100)
+        size 22
+        color "#8a5a30"
     vbox:
-        pos (630, 280)
-        xmaximum 640
-        spacing 26
+        pos (1030, 180)
+        spacing 30
         for template, answer in pg["items"]:
             $ line = u"\u2022 " + nb_line(template, answer, unlocked)
             text line:
                 size 30
-                color "#3a2410"
-                xmaximum 640
+                color "#2a2a3a"
+                xmaximum 700
 
     if not unlocked:
-        text _("Conclua o minigame [pg_mg] para preencher esta página."):
-            pos (630, 860)
-            size 26
+        text _("Conclua o minigame [pg_mg] para preencher as lacunas."):
+            pos (1030, 900)
+            size 24
             italic True
-            color "#6a4a22"
-            xmaximum 640
+            color "#b04a3a"
+            xmaximum 700
 
-    # Imagens reais (opcional)
-    $ imgs = nb_images(pg_mg, unlocked)
-    vbox:
-        pos (1230, 280)
-        spacing 24
-        for im in imgs:
-            add im
+    # ---- Virar página -------------------------------------------------------
+    if page_n > 0:
+        button:
+            pos (170, 940)
+            xysize (200, 56)
+            background Solid("#7a5a3a")
+            hover_background Solid("#9a7448")
+            action [SetScreenVariable("page_n", page_n - 1), Function(sfx, "click")]
+            hovered Function(sfx, "hover")
+            text _("< Anterior"):
+                align (0.5, 0.5)
+                size 26
+                color "#ffffff"
+    if page_n < tot_n - 1:
+        button:
+            pos (1560, 940)
+            xysize (200, 56)
+            background Solid("#7a5a3a")
+            hover_background Solid("#9a7448")
+            action [SetScreenVariable("page_n", page_n + 1), Function(sfx, "click")]
+            hovered Function(sfx, "hover")
+            text _("Próxima >"):
+                align (0.5, 0.5)
+                size 26
+                color "#ffffff"
+    text "[pg_no]/[tot_n]":
+        xalign 0.5
+        ypos 960
+        size 26
+        color "#6a5a40"
 
-    imagebutton:
-        idle ACH_BACK_IDLE
-        hover ACH_BACK_HOVER
-        focus_mask True
+    # ---- Marcadores (abas coloridas na borda direita) ----------------------
+    for i, q in enumerate(NOTEBOOK_PAGES):
+        $ tab_unl = q["mg"] in done
+        $ tab_no = q["mg"]
+        $ tab_col = NB_TAB_COLORS[i % len(NB_TAB_COLORS)] if tab_unl else "#9a9484"
+        button:
+            pos ((1790 if i == page_n else 1822), 130 + i * 92)
+            xysize ((100 if i == page_n else 68), 76)
+            background Solid("#371f12")
+            action [SetScreenVariable("page_n", i), Function(sfx, "click")]
+            hovered Function(sfx, "hover")
+            add Solid(tab_col) pos (3, 3) xysize ((94 if i == page_n else 62), 70)
+            text "[tab_no]":
+                align (0.5, 0.5)
+                size 34
+                bold True
+                color "#ffffff"
+                outlines [(2, "#371f12", 0, 0)]
+
+    # ---- Fechar ---------------------------------------------------------------
+    button:
+        pos (1822, 940)
+        xysize (68, 68)
+        background Solid("#371f12")
         action [Function(sfx, "window_close"), Hide("notebook_screen")]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+        hovered Function(sfx, "hover")
+        add Solid("#a54a3e") pos (3, 3) xysize (62, 62)
+        text "X":
+            align (0.5, 0.5)
+            size 38
+            bold True
+            color "#ffffff"
 
 
 screen about_screen():
