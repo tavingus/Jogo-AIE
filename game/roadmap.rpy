@@ -193,6 +193,14 @@ screen roadmap_screen():
                 Confirm(_("Voltar ao menu principal?"), yes=Function(renpy.full_restart))]
         hovered Function(mg_map_sfx, "hover")
 
+    # Caderno da AIE (mesmo botão do menu principal, canto inferior esquerdo)
+    imagebutton:
+        idle MENU_BTN["notebook"]["idle"]
+        hover MENU_BTN["notebook"]["hover"]
+        focus_mask True
+        action [Function(sfx, "window_open"), Show("notebook_screen")]
+        hovered Function(mg_map_sfx, "hover")
+
     if MAP_SHOW_CONNECTORS:
         for i in range(MG_TOTAL - 1):
             add mg_map_connector(MAP_NODE_POS[i], MAP_NODE_POS[i + 1])
