@@ -274,6 +274,11 @@ label roadmap:
         call screen test_notice with Dissolve(0.3)
         $ test_notice_seen = True
 
+    # Apresentação do caderno: uma vez por jogo (notebook.rpy)
+    if not nb_intro_seen:
+        call screen notebook_intro with Dissolve(0.3)
+        $ nb_intro_seen = True
+
     # (O autosave do mapa é feito pela própria tela, com um timer: o Ren'Py só
     #  salva de verdade durante uma interação, não aqui no label.)
 

@@ -155,8 +155,8 @@ screen notebook_screen():
             color "#1f3f8f"
             xmaximum 700
         text _("ANOTADO!"):
-            pos (640, 880)
-            size 54
+            pos (660, 190)
+            size 44
             bold True
             color "#2e7d32"
             outlines [(2, "#ffffff88", 0, 0)]
@@ -311,3 +311,59 @@ screen about_screen():
         focus_mask True
         action [Function(sfx, "window_close"), Hide("about_screen")]
         hovered Play("sound", "audio/sfx_hover.ogg")
+
+
+## -----------------------------------------------------------------------
+## Apresentação do caderno: aparece uma vez por jogo, na primeira vez que o
+## mapa é mostrado (depois do aviso de versão de testes, se houver).
+## -----------------------------------------------------------------------
+default nb_intro_seen = False
+
+screen notebook_intro():
+
+    modal True
+    zorder 160
+
+    add Solid("#000000bb")
+    add MG_RESULT_PANEL
+
+    text _("NOVO: CADERNO DA AIE"):
+        pos MG_RESULT_TITLE_POS
+        anchor (0.5, 0.5)
+        size 46
+        bold True
+        color MG_INSTR_TEXT_COLOR
+
+    $ nb_intro_text = _("Você ganhou um caderno de anotações sobre a Anemia Infecciosa Equina!\n\nCada página é de um desafio, e traz frases com lacunas. Ao CONCLUIR um desafio (com qualquer pontuação), as respostas daquela página aparecem no caderno, e você pode consultá-las quando quiser.\n\nEle também fica no menu principal.")
+
+    text "[nb_intro_text!t]":
+        pos (960, 340)
+        anchor (0.5, 0.0)
+        text_align 0.5
+        size 30
+        xmaximum 1250
+        color MG_INSTR_TEXT_COLOR
+
+    # O botão do caderno, destacado acima do escurecimento, com uma seta
+    add MENU_BTN["notebook"]["idle"]
+    text _("O caderno fica aqui"):
+        pos (60, 900)
+        size 28
+        bold True
+        color "#ffe9a8"
+        outlines [(3, "#2a1a0c", 0, 0)]
+        at nb_intro_bounce
+
+    imagebutton:
+        idle MG_RESULT_CONTINUE_IDLE
+        hover MG_RESULT_CONTINUE_HOVER
+        focus_mask True
+        action [Function(sfx, "click"), Return(True)]
+        hovered Function(sfx, "hover")
+
+
+transform nb_intro_bounce:
+    yoffset 0
+    easein 0.5 yoffset 10
+    easeout 0.5 yoffset 0
+    repeat
