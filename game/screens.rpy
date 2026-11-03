@@ -406,7 +406,7 @@ init python:
     MENU_BTN_RECTS = [(782, 464 + 116 * i, 380, 100) for i in range(5)]
     MENU_BTN = {}
     for _i, (_key, _label, _color, _hcolor) in enumerate([
-            ("play", "JOGAR", "#568e48", "#74b25c"),
+            ("play", "NOVO JOGO", "#568e48", "#74b25c"),
             ("continue", "CONTINUAR", "#568e48", "#74b25c"),
             ("achievements", "CONQUISTAS", "#b8860b", "#e0a820"),
             ("options", "OPÇÕES", "#486898", "#6286bc"),
@@ -415,6 +415,13 @@ init python:
             "idle": menu_opt_art("btn_%s_idle.png" % _key, MENU_BTN_RECTS[_i], _label, _color),
             "hover": menu_opt_art("btn_%s_hover.png" % _key, MENU_BTN_RECTS[_i], _label, _hcolor),
         }
+    # CADERNO (canto inferior esquerdo) e SOBRE (canto inferior direito)
+    MENU_BTN["notebook"] = {
+        "idle": menu_opt_art("btn_notebook_idle.png", (40, 964, 340, 80), "CADERNO", "#b8860b"),
+        "hover": menu_opt_art("btn_notebook_hover.png", (40, 964, 340, 80), "CADERNO", "#e0a820")}
+    MENU_BTN["about"] = {
+        "idle": menu_opt_art("btn_about_idle.png", (1600, 964, 280, 80), "SOBRE", "#486898"),
+        "hover": menu_opt_art("btn_about_hover.png", (1600, 964, 280, 80), "SOBRE", "#6286bc")}
     MENU_BTN["continue"]["disabled"] = menu_opt_art("btn_continue_disabled.png", MENU_BTN_RECTS[1], "CONTINUAR", "#5c5c5c")
 
 
@@ -450,7 +457,7 @@ screen main_menu():
     # Existe save para o botão CONTINUAR? (autosave do mapa ou save manual)
     $ can_continue = prog_has_save()
 
-    # Botões (5), de cima para baixo: JOGAR, CONTINUAR, CONQUISTAS, OPÇÕES, SAIR.
+    # Botões (5), de cima para baixo: NOVO JOGO, CONTINUAR, CONQUISTAS, OPÇÕES, SAIR.
     # focus_mask True faz só os pixels opacos do botão reagirem ao mouse.
     # Se o PNG não existir, aparece um placeholder na posição MENU_BTN_RECTS.
 
@@ -503,6 +510,29 @@ screen main_menu():
             Play("sound", "audio/sfx_click.ogg"),
             Function(sfx, "window_open"),
             Show("options_menu"),
+        ]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    # CADERNO (anotações sobre a AIE) e SOBRE (créditos)
+    imagebutton:
+        idle MENU_BTN["notebook"]["idle"]
+        hover MENU_BTN["notebook"]["hover"]
+        focus_mask True
+        action [
+            Play("sound", "audio/sfx_click.ogg"),
+            Function(sfx, "window_open"),
+            Show("notebook_screen"),
+        ]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    imagebutton:
+        idle MENU_BTN["about"]["idle"]
+        hover MENU_BTN["about"]["hover"]
+        focus_mask True
+        action [
+            Play("sound", "audio/sfx_click.ogg"),
+            Function(sfx, "window_open"),
+            Show("about_screen"),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
 

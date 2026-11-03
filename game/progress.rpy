@@ -332,6 +332,7 @@ init python:
         # Save feito no meio de um minigame: o "Continuar" não usa (só saves do mapa)
         d["in_minigame"] = bool(getattr(store, "mg_active", False))
         d["achievements"] = sorted(k for k, v in store.ach_unlocked.items() if v)
+        d["completed"] = [i + 1 for i, v in enumerate(store.mg_completed) if v]   # para o Caderno do menu
 
     config.save_json_callbacks.append(_prog_save_json)
 
