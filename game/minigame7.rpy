@@ -96,6 +96,11 @@ init python:
                      + MG7_NEW_COUNT * MG7_POINTS_SAFE
                      + MG7_BONUS_NO_PRICK)
 
+    # Depois de cada clique no cavalo, cliques extras são ignorados por este
+    # tempo (s): evita que um duplo clique pule o resultado e já conte como
+    # "cedo demais" na tentativa seguinte.
+    MG7_CLICK_COOLDOWN = 0.8
+
     def mg7_window_for(i):
         """Janela de reação (s) da tentativa i (0-based): encurta aos poucos."""
         if MG7_ATTEMPTS <= 1:
@@ -233,6 +238,8 @@ init python:
 
     def mg7_add(points):
         store.mg7_score = max(0, store.mg7_score + points)
+        # "+N"/"−N" sobre o cavalo
+        mg_float(points, MG7_HORSE_RECT[0] + MG7_HORSE_RECT[2] // 2, MG7_HORSE_RECT[1] + 60)
 
     def mg7_resolve(action):
         """Aplica o resultado da tentativa. action:
@@ -415,11 +422,7 @@ screen mg7_hud():
         color "#ffffff"
         outlines [(3, "#2a1a0c", 0, 0)]
 
-    text _("Pontos: [mg7_score]"):
-        pos MG7_SCORE_POS
-        size 32
-        color "#ffffff"
-        outlines [(3, "#2a1a0c", 0, 0)]
+    use mg_score_hud(mg7_score, MG7_SCORE_POS)
 
     text _("Picadas: [mg7_pricks]"):
         pos MG7_PRICKS_POS
@@ -430,12 +433,13 @@ screen mg7_hud():
 
 # O cavalo como botão: clicar nele o tira do lugar. focus_mask = só os pixels
 # do cavalo respondem. Retorna "dodge" (ou o valor dado em "result").
-screen mg7_horse_button(result):
+screen mg7_horse_button(result, armed=True):
 
     button:
         xysize (1920, 1080)
         background None
         focus_mask True
+        sensitive armed
         action Return(result)
         add MG7_HORSE_ART["calmo"]
 
@@ -446,10 +450,15 @@ screen minigame7_approach():
 
     modal True
 
+    # Cooldown: um clique "de sobra" (duplo clique) logo depois do resultado
+    # anterior não conta como clique cedo demais.
+    default armed = False
+    timer MG7_CLICK_COOLDOWN action SetScreenVariable("armed", True)
+
     use mg7_hud
 
     add MG7_HANDLER_ART["chegando"] at mg7_slide_in(MG7_ARRIVE_TIME, MG7_SLIDE_FROM)
-    use mg7_horse_button("early")
+    use mg7_horse_button("early", armed)
 
     timer MG7_ARRIVE_TIME action Return("reveal")
 
@@ -486,10 +495,15 @@ screen minigame7_outcome():
     add MG7_HORSE_ART[horse_key]
     add (MG7_STAMP_OK if outcome_ok else MG7_STAMP_BAD)
 
+    # Cooldown: o segundo clique de um duplo clique no cavalo não pula o resultado
+    default armed = False
+    timer MG7_CLICK_COOLDOWN action SetScreenVariable("armed", True)
+
     button:
         xfill True
         yfill True
         background None
+        sensitive armed
         action Return(True)
 
     timer MG7_OUTCOME_TIME action Return(True)

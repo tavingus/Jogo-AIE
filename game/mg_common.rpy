@@ -314,6 +314,18 @@ init python:
     MG_TUT_SCALE = 0.4
     MG_TUT_POS = (290, 350)          # canto da miniatura na tela (768x432)
 
+    def mg_tut_font_sizes(steps, note):
+        """Tamanho da fonte dos passos e da nota do tutorial, conforme a
+        quantidade de texto (a área tem ~560 x 500 px)."""
+        n = sum(len(renpy.translate_string(s)) for s in steps) + len(renpy.translate_string(note))
+        if n <= 330:
+            return 26, 22
+        if n <= 430:
+            return 24, 20
+        if n <= 530:
+            return 22, 19
+        return 20, 18
+
     def mg_tut_preview(layers):
         """Miniatura (40%) de uma lista de camadas desenhadas em 1920x1080."""
         return Transform(Fixed(*layers, xysize=(1920, 1080)), zoom=MG_TUT_SCALE)
@@ -331,6 +343,19 @@ init python:
 screen mg_badge(n, x, y):
     fixed:
         pos (x - 24, y - 24)
+        xysize (48, 48)
+        add Solid("#372412", xysize=(48, 48))
+        add Solid("#f2c230", xysize=(42, 42)) pos (3, 3)
+        text "[n]":
+            xalign 0.5
+            yalign 0.5
+            size 34
+            bold True
+            color "#372412"
+
+
+screen mg_badge_inline(n):
+    fixed:
         xysize (48, 48)
         add Solid("#372412", xysize=(48, 48))
         add Solid("#f2c230", xysize=(42, 42)) pos (3, 3)
@@ -381,16 +406,27 @@ screen mg_tutorial(bg, subtitle, preview, badges, steps, note, close_idle, close
         $ badge_y = MG_TUT_POS[1] + int(b[1] * MG_TUT_SCALE)
         use mg_badge(i + 1, badge_x, badge_y)
 
-    # Passos (até 3) e nota
-    for i, st in enumerate(steps):
-        use mg_step(i + 1, st, 346 + i * 110)
-
-    text "[note!t]":
-        pos (1100, 676)
-        size 21
-        italic True
-        xmaximum 540
-        color "#5a4a38"
+    # Passos (até 3) e nota, empilhados (cada um ocupa só a altura que
+    # precisa) e com a fonte ajustada ao tamanho do texto: nada transborda.
+    $ tut_fs, tut_note_fs = mg_tut_font_sizes(steps, note)
+    vbox:
+        pos (1100, 336)
+        xsize 560
+        spacing (18 if tut_fs >= 24 else 12)
+        for i, st in enumerate(steps):
+            hbox:
+                spacing 14
+                use mg_badge_inline(i + 1)
+                text "[st!t]":
+                    size tut_fs
+                    xmaximum 490
+                    color MG_INSTR_TEXT_COLOR
+        null height 4
+        text "[note!t]":
+            size tut_note_fs
+            italic True
+            xmaximum 540
+            color "#5a4a38"
 
     if close_align:
         imagebutton:
@@ -501,3 +537,90 @@ label mg_exit_to_map:
             renpy.pop_call()
 
     jump roadmap
+
+
+## -----------------------------------------------------------------------
+## PLACAR COM FUNDO + "+N" / "−N" FLUTUANTES (feedback imediato de pontos)
+##
+##   use mg_score_hud(pontos, (x, y))     — placar legível sobre qualquer fundo
+##   $ mg_float(+10)                       — "+10" verde que sobe e some, onde
+##   $ mg_float(-5, x, y, _("Errado!"))      o jogador clicou (ou em x, y),
+##                                           com um rótulo curto opcional
+## O sinal (+/−) e a cor andam juntos: quem não distingue verde de vermelho
+## ainda lê o sinal.
+## -----------------------------------------------------------------------
+init python:
+
+    MG_FLOAT_TIME = 1.6       # s na tela
+    _mg_float_counter = [0]
+
+    def mg_float(delta, x=None, y=None, label="", ok=None):
+        """Mostra "+N" (verde) ou "−N" (vermelho) subindo e sumindo.
+        ok=None: a cor segue o sinal de delta; ok=True/False força a cor
+        (ex.: erro que não tira pontos mostra "+0" vermelho)."""
+        if x is None or y is None:
+            x, y = renpy.get_mouse_pos()
+        x = max(90, min(1830, int(x)))
+        y = max(70, min(1000, int(y)))
+        if ok is None:
+            ok = delta > 0
+        _mg_float_counter[0] = (_mg_float_counter[0] + 1) % 12
+        tag = "mg_float_%d" % _mg_float_counter[0]
+        sign = "+" if delta >= 0 else u"−"
+        renpy.show_screen("mg_float", "%s%d" % (sign, abs(delta)), x, y, label, ok, tag, _tag=tag)
+        renpy.restart_interaction()
+
+
+transform mg_float_rise:
+    alpha 0.0 zoom 0.5 yoffset 0
+    easein 0.14 alpha 1.0 zoom 1.15
+    easeout 0.10 zoom 1.0
+    linear 1.0 yoffset -80
+    easein 0.3 alpha 0.0 yoffset -100
+
+
+screen mg_float(value, x, y, label, ok, tag):
+
+    zorder 260
+
+    vbox:
+        pos (x, y)
+        anchor (0.5, 1.0)
+        at mg_float_rise
+        text value:
+            xalign 0.5
+            size 64
+            bold True
+            color ("#6dff7a" if ok else "#ff5d4d")
+            outlines [(5, "#1e1208", 0, 0)]
+        if label:
+            text label:
+                xalign 0.5
+                size 32
+                bold True
+                color ("#d8ffd8" if ok else "#ffd6d0")
+                outlines [(4, "#1e1208", 0, 0)]
+
+    timer MG_FLOAT_TIME action Hide(tag)
+
+
+screen mg_score_hud(score, hud_pos):
+
+    frame:
+        pos hud_pos
+        background Solid("#f2c230")
+        padding (4, 4)
+        frame:
+            background Solid("#2a1a0ce8")
+            padding (22, 8)
+            hbox:
+                spacing 14
+                text _("Pontos"):
+                    yalign 0.5
+                    size 30
+                    color "#ffe9a8"
+                text "[score]":
+                    yalign 0.5
+                    size 44
+                    bold True
+                    color "#ffffff"

@@ -11,7 +11,7 @@
 #   3. ETIQUETA    — identificar a amostra: confere a FICHA do animal e preenche
 #                    Cavalo, Propriedade e Data da coleta (clicar no campo troca
 #                    a opção, em ciclo) e confirma
-#   4. RESENHA     — (opcional) preencher Idade, Sexo e Pelagem do animal
+#   4. RESENHA     — (obrigatória) preencher Idade, Sexo e Pelagem do animal
 #   5. CAIXA       — colocar a amostra na caixa refrigerada e enviar ao laboratório
 #
 # Pontuação (ver roadmap.rpy para o sistema de medalhas):
@@ -20,7 +20,7 @@
 #   Nas etapas de escolha (1, 2 e 5) o jogador só avança quando acerta; cada erro
 #   mostra o motivo e custa pontos. Nas etapas 3 e 4 cada campo certo trava
 #   (fica verde) e os errados ficam vermelhos até serem corrigidos. A resenha
-#   pode ser PULADA (sem penalidade, mas perde os pontos dos campos).
+#   é OBRIGATÓRIA (não há mais o botão "Pular resenha").
 #   O placar nunca fica abaixo de 0. Pontuação máxima = nenhum erro.
 #   A pontuação aparece ao final, na tela de resultado.
 #
@@ -82,10 +82,18 @@ init python:
     # ---- Ficha do animal (dados que o jogador confere) ----------------------
     # Estes valores precisam bater com o que estiver DESENHADO na ficha
     # (mg3_ficha.png) e com a opção correta de cada campo abaixo.
+    # A DATA DA COLETA é a data REAL do dia em que se joga (relógio do
+    # computador). As artes da ficha e do campo "Data da coleta" NÃO trazem a
+    # data desenhada: o jogo escreve por cima (MG3_DATE_*_POS).
+    import datetime as _dt
+    _mg3_today = _dt.date.today()
+    def mg3_fmt_date(d):
+        return "%02d/%02d/%04d" % (d.day, d.month, d.year)
+
     MG3_PROFILE = {
         "name": "Golias da Natureza",
         "farm": "Haras Vale Verde",
-        "date": "12/03/2025",
+        "date": mg3_fmt_date(_mg3_today),
         "age": "8 anos",
         "sex": "Macho",
         "coat": "Castanha",
@@ -140,15 +148,15 @@ init python:
                              (MG3_PROFILE["farm"], True)]},
                 {"id": "data", "label": _("Data da coleta"),
                  "options": [(MG3_PROFILE["date"], True),
-                             ("11/03/2025", False),
-                             ("21/03/2025", False)]},
+                             (mg3_fmt_date(_mg3_today - _dt.timedelta(days=1)), False),
+                             (mg3_fmt_date(_mg3_today + _dt.timedelta(days=9)), False)]},
             ],
         },
         {
             "id": "resenha",
             "kind": "fields",
             "title": _("Resenha do animal"),
-            "skippable": True,
+            "skippable": False,
             "fields": [
                 {"id": "idade", "label": _("Idade"),
                  "options": [("3 anos", False),
@@ -288,6 +296,13 @@ init python:
                             "#4a4a4a")
                     for n, opt in enumerate(_field["options"])
                 ]
+    # Data escrita pelo jogo por cima da ficha e do campo "Data da coleta"
+    # (só quando as artes reais existem; os placeholders já trazem o texto).
+    MG3_DATE_ON_FICHA = renpy.loadable(MG3_ART_DIR + "mg3_ficha.png")
+    MG3_DATE_ON_FIELD = renpy.loadable(MG3_ART_DIR + "campo_data_1.png")
+    MG3_DATE_FICHA_POS = (1244, 458)    # logo depois de "Data da coleta:" na ficha
+    MG3_DATE_FIELD_POS = (1284, 815)    # logo depois de "Data da coleta:" no campo
+
     MG3_FIELD_RIGHT = [mg3_overlay("mg3_campo_certo_%d.png" % (f + 1), mg3_field_rect(f), "#2e7d3277") for f in range(3)]
     MG3_FIELD_WRONG = [mg3_overlay("mg3_campo_errado_%d.png" % (f + 1), mg3_field_rect(f), "#cc222277") for f in range(3)]
 
@@ -372,13 +387,15 @@ init python:
         if store.mg3_step >= len(MG3_STEPS):
             store.mg3_finished = True
 
-    def mg3_hit():
+    def mg3_hit(x=None, y=None, label=""):
         store.mg3_score += MG3_POINTS_HIT
         mg3_sfx("correct")
+        mg_float(MG3_POINTS_HIT, x, y, label)
 
-    def mg3_miss():
+    def mg3_miss(x=None, y=None, label=""):
         store.mg3_score = max(0, store.mg3_score - MG3_POINTS_MISS)
         mg3_sfx("wrong")
+        mg_float(-MG3_POINTS_MISS, x, y, label)
 
     # ---- Etapas de escolha ---------------------------------------------------
     def mg3_right_option(step):
@@ -396,11 +413,11 @@ init python:
         text, correct, feedback = step["options"][opt]
         mg_review_group(step["title"])
         if correct:
-            mg3_hit()
+            mg3_hit(label=_("Correto!"))
             mg3_set_feedback(_("Correto!"), True)
             mg_review_add("ok", text, feedback)
         else:
-            mg3_miss()
+            mg3_miss(label=_("Errado!"))
             mg3_set_feedback(_("Errado!"), False)
             mg_review_add("bad", _("Você escolheu: %s") % text, feedback)
             mg_review_add("miss", _("O correto era: %s") % mg3_right_option(step)[0], mg3_right_option(step)[2])
@@ -436,12 +453,13 @@ init python:
                 continue
             chosen = field["options"][pos][0]
             right = [o[0] for o in field["options"] if o[1]][0]
+            _fx, _fy, _fw, _fh = mg3_field_rect(f)
             if field["options"][pos][1]:
-                mg3_hit()
+                mg3_hit(_fx + _fw - 90, _fy + _fh // 2 + 30)
                 mg_review_add("ok", "%s: %s" % (field["label"], chosen))
             else:
                 any_wrong = True
-                mg3_miss()
+                mg3_miss(_fx + _fw - 90, _fy + _fh // 2 + 30)
                 mg_review_add("bad", _("%s: você marcou \"%s\". O correto é \"%s\".") % (field["label"], chosen, right))
         if any_wrong:
             mg3_set_feedback(_("Há erros!"), False)
@@ -539,10 +557,7 @@ screen minigame3_gameplay():
     add MG3_TITLE_PANEL
 
     # Pontuação atual (texto que muda)
-    text _("Pontos: [mg3_score]"):
-        pos MG3_SCORE_POS
-        size 36
-        color "#ffffff"
+    use mg_score_hud(mg3_score, MG3_SCORE_POS)
 
     if not mg3_finished:
 
@@ -573,6 +588,12 @@ screen minigame3_gameplay():
         else:
 
             add MG3_FICHA
+            if MG3_DATE_ON_FICHA:
+                text MG3_PROFILE["date"]:
+                    pos MG3_DATE_FICHA_POS
+                    yanchor 0.5
+                    size 26
+                    color "#372412"
 
             for f in range(len(step["fields"])):
 
@@ -587,6 +608,14 @@ screen minigame3_gameplay():
                     action Function(mg3_cycle, f)
                     hovered Function(mg3_sfx, "hover")
                     add mg3_field_art(f)
+                    $ field_val = mg3_values[mg3_step][f]
+                    if MG3_DATE_ON_FIELD and step["fields"][f]["id"] == "data" and field_val >= 0:
+                        text step["fields"][f]["options"][field_val][0]:
+                            pos MG3_DATE_FIELD_POS
+                            yanchor 0.5
+                            size 28
+                            color "#fffaeb"
+                            outlines [(0, "#372412", 2, 2)]
                     if field_locked:
                         add MG3_FIELD_RIGHT[f]
                     elif field_wrong:
@@ -610,14 +639,7 @@ screen minigame3_gameplay():
                     hovered Function(mg3_sfx, "hover")
 
         # ---- Feedback da última ação (texto que muda) -------------------
-        if mg3_feedback:
-            text "[mg3_feedback!t]":
-                pos MG3_FEEDBACK_POS
-                size 30
-                xmaximum MG3_FEEDBACK_W
-                color ("#b9f5b9" if mg3_feedback_ok else "#ffb3b3")
-                outlines [(3, "#2a1a0c", 0, 0)]
-            timer 1.6 action SetVariable("mg3_feedback", "")
+        # (o acerto/erro agora aparece como "+N"/"−N" flutuante: mg_float)
 
     # ---- Fim: a tela de resultado e revisão é a "mg_result" (mg_common.rpy) ----
     else:

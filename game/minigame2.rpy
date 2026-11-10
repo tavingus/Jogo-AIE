@@ -396,7 +396,7 @@ screen minigame2_instructions():
         [_("Comece pela Temperatura e avance uma área de cada vez."),
          _("Marque TODOS os achados compatíveis com a AIE (pode ser mais de um)."),
          _("Ao terminar a área, clique em CONTINUAR (na última: CONCLUIR).")],
-        _("Atenção: não dá para voltar a uma área depois de continuar. Clique de novo num achado para desmarcar. Marcar um sinal certo dá pontos; marcar um errado, ou deixar passar um sinal da doença, tira pontos. No final você vê o que acertou e errou, com a explicação."),
+        _("Não dá para voltar a uma área depois de continuar. Clique de novo num achado para desmarcar. Achado certo marcado dá pontos; achado errado marcado, ou sinal da doença esquecido, tira pontos."),
         MG2_CLOSE_IDLE, MG2_CLOSE_HOVER, (0.5, 0.85))
 
 

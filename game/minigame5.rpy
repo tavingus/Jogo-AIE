@@ -92,7 +92,7 @@ init python:
     MG5_POINTS_HIT = 10
     MG5_TIME_PER_HORSE = 15.0         # segundos para decidir cada cavalo
     MG5_VALIDITY_DAYS = 60            # validade do exame negativo (exemplo!)
-    MG5_TODAY = datetime.date(2025, 5, 20)            # "data de hoje" do jogo
+    MG5_TODAY = datetime.date(2026, 8, 20)            # "data de hoje" do jogo (todas as datas caem em 2026)
 
     # Tipos de caso e o destino certo de cada um
     MG5_KINDS = ["recente", "vencido", "positivo"]
@@ -289,11 +289,17 @@ init python:
         dest_names = dict(MG5_DESTS)
         if choice == correct:
             store.mg5_score += MG5_POINTS_HIT
+            mg_float(MG5_POINTS_HIT, label=_("Correto!"))
             store.mg5_last_ok = True
             store.mg5_last_reason = ""
             mg_review_add("ok", "%s: %s" % (case["name"], dest_names[correct]), reason)
             mg5_sfx("correct")
         else:
+            # erro não tira pontos aqui: "+0" vermelho
+            if choice == "timeout":
+                mg_float(0, 490, 560, _("Tempo esgotado!"), ok=False)
+            else:
+                mg_float(0, label=_("Errado!"), ok=False)
             store.mg5_last_ok = False
             store.mg5_last_reason = ""
             if choice == "timeout":
@@ -409,10 +415,7 @@ screen mg5_scene():
         size 36
         color "#ffffff"
 
-    text _("Pontos: [mg5_score]"):
-        pos MG5_SCORE_POS
-        size 32
-        color "#ffffff"
+    use mg_score_hud(mg5_score, MG5_SCORE_POS)
 
 
 # Um cavalo: papéis, tempo e destinos. Retorna o destino ("estabulo",

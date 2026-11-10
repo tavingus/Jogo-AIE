@@ -444,13 +444,15 @@ init python:
         if store.mg4_step >= len(MG4_STEPS):
             store.mg4_finished = True
 
-    def mg4_hit():
+    def mg4_hit(x=None, y=None, label=""):
         store.mg4_score += MG4_POINTS_HIT
         mg4_sfx("correct")
+        mg_float(MG4_POINTS_HIT, x, y, label)
 
-    def mg4_miss():
+    def mg4_miss(x=None, y=None, label=""):
         store.mg4_score = max(0, store.mg4_score - MG4_POINTS_MISS)
         mg4_sfx("wrong")
+        mg_float(-MG4_POINTS_MISS, x, y, label)
 
     # ---- Fase 1: acoplar anticorpos ---------------------------------------
     def mg4_dock_done():
@@ -463,14 +465,14 @@ init python:
         text, fits, feedback = MG4_CANDIDATES[n]
         if fits:
             store.mg4_docked.append(n)
-            mg4_hit()
+            mg4_hit(label=(_("Imunocomplexo formado!") if len(store.mg4_docked) >= MG4_DOCK_TOTAL else _("Encaixou!")))
             if mg4_dock_done():
                 mg4_set_feedback(_("Imunocomplexo formado!"), True)
             else:
                 mg4_set_feedback(_("Encaixou!"), True)
         else:
             store.mg4_tried.append(n)
-            mg4_miss()
+            mg4_miss(label=_("Não encaixa!"))
             mg4_set_feedback(_("Não encaixa!"), False)
 
     def mg4_dock_continue():
@@ -527,12 +529,13 @@ init python:
                 continue
             right = store.mg4_answers[s][f]
             hint = store.mg4_hints[s][f]
+            _fx, _fy, _fw, _fh = mg4_field_rect(f)
             if pos == right:
-                mg4_hit()
+                mg4_hit(_fx + _fw - 90, _fy + _fh // 2 + 30)
                 mg_review_add("ok", "%s: %s" % (field["label"], labels[pos]), hint)
             else:
                 any_wrong = True
-                mg4_miss()
+                mg4_miss(_fx + _fw - 90, _fy + _fh // 2 + 30)
                 mg_review_add("bad", _("%s: você marcou %s. O correto é %s.") % (field["label"], labels[pos], labels[right]), hint)
         if any_wrong:
             mg4_set_feedback(_("Há erros!"), False)
@@ -627,11 +630,7 @@ screen minigame4_gameplay():
         add MG4_BG[step["id"]]
 
     # Pontuação atual (texto que muda)
-    text _("Pontos: [mg4_score]"):
-        pos MG4_SCORE_POS
-        size 36
-        color "#ffffff"
-        outlines [(3, "#2a1a0c", 0, 0)]
+    use mg_score_hud(mg4_score, MG4_SCORE_POS)
 
     if not mg4_finished:
 
@@ -728,14 +727,7 @@ screen minigame4_gameplay():
                 hovered Function(mg4_sfx, "hover")
 
         # ---- Feedback da última ação (texto que muda) -------------------
-        if mg4_feedback:
-            text "[mg4_feedback!t]":
-                pos MG4_FEEDBACK_POS
-                size 24
-                xmaximum MG4_FEEDBACK_W
-                color ("#b9f5b9" if mg4_feedback_ok else "#ffb3b3")
-                outlines [(3, "#2a1a0c", 0, 0)]
-            timer 1.6 action SetVariable("mg4_feedback", "")
+        # (o acerto/erro agora aparece como "+N"/"−N" flutuante: mg_float)
 
     # ---- Fim: a tela de resultado e revisão é a "mg_result" (mg_common.rpy) ----
     else:

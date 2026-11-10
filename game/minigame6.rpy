@@ -210,12 +210,20 @@ init python:
         else:
             store.mg6_stats["ignored_ok" if acted_correctly else "clicked_bad"] += 1
 
+        fly = store.mg6_current_fly
+        fx = fly["target_x"] + MG6_FLY_SIZE[0] // 2
+        fy = fly["target_y"]
         if acted_correctly:
             store.mg6_score += MG6_POINTS_CORRECT
             mg6_sfx("correct")
+            if result == "clicked":   # clicou na hematófaga: "+N" onde ela estava
+                mg_float(MG6_POINTS_CORRECT, fx, fy)
+            else:
+                mg_float(MG6_POINTS_CORRECT, fx, fy, _("Sem risco"))
         else:
             store.mg6_score = max(0, store.mg6_score + MG6_POINTS_WRONG)
             mg6_sfx("wrong")
+            mg_float(MG6_POINTS_WRONG, fx, fy, (_("Picou!") if kind == "correct" else _("Era inofensiva")))
 
 
 init python:
@@ -342,12 +350,7 @@ screen mg6_scene(bitten=False):
 # HUD: pontuação atual e progresso (quantas moscas já passaram)
 screen minigame6_hud():
 
-    text _("Pontos: [mg6_score]"):
-        xpos 60
-        ypos 40
-        size 36
-        color "#ffffff"
-        outlines [(3, "#2a1a0c", 0, 0)]
+    use mg_score_hud(mg6_score, (60, 40))
 
     text "[mg6_fly_index]/[MG6_TOTAL_FLIES]":
         xalign 0.97
