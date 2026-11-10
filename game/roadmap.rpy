@@ -266,6 +266,9 @@ label roadmap:
 
     $ quick_menu = True
 
+    # Some com "+N/−N" que ainda estivessem na tela do minigame
+    $ mg_float_clear()
+
     # Música do mapa (a mesma do menu; não reinicia se já estiver tocando)
     $ mus_menu()
 

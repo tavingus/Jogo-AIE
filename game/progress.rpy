@@ -364,4 +364,5 @@ init python:
 
     def prog_autosave():
         """Salva o jogo (chamado sempre que o mapa aparece)."""
+        mg_float_clear()   # nenhum "+N" de minigame vai para dentro do save
         renpy.force_autosave(take_screenshot=False)

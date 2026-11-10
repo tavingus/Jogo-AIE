@@ -240,7 +240,7 @@ screen quick_menu():
     ## Ensure this appears on top of other screens.
     zorder 100
 
-    if quick_menu:
+    if False and quick_menu:   # barra do Ren'Py desligada no jogo inteiro
 
         hbox:
             style_prefix "quick"
@@ -259,7 +259,7 @@ screen quick_menu():
 ## This code ensures that the quick_menu screen is displayed in-game, whenever
 ## the player has not explicitly hidden the interface.
 init python:
-    config.overlay_screens.append("quick_menu")
+    pass  # (barra rápida desligada: ver controls.rpy)
 
 default quick_menu = True
 
@@ -634,7 +634,8 @@ screen options_menu():
     # --- Seletor de idioma (sistema nativo de tradução do Ren'Py) ---
     # Language(None) volta ao idioma padrão do projeto (Português).
     # Language("english") troca para a tradução gerada em game/tl/english.
-    $ lang_is_pt = (_preferences.language is None)
+    # (o idioma do jogo é "portuguese": tl/portuguese + i18n.rpy)
+    $ lang_is_pt = (_preferences.language in (None, "portuguese"))
     $ lang_is_en = (_preferences.language == "english")
 
     imagebutton:
@@ -644,7 +645,7 @@ screen options_menu():
         selected_hover OPT_LANG["pt"]["selected"]
         focus_mask True
         selected lang_is_pt
-        action [Play("sound", "audio/sfx_click.ogg"), Language(None)]
+        action [Play("sound", "audio/sfx_click.ogg"), Language("portuguese")]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
     imagebutton:
@@ -1821,7 +1822,7 @@ screen quick_menu():
 
     zorder 100
 
-    if quick_menu:
+    if False and quick_menu:   # barra do Ren'Py desligada no jogo inteiro
 
         hbox:
             style "quick_menu"

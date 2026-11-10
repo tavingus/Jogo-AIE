@@ -31,13 +31,15 @@ define -2 MG_INSTR_TEXT_COLOR = "#372412"
 init -10 python:
 
     def mg_canvas_art(path):
-        """Arte de canvas inteiro. Se o PNG for 960x540 (ideal): zoom 2 com
-        nearest neighbor. Se tiver OUTRO tamanho (ex.: 1536x1024 direto do
-        gerador de imagens): corta ao centro para 16:9 e ajusta a 1920x1080,
-        para nunca ficar fora do lugar."""
+        """Arte em pixel art. Até 960x540: zoom 2 com nearest neighbor.
+        MAIOR que isso (ex.: 1536x1024 direto do gerador de imagens): corta ao
+        centro para 16:9 e ajusta a 1920x1080, para não ficar fora do lugar."""
         w, h = renpy.image_size(path)
-        if (w, h) == (960, 540):
+        # 960x540 (canvas) ou MENOR (arte do tamanho do elemento, ex.: botões
+        # e cartas do minigame 2, painéis do 6): zoom 2, como sempre foi.
+        if w <= 960 and h <= 540:
             return Transform(Image(path, nearest_neighbor=True), zoom=2.0)
+        # MAIOR que o canvas (direto do gerador de imagens): corta para 16:9.
         if w * 9 > h * 16:
             cw, ch = int(h * 16 / 9), h
         else:
@@ -569,6 +571,19 @@ init python:
         sign = "+" if delta >= 0 else u"−"
         renpy.show_screen("mg_float", "%s%d" % (sign, abs(delta)), x, y, label, ok, tag, _tag=tag)
         renpy.restart_interaction()
+
+
+    def mg_float_clear():
+        """Some com todos os "+N/−N" ainda na tela. Chamado ao voltar ao mapa,
+        antes do autosave e depois de carregar um save, para um popup antigo
+        nunca reaparecer (era o "Correto! +10" ao clicar em Continuar)."""
+        for k in range(12):
+            renpy.hide_screen("mg_float_%d" % k)
+
+    def _mg_float_after_load():
+        mg_float_clear()
+
+    config.after_load_callbacks.append(_mg_float_after_load)
 
 
 transform mg_float_rise:
