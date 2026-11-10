@@ -39,6 +39,7 @@ init python:
 
 
 default mg_active = False   # True enquanto um minigame está rodando (ver roadmap.rpy)
+default mg_current = 0      # número do minigame aberto (para o "Ver no caderno")
 
 
 ## -----------------------------------------------------------------------

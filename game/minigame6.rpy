@@ -82,6 +82,14 @@ init python:
         return "#8a2c2c" if ftype == "correct" else "#4a4a4a"
 
     def mg6_fly_art(ftype, filename):
+        """Mosca SEMPRE no tamanho MG6_FLY_SIZE, qualquer que seja o tamanho
+        do PNG (70x70 ideal; uma imagem grande do gerador é reduzida)."""
+        path = MG6_ART_DIR + filename
+        if renpy.loadable(path):
+            w, h = renpy.image_size(path)
+            small = (w <= MG6_FLY_SIZE[0] and h <= MG6_FLY_SIZE[1])
+            return Transform(Image(path, nearest_neighbor=small),
+                             xysize=MG6_FLY_SIZE, fit="contain")
         label = "MOSCA %s\n(%s)" % ("CORRETA" if ftype == "correct" else "ERRADA", filename)
         return mg6_art(filename, MG6_FLY_SIZE, label, mg6_fly_colors(ftype))
 
@@ -224,6 +232,10 @@ init python:
             store.mg6_score = max(0, store.mg6_score + MG6_POINTS_WRONG)
             mg6_sfx("wrong")
             mg_float(MG6_POINTS_WRONG, fx, fy, (_("Picou!") if kind == "correct" else _("Era inofensiva")))
+            if kind == "correct":
+                mg_hint_error("mg6_missed", _("A mosca HEMATÓFAGA (a que pica e suga sangue) precisa ser clicada antes de sumir: é ela que leva o vírus de um cavalo para outro."))
+            else:
+                mg_hint_error("mg6_clicked", _("Nem toda mosca transmite a AIE: as que não picam são inofensivas. Deixe-as ir embora sozinhas."))
 
 
 init python:

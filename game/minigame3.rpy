@@ -419,6 +419,7 @@ init python:
         else:
             mg3_miss(label=_("Errado!"))
             mg3_set_feedback(_("Errado!"), False)
+            mg_hint_error("mg3", feedback)
             mg_review_add("bad", _("Você escolheu: %s") % text, feedback)
             mg_review_add("miss", _("O correto era: %s") % mg3_right_option(step)[0], mg3_right_option(step)[2])
         mg3_advance()
@@ -463,6 +464,7 @@ init python:
                 mg_review_add("bad", _("%s: você marcou \"%s\". O correto é \"%s\".") % (field["label"], chosen, right))
         if any_wrong:
             mg3_set_feedback(_("Há erros!"), False)
+            mg_hint_error("mg3", _("Confira a FICHA DO ANIMAL antes de confirmar: cada campo precisa bater exatamente com ela."))
         else:
             mg3_set_feedback(_("Tudo certo!"), True)
         mg3_advance()

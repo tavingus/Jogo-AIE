@@ -395,6 +395,8 @@ init python:
 
     # Barras de volume (desenhadas pelo Ren'Py; alinhadas com os rótulos da
     # arte): x inicial, largura e y do centro de cada linha (tela 1920x1080).
+    OPT_SHOW_ENGLISH = False   # botão ENGLISH nas Opções (sem tradução ainda)
+
     OPT_BAR_X = 800
     OPT_BAR_W = 580
     OPT_BAR_CENTERS = [330, 430, 530]   # música, efeitos, voz
@@ -648,15 +650,18 @@ screen options_menu():
         action [Play("sound", "audio/sfx_click.ogg"), Language("portuguese")]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
-    imagebutton:
-        idle OPT_LANG["en"]["idle"]
-        hover OPT_LANG["en"]["hover"]
-        selected_idle OPT_LANG["en"]["selected"]
-        selected_hover OPT_LANG["en"]["selected"]
-        focus_mask True
-        selected lang_is_en
-        action [Play("sound", "audio/sfx_click.ogg"), Language("english")]
-        hovered Play("sound", "audio/sfx_hover.ogg")
+    # ENGLISH: escondido até existir uma tradução (game/tl/english).
+    # Para reativar, troque OPT_SHOW_ENGLISH para True.
+    if OPT_SHOW_ENGLISH:
+        imagebutton:
+            idle OPT_LANG["en"]["idle"]
+            hover OPT_LANG["en"]["hover"]
+            selected_idle OPT_LANG["en"]["selected"]
+            selected_hover OPT_LANG["en"]["selected"]
+            focus_mask True
+            selected lang_is_en
+            action [Play("sound", "audio/sfx_click.ogg"), Language("english")]
+            hovered Play("sound", "audio/sfx_hover.ogg")
 
     # --- Botão VOLTAR: fecha a janela de opções ---
     imagebutton:

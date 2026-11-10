@@ -187,6 +187,13 @@ init python:
 
     NOTEBOOK_BLANK = "________"
 
+    def nb_page_index(mg):
+        """Índice da página do caderno do minigame mg (ou None)."""
+        for i, p in enumerate(NOTEBOOK_PAGES):
+            if p["mg"] == mg:
+                return i
+        return None
+
     def nb_completed():
         """Lista de minigames concluídos: do jogo em andamento ou, no menu
         principal, do save mais recente."""
@@ -241,12 +248,12 @@ init python:
     ]
 
 
-screen notebook_screen():
+screen notebook_screen(start_mg=None):
 
     modal True
     zorder 170
 
-    default page_n = 0
+    default page_n = (nb_page_index(start_mg) or 0)
 
     add Solid("#000000bb")
     key "game_menu" action [Function(sfx, "window_close"), Hide("notebook_screen")]
@@ -559,3 +566,120 @@ transform nb_intro_bounce:
     easein 0.5 yoffset 10
     easeout 0.5 yoffset 0
     repeat
+
+
+## -----------------------------------------------------------------------
+## RESUMO FINAL (depois do minigame 7): o que o jogador conquistou em cada
+## desafio, as medalhas e o caderno preenchido. Chamado no minigame_7_entry.
+## -----------------------------------------------------------------------
+screen game_summary():
+
+    modal True
+    zorder 160
+
+    add Solid("#000000cc")
+    add Solid("#371f12") pos (300, 70) xysize (1320, 940)
+    add Solid("#ead9a8") pos (306, 76) xysize (1308, 928)
+
+    $ medals_got = len([1 for k in range(len(NOTEBOOK_PAGES)) if mg_medals[k]])
+    $ pages_got = len([1 for p in NOTEBOOK_PAGES if mg_completed[p["mg"] - 1]])
+    $ pages_tot = len(NOTEBOOK_PAGES)
+
+    text _("EQUINÓPOLIS ESTÁ MAIS PROTEGIDA!"):
+        xalign 0.5
+        ypos 112
+        size 48
+        bold True
+        color MG_INSTR_TEXT_COLOR
+
+    text _("Você completou todos os desafios. Veja o seu desempenho:"):
+        xalign 0.5
+        ypos 180
+        size 28
+        color "#5a3a14"
+
+    vbox:
+        pos (380, 250)
+        spacing 12
+        for p in NOTEBOOK_PAGES:
+            $ k = p["mg"] - 1
+            $ row_title = p["title"]
+            $ row_no = p["mg"]
+            $ row_score = mg_scores[k]
+            $ row_max = mg_max_scores[k]
+            $ row_medal = mg_medals[k]
+            fixed:
+                xysize (1160, 64)
+                add Solid("#f6edd2") xysize (1160, 64)
+                text "[row_no]. [row_title!t]":
+                    xpos 24
+                    yalign 0.5
+                    size 30
+                    color MG_INSTR_TEXT_COLOR
+                text "[row_score] / [row_max]":
+                    xpos 860
+                    xanchor 1.0
+                    yalign 0.5
+                    size 30
+                    bold True
+                    color "#1f3f8f"
+                text ("★" if row_medal else "☆"):
+                    font "DejaVuSans.ttf"
+                    xpos 1000
+                    yalign 0.5
+                    size 44
+                    color ("#d9a520" if row_medal else "#9a8f7a")
+                    outlines [(2, "#5a3a14", 0, 0)]
+
+    text _("Medalhas: [medals_got]/[pages_tot]     Páginas do caderno: [pages_got]/[pages_tot]"):
+        xalign 0.5
+        ypos 790
+        size 28
+        bold True
+        color "#5a3a14"
+
+    text _("★ = pontuação máxima. Você pode jogar qualquer desafio de novo pelo mapa para buscar as medalhas."):
+        xalign 0.5
+        ypos 836
+        size 22
+        italic True
+        color "#5a4a38"
+
+    # Botões: abrir o caderno / continuar
+    button:
+        pos (560, 900)
+        xysize (360, 80)
+        background Solid("#371f12")
+        hover_background Solid("#1e1208")
+        action [Function(sfx, "window_open"), Show("notebook_screen")]
+        hovered Function(sfx, "hover")
+        frame:
+            pos (4, 4)
+            xysize (352, 72)
+            padding (0, 0)
+            background Solid("#b8860b")
+            text _("ABRIR O CADERNO"):
+                align (0.5, 0.5)
+                size 30
+                bold True
+                color "#fffaeb"
+                outlines [(0, "#2a1a0c", 2, 2)]
+
+    button:
+        pos (1000, 900)
+        xysize (360, 80)
+        background Solid("#371f12")
+        hover_background Solid("#1e1208")
+        action [Function(sfx, "click"), Return(True)]
+        hovered Function(sfx, "hover")
+        frame:
+            pos (4, 4)
+            xysize (352, 72)
+            padding (0, 0)
+            background Solid("#568e48")
+            text _("CONTINUAR"):
+                align (0.5, 0.5)
+                size 30
+                bold True
+                color "#fffaeb"
+                outlines [(0, "#2a1a0c", 2, 2)]

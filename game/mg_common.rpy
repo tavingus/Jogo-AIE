@@ -165,6 +165,7 @@ init python:
 
     def mg_review_clear():
         store.mg_review = []
+        store.mg_err_counts = {}     # contagem para as dicas (mg_hint_error)
 
     def mg_review_group(text):
         store.mg_review.append({"kind": "group", "text": text})
@@ -295,6 +296,28 @@ screen mg_result(score, max_score, verdict, title=None):
         focus_mask True
         action [Function(sfx, "click"), Return("continue")]
         hovered Function(sfx, "hover")
+
+    # VER NO CADERNO: abre a página deste minigame (já preenchida, porque o
+    # minigame foi concluído antes desta tela), por cima do resultado.
+    if mg_current and nb_page_index(mg_current) is not None:
+        button:
+            pos (812, 874)
+            xysize (296, 80)
+            background Solid("#371f12")
+            hover_background Solid("#1e1208")
+            action [Function(sfx, "window_open"), Show("notebook_screen", start_mg=mg_current)]
+            hovered Function(sfx, "hover")
+            frame:
+                pos (4, 4)
+                xysize (288, 72)
+                padding (0, 0)
+                background Solid("#b8860b")
+                text _("VER NO CADERNO"):
+                    align (0.5, 0.5)
+                    size 28
+                    bold True
+                    color "#fffaeb"
+                    outlines [(0, "#2a1a0c", 2, 2)]
 
 
 ## -----------------------------------------------------------------------
@@ -460,7 +483,9 @@ screen mg_pause_button():
         idle MGC_PAUSE_IDLE
         hover MGC_PAUSE_HOVER
         focus_mask True
-        action [Function(sfx, "window_open"), Function(renpy.call_in_new_context, "mg_pause_label")]
+        # Clicar no botão = apertar Esc (o mesmo caminho: no teste, o Esc
+        # parava os cronômetros dos minigames e o clique não).
+        action [Function(sfx, "window_open"), Function(renpy.queue_event, "game_menu")]
         hovered Function(mgc_sfx, "hover")
 
     # Esc / botão direito também pausam (em vez do menu de jogo padrão)
@@ -579,6 +604,7 @@ init python:
         nunca reaparecer (era o "Correto! +10" ao clicar em Continuar)."""
         for k in range(12):
             renpy.hide_screen("mg_float_%d" % k)
+        renpy.hide_screen("mg_hint")
 
     def _mg_float_after_load():
         mg_float_clear()
@@ -639,3 +665,60 @@ screen mg_score_hud(score, hud_pos):
                     size 44
                     bold True
                     color "#ffffff"
+
+
+## -----------------------------------------------------------------------
+## DICA A PARTIR DO SEGUNDO ERRO
+##   $ mg_hint_error("chave", _("texto da dica"))
+## Conta os erros por "chave" (zerados a cada partida, em mg_review_clear).
+## No 1º erro nada aparece (o jogador tenta entender sozinho); do 2º em
+## diante aparece, no canto inferior esquerdo, uma dica curta por alguns
+## segundos. A dica não bloqueia cliques.
+## -----------------------------------------------------------------------
+default mg_err_counts = {}
+
+init python:
+
+    MG_HINT_TIME = 6.0     # s na tela
+    MG_HINT_FROM = 2       # a partir de qual erro a dica aparece
+
+    def mg_hint_error(key, text):
+        c = store.mg_err_counts.get(key, 0) + 1
+        store.mg_err_counts[key] = c
+        if c >= MG_HINT_FROM and text:
+            renpy.show_screen("mg_hint", text)
+            renpy.restart_interaction()
+
+
+screen mg_hint(hint_text):
+
+    zorder 255
+
+    frame:
+        pos (120, 1056)
+        anchor (0.0, 1.0)
+        xmaximum 900
+        background Solid("#371f12")
+        padding (4, 4)
+        at mg_hint_appear
+        frame:
+            background Solid("#f3e6c2")
+            padding (20, 12)
+            hbox:
+                spacing 12
+                text _("DICA"):
+                    size 26
+                    bold True
+                    color "#b0441f"
+                text hint_text:
+                    size 24
+                    color "#372412"
+                    xmaximum 760
+                    substitute False
+
+    timer MG_HINT_TIME action Hide("mg_hint")
+
+
+transform mg_hint_appear:
+    alpha 0.0 yoffset 20
+    easein 0.25 alpha 1.0 yoffset 0

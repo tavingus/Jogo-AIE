@@ -37,6 +37,9 @@ init 5 python:   # depois do mg_common.rpy (mgc_art, MGC_QUIT_RECT)
     MGC_MAINMENU_HOVER = mgc_art("mg_pausa_menu_hover.png", MGC_QUIT_RECT, "MENU PRINCIPAL", "#8a4a4a")
 
 
+default pause_bg = None   # "map" enquanto o jogador está no mapa
+
+
 ## Pausa geral (fora dos minigames). Aberta pelo Ren'Py num novo contexto
 ## (o jogo atrás fica congelado e visível). Return() volta ao jogo.
 screen game_pause():
@@ -48,6 +51,10 @@ screen game_pause():
     if main_menu:
         timer 0.01 action Return()
 
+    # Ao abrir a pausa o Ren'Py esconde as telas do jogo; no mapa, redesenha
+    # o fundo do mapa para a pausa não aparecer sobre um fundo preto.
+    if pause_bg == "map":
+        add MAP_BG
     add Solid("#000000bb")
     add MGC_PAUSE_PANEL
 

@@ -268,6 +268,7 @@ label roadmap:
 
     # Some com "+N/−N" que ainda estivessem na tela do minigame
     $ mg_float_clear()
+    $ pause_bg = "map"
 
     # Música do mapa (a mesma do menu; não reinicia se já estiver tocando)
     $ mus_menu()
@@ -304,6 +305,8 @@ label roadmap:
         # terminar normalmente ele é escondido aqui (se o jogador sair pelo
         # menu de pausa, quem esconde é o label mg_exit_to_map).
         $ mg_active = True
+        $ mg_current = chosen
+        $ pause_bg = None
         show screen mg_pause_button
         call expression ("minigame_%d_entry" % chosen)
         hide screen mg_pause_button

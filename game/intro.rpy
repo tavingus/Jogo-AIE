@@ -112,6 +112,7 @@ screen intro_textbox(txt):
 
 label novo_jogo:
 
+    $ pause_bg = None
     $ quick_menu = False
     $ intro_i = 0
     $ intro_skip = False

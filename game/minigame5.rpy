@@ -92,7 +92,7 @@ init python:
     MG5_POINTS_HIT = 10
     MG5_TIME_PER_HORSE = 15.0         # segundos para decidir cada cavalo
     MG5_VALIDITY_DAYS = 60            # validade do exame negativo (exemplo!)
-    MG5_TODAY = datetime.date(2026, 8, 20)            # "data de hoje" do jogo (todas as datas caem em 2026)
+    MG5_TODAY = datetime.date.today()                 # "data de hoje" = data REAL do computador
 
     # Tipos de caso e o destino certo de cada um
     MG5_KINDS = ["recente", "vencido", "positivo"]
@@ -308,6 +308,7 @@ init python:
                 mg_review_add("bad", _("%s: você escolheu %s.") % (case["name"], dest_names[choice]), "")
             mg_review_add("miss", _("O correto era: %s") % dest_names[correct], reason)
             mg5_sfx("wrong")
+            mg_hint_error("mg5", reason)
 
     def mg5_verdict():
         """Frase final conforme o desempenho."""

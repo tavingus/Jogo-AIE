@@ -64,9 +64,9 @@ init python:
     MG7_CLOSE_RECT = (840, 860, 240, 80)
 
     # Textos escritos pelo jogo (mudam durante a partida)
-    MG7_ATTEMPT_POS = (1500, 40)                      # "Tentativa n/N"
-    MG7_SCORE_POS = (1500, 90)                        # "Pontos: N"
-    MG7_PRICKS_POS = (1500, 140)                      # "Picadas: N"
+    MG7_ATTEMPT_POS = (1500, 30)                      # "Tentativa n/N"
+    MG7_SCORE_POS = (1500, 80)                        # placa "Pontos N" (~76 px de altura)
+    MG7_PRICKS_POS = (1500, 172)                      # "Picadas: N" (abaixo da placa)
     MG7_REASON_POS = (60, 960)                        # motivo (tela de resultado da tentativa)
     MG7_REASON_W = 1800
     MG7_RESULT_SCORE_POS = (960, 450)                 # "Pontuação: N / M" (centralizado)
@@ -271,6 +271,8 @@ init python:
             reason = _("Aplicação segura: agulha nova, sem risco de transmitir o vírus. Agulha nova e descartável para cada animal.")
 
         store.mg7_outcome = outcome
+        if outcome in ("early", "unneeded", "prick"):
+            mg_hint_error("mg7_" + outcome, reason)
         store.mg7_reason = reason
 
         # Revisão final: uma linha por tentativa
@@ -559,6 +561,10 @@ label minigame_7_entry:
 
         call screen mg_result(mg7_score, MG7_MAX_SCORE, mg7_verdict())
         $ mg_again = (_return == "replay")
+
+    # Resumo final de todos os desafios (notebook.rpy)
+    call screen game_summary with Dissolve(0.3)
+    hide screen notebook_screen
 
     # Versão de testes: agradecimento + QR code do formulário (test_build.rpy)
     if TEST_BUILD:
