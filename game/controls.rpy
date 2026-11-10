@@ -29,7 +29,7 @@ init 999 python:
     _game_menu_screen = "game_pause"
 
 
-init python:
+init 5 python:   # depois do mg_common.rpy (mgc_art, MGC_QUIT_RECT)
 
     # IMAGEM: common/mg_pausa_menu_idle.png e _hover.png — botão "Menu
     # principal" da pausa geral (mesma posição do "Sair para o mapa").
