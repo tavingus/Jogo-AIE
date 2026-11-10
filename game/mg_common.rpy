@@ -680,7 +680,7 @@ default mg_err_counts = {}
 init python:
 
     MG_HINT_TIME = 6.0     # s na tela
-    MG_HINT_FROM = 2       # a partir de qual erro a dica aparece
+    MG_HINT_FROM = 1       # a partir de qual erro a dica aparece (1 = em todo erro)
 
     def mg_hint_error(key, text):
         c = store.mg_err_counts.get(key, 0) + 1
