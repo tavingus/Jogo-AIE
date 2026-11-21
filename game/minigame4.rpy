@@ -81,6 +81,7 @@ init python:
     MG4_FEEDBACK_W = 860
     MG4_CUTOFF_POS = (260, 800)                      # ELISA: ponto de corte (logo abaixo do leitor)
     MG4_CUTOFF_W = 760
+    MG4_OD_LEGEND = _("DO = densidade óptica: a intensidade da cor de cada poço, medida pelo leitor de placas (espectrofotômetro). Quanto mais anticorpo, mais cor.")
     # ELISA: centro do valor de DO de cada poço (C-, C+, A1, A2, A3, A4)
     MG4_OD_POS = [(160 + i * 140, 700) for i in range(6)]
 
@@ -691,12 +692,20 @@ screen minigame4_gameplay():
                         size 32
                         bold True
                         color "#ffffff"
-                if MG4_ELISA_SHOW_CUTOFF:
-                    text "[mg4_cutoff!t]":
-                        pos MG4_CUTOFF_POS
+                vbox:
+                    pos MG4_CUTOFF_POS
+                    spacing 8
+                    if MG4_ELISA_SHOW_CUTOFF:
+                        text "[mg4_cutoff!t]":
+                            xmaximum MG4_CUTOFF_W
+                            size 28
+                            color "#ffe9a3"
+                            outlines [(3, "#2a1a0c", 0, 0)]
+                    # Legenda da sigla (público que ainda não conhece "DO")
+                    text MG4_OD_LEGEND:
                         xmaximum MG4_CUTOFF_W
-                        size 28
-                        color "#ffe9a3"
+                        size 22
+                        color "#ffffff"
                         outlines [(3, "#2a1a0c", 0, 0)]
 
             for f in range(len(step["fields"])):

@@ -300,8 +300,25 @@ init python:
     # (só quando as artes reais existem; os placeholders já trazem o texto).
     MG3_DATE_ON_FICHA = renpy.loadable(MG3_ART_DIR + "mg3_ficha.png")
     MG3_DATE_ON_FIELD = renpy.loadable(MG3_ART_DIR + "campo_data_1.png")
-    MG3_DATE_FICHA_POS = (1244, 458)    # logo depois de "Data da coleta:" na ficha
-    MG3_DATE_FIELD_POS = (1284, 815)    # logo depois de "Data da coleta:" no campo
+    MG3_DATE_FICHA_POS = (1248, 440)    # logo depois de "Data da coleta:" na ficha
+    MG3_DATE_FIELD_POS = (1290, 796)    # logo depois de "Data da coleta:" no campo
+
+    # A data é montada com imagens de cada algarismo, desenhadas com a MESMA
+    # fonte pixelada da ficha e do campo: images/minigame3/data/<tipo>_<c>.png
+    # (<tipo> = ficha ou campo; <c> = 0..9 ou "barra").
+    MG3_DATE_SHADOW = {"ficha": 0, "campo": 1}   # px de sombra à direita de cada algarismo
+
+    def mg3_date_disp(datestr, kind):
+        parts, x = [], 0
+        for ch in datestr:
+            name = "barra" if ch == "/" else ch
+            path = MG3_ART_DIR + "data/%s_%s.png" % (kind, name)
+            if not renpy.loadable(path):
+                return Text(datestr, size=26, color="#372412")
+            w, h = renpy.image_size(path)
+            parts.append(Transform(Image(path, nearest_neighbor=True), zoom=2.0, xpos=x))
+            x += (w - MG3_DATE_SHADOW[kind]) * 2
+        return Fixed(*parts, xysize=(x + 4, 60))
 
     MG3_FIELD_RIGHT = [mg3_overlay("mg3_campo_certo_%d.png" % (f + 1), mg3_field_rect(f), "#2e7d3277") for f in range(3)]
     MG3_FIELD_WRONG = [mg3_overlay("mg3_campo_errado_%d.png" % (f + 1), mg3_field_rect(f), "#cc222277") for f in range(3)]
@@ -591,11 +608,7 @@ screen minigame3_gameplay():
 
             add MG3_FICHA
             if MG3_DATE_ON_FICHA:
-                text MG3_PROFILE["date"]:
-                    pos MG3_DATE_FICHA_POS
-                    yanchor 0.5
-                    size 26
-                    color "#372412"
+                add mg3_date_disp(MG3_PROFILE["date"], "ficha") pos MG3_DATE_FICHA_POS
 
             for f in range(len(step["fields"])):
 
@@ -612,12 +625,7 @@ screen minigame3_gameplay():
                     add mg3_field_art(f)
                     $ field_val = mg3_values[mg3_step][f]
                     if MG3_DATE_ON_FIELD and step["fields"][f]["id"] == "data" and field_val >= 0:
-                        text step["fields"][f]["options"][field_val][0]:
-                            pos MG3_DATE_FIELD_POS
-                            yanchor 0.5
-                            size 28
-                            color "#fffaeb"
-                            outlines [(0, "#372412", 2, 2)]
+                        add mg3_date_disp(step["fields"][f]["options"][field_val][0], "campo") pos MG3_DATE_FIELD_POS
                     if field_locked:
                         add MG3_FIELD_RIGHT[f]
                     elif field_wrong:

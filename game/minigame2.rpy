@@ -78,7 +78,7 @@ init python:
     MG2_AREAS = [
         {
             "label": _("Temperatura"),
-            "correct": [_("Febre (temperatura elevada)"),
+            "correct": [_("Febre no momento do exame (acima de 38,5 °C)"),
                         _("Febre em episódios recorrentes")],
             "wrong": [_("Hipotermia (temperatura baixa)"),
                       _("Temperatura sempre abaixo do normal"),
@@ -130,7 +130,7 @@ init python:
                         _("Hemoglobina (Hb) baixa"),
                         _("Hematócrito (Ht) baixo"),
                         _("Trombocitopenia (plaquetas baixas)")],
-            "wrong": [_("Policitemia (Ht alto)"),
+            "wrong": [_("Policitemia (hematócrito alto)"),
                       _("Hemoglobina (Hb) acima do normal"),
                       _("Plaquetas muito aumentadas")],
             "n_correct": 2,
@@ -361,21 +361,20 @@ init python:
     # Miniatura para o tutorial (mesma arte, estado inicial, a 40%)
     _l = [MG2_BG,
           mg_tut_at(MG2_TITLE_PANEL, 60, 40),
-          mg_tut_text(_("2 - EXAME CLÍNICO"), 90, 65, size=34),
-          mg_tut_text(_("Examine uma área de cada vez e marque os achados compatíveis com a AIE."), 90, 135, size=24)]
+          mg_tut_text(_("2 - EXAME CLÍNICO"), 90, 50, size=34),
+          mg_tut_text(_("Examine uma área de cada vez e marque os achados compatíveis com a AIE."), 90, 118, size=24, xmax=760)]
     for _i, _area in enumerate(MG2_AREAS):
         _y = MG2_TABS_Y0 + _i * MG2_TABS_STEP
         _l.append(mg_tut_at(MG2_TAB_ART["active" if _i == 0 else "idle"], MG2_TABS_X, _y))
-        _l.append(mg_tut_text(_area["label"], MG2_TABS_X + 30, _y + 28, size=30))
-    _l.append(mg_tut_text(MG2_AREAS[0]["label"], MG2_CARDS_X, 200, size=44, bold=True))
-    _l.append(mg_tut_text(_("Marque TODOS os compatíveis (pode ser mais de um)"), MG2_CARDS_X, 252, size=20))
+        _l.append(mg_tut_text(_area["label"], MG2_TABS_X + 24, _y + 18, size=30))
+    _l.append(mg_tut_text(MG2_AREAS[0]["label"], MG2_CARDS_X, 190, size=44, bold=True))
     _ex = [MG2_AREAS[0]["correct"][0], MG2_AREAS[0]["wrong"][0], MG2_AREAS[0]["correct"][1], MG2_AREAS[0]["wrong"][1]]
     for _j, _t in enumerate(_ex):
         _y = MG2_CARDS_Y0 + _j * MG2_CARDS_STEP
         _l.append(mg_tut_at(MG2_CARD_ART["idle"], MG2_CARDS_X, _y))
-        _l.append(mg_tut_text(_t, MG2_CARDS_X + 40, _y + 45, size=28))
+        _l.append(mg_tut_text(_t, MG2_CARDS_X + 30, _y + 14, size=28, xmax=490))
     _l.append(mg_tut_at(MG2_SUBMIT_IDLE, MG2_SUBMIT_POS[0], MG2_SUBMIT_POS[1]))
-    _l.append(mg_tut_text(_("Continuar"), MG2_SUBMIT_POS[0] + 190, MG2_SUBMIT_POS[1] + 28, size=32))
+    _l.append(mg_tut_text(_("Continuar"), MG2_SUBMIT_POS[0] + 160, MG2_SUBMIT_POS[1] + 16, size=32))
     MG2_TUTORIAL_PREVIEW = mg_tut_preview(_l)
 
 style mg2_instructions_text:

@@ -102,8 +102,18 @@ init python:
     MG6_TOTAL_FLIES = 12         # quantas moscas aparecem, ao todo, numa partida
     MG6_CORRECT_COUNT = 8        # quantas dessas são hematófagas (o resto, "erradas")
     MG6_FLY_TRAVEL_TIME = 1.0    # segundos voando da borda até o ponto de pouso
-    MG6_FLY_LANDED_TIME = 2.0    # segundos PARADA no pouso antes de sumir sozinha
-    # tempo total que a mosca fica na tela (voando + pousada), usado pelo timer:
+    MG6_FLY_LANDED_TIME = 2.0    # segundos PARADA no pouso na PRIMEIRA mosca
+    MG6_FLY_LANDED_TIME_END = 1.0  # ... e na ÚLTIMA (fica mais difícil aos poucos, como no minigame 7)
+
+    def mg6_landed_time(i):
+        """Tempo pousada da mosca de índice i (0 = primeira): cai em linha
+        reta de MG6_FLY_LANDED_TIME até MG6_FLY_LANDED_TIME_END."""
+        if MG6_TOTAL_FLIES <= 1:
+            return MG6_FLY_LANDED_TIME
+        t = float(i) / (MG6_TOTAL_FLIES - 1)
+        return MG6_FLY_LANDED_TIME + (MG6_FLY_LANDED_TIME_END - MG6_FLY_LANDED_TIME) * t
+    # tempo total da PRIMEIRA mosca (voando + pousada); cada mosca guarda o seu
+    # em mg6_current_fly["total"]
     MG6_FLY_TOTAL_TIME = MG6_FLY_TRAVEL_TIME + MG6_FLY_LANDED_TIME
     MG6_END_DELAY = 2.0          # segundos mostrando o placar final antes de voltar ao mapa
 
@@ -199,6 +209,7 @@ init python:
             "start_y": start_y,
             "target_x": target_x,
             "target_y": target_y,
+            "total": MG6_FLY_TRAVEL_TIME + mg6_landed_time(store.mg6_fly_index - 1),
         }
         return True
 
@@ -323,10 +334,12 @@ screen minigame6_instructions():
         MG6_TUTORIAL_PREVIEW,
         [(850, 500), (1150, 630), (1760, 60)],
         [_("HEMATÓFAGA (pica e pode transmitir a doença): CLIQUE nela antes que suma."),
-         _("INOFENSIVA (não pica): IGNORE. Clicar nela tira pontos."),
+         _("INOFENSIVA (não pica): IGNORE. Clicar nela tira pontos. Compare as duas no quadro abaixo."),
          _("O contador mostra quantas moscas já apareceram, de %d no total.") % MG6_TOTAL_FLIES],
-        _("Se uma hematófaga escapar, ela pica o cavalo e você perde pontos. No final você vê o que acertou e errou, e pode jogar de novo."),
-        MG6_CLOSE_IDLE, MG6_CLOSE_HOVER, (0.5, 0.85))
+        _("As moscas vão embora cada vez mais rápido!"),
+        MG6_CLOSE_IDLE, MG6_CLOSE_HOVER, (0.5, 0.85),
+        refs=[(mg6_fly_art("correct", MG6_CORRECT_FILES[0]), _("HEMATÓFAGA"), _("pica: CLIQUE"), "#a0281e"),
+              (mg6_fly_art("wrong", MG6_WRONG_FILES[0]), _("INOFENSIVA"), _("não pica: DEIXE IR"), "#2e6b2a")])
 
 
 ## -----------------------------------------------------------------------
@@ -395,7 +408,7 @@ screen minigame6_fly():
         action Return("clicked")
         add mg6_fly_art(fly["type"], fly["file"])
 
-    timer MG6_FLY_TOTAL_TIME action Return("expired")
+    timer fly.get("total", MG6_FLY_TOTAL_TIME) action Return("expired")
 
 
 # Reação do cavalo à picada (toca rapidinho e volta ao jogo)

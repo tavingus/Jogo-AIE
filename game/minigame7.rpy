@@ -335,6 +335,14 @@ init python:
 ## -----------------------------------------------------------------------
 init python:
 
+    def mg7_ref_art(kind):
+        """Seringa de referência do tutorial (nova / usada): PNGs pequenos em
+        pixel art, images/minigame7/ref_agulha_<kind>.png (troque se quiser)."""
+        path = MG7_ART_DIR + "ref_agulha_%s.png" % kind
+        if renpy.loadable(path):
+            return Transform(Image(path, nearest_neighbor=True), zoom=3.0)
+        return Solid("#2e7d32" if kind == "nova" else "#8a2c2c", xysize=(150, 60))
+
     def mg7_demo_art(state, color, label):
         """Miniatura de uma pose do tratador (a mesma arte tratador_<estado>.png,
         recortada ao redor dele e reduzida) para a tela de instruções. Sem o
@@ -389,8 +397,10 @@ screen minigame7_instructions():
         [_("O tratador chega com a seringa. Espere a agulha aparecer: ela pode ser NOVA ou USADA."),
          _("Se for USADA (suja de sangue), clique no cavalo para tirá-lo do lugar antes da picada."),
          _("Se for NOVA, deixe a aplicação acontecer. Cada tentativa fica mais rápida.")],
-        _("Não clique antes de ver a agulha! Hora errada tira pontos; terminar sem picada contaminada dá bônus. No final você vê o que acertou e errou."),
-        MG7_CLOSE_IDLE, MG7_CLOSE_HOVER)
+        _("Não clique antes de ver a agulha! Sem nenhuma picada contaminada, você ganha bônus."),
+        MG7_CLOSE_IDLE, MG7_CLOSE_HOVER,
+        refs=[(mg7_ref_art("nova"), _("AGULHA NOVA"), _("limpa: deixe aplicar"), "#2e6b2a"),
+              (mg7_ref_art("usada"), _("AGULHA USADA"), _("com sangue: tire o cavalo!"), "#a0281e")])
 
 
 ## -----------------------------------------------------------------------
