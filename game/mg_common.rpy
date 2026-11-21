@@ -374,58 +374,6 @@ init python:
         return Transform(Text(txt, size=int(size * MG_TUT_TEXT_SCALE), color=color, bold=bold,
                               outlines=[(4, "#2a1a0c", 0, 0)], **kw), pos=(x, y))
 
-    # ---- Números com SETA apontando para a miniatura ----------------------
-    # Cada número fica na BORDA da miniatura (esquerda ou direita, o lado mais
-    # perto do alvo) e uma seta amarela vai até o ponto indicado, que ganha
-    # um contorno. "badges" continuam em coordenadas do jogo (1920x1080).
-    MG_TUT_BADGE_LEFT_X = 252
-    MG_TUT_BADGE_RIGHT_X = 1080
-    MG_TUT_BADGE_GAP = 58
-
-    def mg_tut_callouts(badges):
-        import math
-        x0, y0 = MG_TUT_POS
-        w, h = int(1920 * MG_TUT_SCALE), int(1080 * MG_TUT_SCALE)
-        items = []
-        for i, (bx, by) in enumerate(badges):
-            tx = x0 + int(bx * MG_TUT_SCALE)
-            ty = y0 + int(by * MG_TUT_SCALE)
-            side = "L" if tx < x0 + w / 2 else "R"
-            items.append({"n": i + 1, "tx": tx, "ty": ty, "side": side,
-                          "bx": MG_TUT_BADGE_LEFT_X if side == "L" else MG_TUT_BADGE_RIGHT_X,
-                          "by": max(y0 + 24, min(y0 + h - 24, ty))})
-        # números do mesmo lado não se encostam
-        for side in ("L", "R"):
-            col = sorted([it for it in items if it["side"] == side], key=lambda it: it["by"])
-            for k in range(1, len(col)):
-                if col[k]["by"] - col[k - 1]["by"] < MG_TUT_BADGE_GAP:
-                    col[k]["by"] = col[k - 1]["by"] + MG_TUT_BADGE_GAP
-        for it in items:
-            dx, dy = it["tx"] - it["bx"], it["ty"] - it["by"]
-            dist = max(1.0, math.hypot(dx, dy))
-            ux, uy = dx / dist, dy / dist
-            sx, sy = it["bx"] + ux * 26, it["by"] + uy * 26        # sai da borda do número
-            ex, ey = it["tx"] - ux * 30, it["ty"] - uy * 30        # para antes do contorno
-            seg = max(0.0, math.hypot(ex - sx, ey - sy))
-            it["line_len"] = int(seg)
-            it["mx"], it["my"] = int((sx + ex) / 2), int((sy + ey) / 2)
-            it["ang"] = math.degrees(math.atan2(dy, dx))
-            it["ax"], it["ay"] = int(ex), int(ey)
-        return items
-
-    def mg_tut_line(length, ang, color, thick):
-        return Transform(Solid(color, xysize=(max(1, length), thick)),
-                         rotate=ang, rotate_pad=False, anchor=(0.5, 0.5))
-
-    def mg_tut_marker():
-        """Contorno quadrado (40x40) em volta do ponto indicado."""
-        d, y = "#372412", "#f2c230"
-        return Fixed(
-            Solid(d, xysize=(44, 6)), Transform(Solid(d, xysize=(44, 6)), ypos=38),
-            Solid(d, xysize=(6, 44)), Transform(Solid(d, xysize=(6, 44)), xpos=38),
-            Transform(Solid(y, xysize=(40, 3)), pos=(2, 2)), Transform(Solid(y, xysize=(40, 3)), pos=(2, 39)),
-            Transform(Solid(y, xysize=(3, 40)), pos=(2, 2)), Transform(Solid(y, xysize=(3, 40)), pos=(39, 2)),
-            xysize=(44, 44))
 
 
 screen mg_badge(n, x, y):
@@ -489,21 +437,11 @@ screen mg_tutorial(bg, subtitle, preview, badges, steps, note, close_idle, close
     add Solid("#372412", xysize=(776, 440)) pos (MG_TUT_POS[0] - 4, MG_TUT_POS[1] - 4)
     add preview pos MG_TUT_POS
 
-    # Números na borda + seta até o ponto + contorno no ponto
-    for co in mg_tut_callouts(badges):
-        add mg_tut_marker() pos (co["tx"], co["ty"]) anchor (0.5, 0.5)
-        if co["line_len"] > 4:
-            add mg_tut_line(co["line_len"], co["ang"], "#372412", 9) pos (co["mx"], co["my"])
-            add mg_tut_line(co["line_len"], co["ang"], "#f2c230", 5) pos (co["mx"], co["my"])
-        text u"\u25b6":
-            font "DejaVuSans.ttf"
-            size 34
-            color "#f2c230"
-            outlines [(2, "#372412", 0, 0)]
-            pos (co["ax"], co["ay"])
-            anchor (0.5, 0.5)
-            at Transform(rotate=co["ang"])
-        use mg_badge(co["n"], co["bx"], co["by"])
+    # Números em cima da miniatura, no ponto indicado (forma original)
+    for i, b in enumerate(badges):
+        $ badge_x = MG_TUT_POS[0] + int(b[0] * MG_TUT_SCALE)
+        $ badge_y = MG_TUT_POS[1] + int(b[1] * MG_TUT_SCALE)
+        use mg_badge(i + 1, badge_x, badge_y)
 
     # Passos (até 3) e nota, empilhados (cada um ocupa só a altura que
     # precisa) e com a fonte ajustada ao tamanho do texto: nada transborda.
