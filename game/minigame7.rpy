@@ -572,12 +572,6 @@ label minigame_7_entry:
         call screen mg_result(mg7_score, MG7_MAX_SCORE, mg7_verdict())
         $ mg_again = (_return == "replay")
 
-    # Resumo final de todos os desafios (notebook.rpy)
-    call screen game_summary with Dissolve(0.3)
-    hide screen notebook_screen
-
-    # Versão de testes: agradecimento + QR code do formulário (test_build.rpy)
-    if TEST_BUILD:
-        call screen test_form_qr with Dissolve(0.3)
+    # (o resumo final e o QR da versão de testes agora ficam no FINAL do mapa: story.rpy)
 
     return

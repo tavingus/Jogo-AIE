@@ -421,6 +421,9 @@ init python:
     MENU_BTN["notebook"] = {
         "idle": menu_opt_art("btn_notebook_idle.png", (40, 964, 340, 80), "CADERNO", "#b8860b"),
         "hover": menu_opt_art("btn_notebook_hover.png", (40, 964, 340, 80), "CADERNO", "#e0a820")}
+    MENU_BTN["story"] = {
+        "idle": menu_opt_art("btn_story_idle.png", (1300, 964, 280, 80), "HISTÓRIA", "#486898"),
+        "hover": menu_opt_art("btn_story_hover.png", (1300, 964, 280, 80), "HISTÓRIA", "#6286bc")}
     MENU_BTN["about"] = {
         "idle": menu_opt_art("btn_about_idle.png", (1600, 964, 280, 80), "SOBRE", "#486898"),
         "hover": menu_opt_art("btn_about_hover.png", (1600, 964, 280, 80), "SOBRE", "#6286bc")}
@@ -524,6 +527,17 @@ screen main_menu():
             Play("sound", "audio/sfx_click.ogg"),
             Function(sfx, "window_open"),
             Show("notebook_screen"),
+        ]
+        hovered Play("sound", "audio/sfx_hover.ogg")
+
+    imagebutton:
+        idle MENU_BTN["story"]["idle"]
+        hover MENU_BTN["story"]["hover"]
+        focus_mask True
+        action [
+            Play("sound", "audio/sfx_click.ogg"),
+            Function(sfx, "window_open"),
+            Show("story_gallery"),
         ]
         hovered Play("sound", "audio/sfx_hover.ogg")
 

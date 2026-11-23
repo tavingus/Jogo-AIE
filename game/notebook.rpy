@@ -448,13 +448,13 @@ screen notebook_screen(start_mg=None):
             color "#ffffff"
 
 
-screen about_screen():
+screen about_screen(called=False):
 
     modal True
     zorder 150
 
     add Solid("#000000bb")
-    key "game_menu" action [Function(sfx, "window_close"), Hide("about_screen")]
+    key "game_menu" action [Function(sfx, "window_close"), If(called, Return(True), Hide("about_screen"))]
 
     add Solid("#371f12") pos (460, 200) xysize (1000, 680)
     add Solid("#ecdcb2") pos (466, 206) xysize (988, 668)
@@ -482,7 +482,7 @@ screen about_screen():
         idle ACH_BACK_IDLE
         hover ACH_BACK_HOVER
         focus_mask True
-        action [Function(sfx, "window_close"), Hide("about_screen")]
+        action [Function(sfx, "window_close"), If(called, Return(True), Hide("about_screen"))]
         hovered Play("sound", "audio/sfx_hover.ogg")
 
 

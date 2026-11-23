@@ -26,8 +26,8 @@
 ## -----------------------------------------------------------------------
 init python:
 
-    MG_TOTAL = 10        # nós no mapa
-    MG_IMPLEMENTED = 7   # minigames que já existem; os nós 8 a 10 ficam
+    MG_TOTAL = 8         # nós no mapa: 7 desafios + o FINAL (troféu, story.rpy)
+    MG_IMPLEMENTED = 7   # minigames que existem (o nó seguinte, 8, é o FINAL)
                          # bloqueados ("em breve") até você aumentar este número
 
     # Só salvamos de propósito (no mapa), então desligamos o autosave por
@@ -85,6 +85,12 @@ init python:
 
     def mg_node_state(n):
         """'locked' / 'unlocked' / 'done' / 'perfect' para o nó do minigame n."""
+        if n == MG_IMPLEMENTED + 1:                     # nó FINAL (troféu)
+            if not store.mg_completed[MG_IMPLEMENTED - 1]:
+                return "locked"
+            if all(store.mg_medals[k] for k in range(MG_IMPLEMENTED)):
+                return "perfect"
+            return "done" if store.final_seen else "unlocked"
         if n > MG_IMPLEMENTED or n > store.mg_unlocked:
             return "locked"
         if store.mg_medals[n - 1]:
@@ -334,6 +340,7 @@ init python:
         d["in_minigame"] = bool(getattr(store, "mg_active", False))
         d["achievements"] = sorted(k for k, v in store.ach_unlocked.items() if v)
         d["completed"] = [i + 1 for i, v in enumerate(store.mg_completed) if v]   # para o Caderno do menu
+        d["story_seen"] = sorted(k for k, v in store.story_seen.items() if v)       # para a galeria HISTÓRIA
 
     config.save_json_callbacks.append(_prog_save_json)
 

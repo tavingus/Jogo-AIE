@@ -55,7 +55,7 @@ screen test_notice():
         size 36
         color MG_INSTR_TEXT_COLOR
 
-    $ notice_text = _("Este jogo ainda está em fase de testes. Você pode encontrar erros, textos incompletos e artes provisórias, e os desafios 8 a 10 do mapa ainda não estão prontos.\n\nJogue com calma, anote o que achar estranho ou confuso e, quando terminar o minigame 7, responda ao formulário de feedback (vai aparecer um QR code). A sua opinião vai ajudar a melhorar o jogo!\n\nObrigado por participar.")
+    $ notice_text = _("Este jogo ainda está em fase de testes. Você pode encontrar erros, textos incompletos e artes provisórias, e algumas artes ainda vão mudar.\n\nJogue com calma, anote o que achar estranho ou confuso e, quando chegar ao troféu no fim do mapa, responda ao formulário de feedback (vai aparecer um QR code). A sua opinião vai ajudar a melhorar o jogo!\n\nObrigado por participar.")
 
     text "[notice_text!t]":
         pos (960, 340)

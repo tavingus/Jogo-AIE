@@ -82,7 +82,7 @@ init python:
     # esquerda->direita) e linha de cima (6 a 10, direita->esquerda).
     MAP_NODE_POS_ART = [
         (150, 390), (315, 390), (480, 390), (645, 390), (810, 390),   # 1 a 5
-        (810, 150), (645, 150), (480, 150), (315, 150), (150, 150),   # 6 a 10
+        (810, 150), (480, 150), (150, 150),                           # 6, 7 e o FINAL (troféu, junto à bandeira)
     ]
     MAP_NODE_POS = [(x * MAP_ZOOM, y * MAP_ZOOM) for (x, y) in MAP_NODE_POS_ART]
 
@@ -270,6 +270,12 @@ label roadmap:
     $ mg_float_clear()
     $ pause_bg = "map"
 
+    # História: cena de fechamento de um desafio recém-concluído (story.rpy)
+    $ _post_n = story_pending_post()
+    if _post_n:
+        call story_play("mg%d_post" % _post_n, story_bg(_post_n)) from _story_post_call
+        jump roadmap
+
     # Música do mapa (a mesma do menu; não reinicia se já estiver tocando)
     $ mus_menu()
 
@@ -296,8 +302,18 @@ label roadmap:
     call screen roadmap_screen with Dissolve(0.5)
     $ chosen = _return
 
+    # Nó FINAL (troféu): epílogo, resumo e créditos (story.rpy)
+    if chosen == MG_FINAL and mg_node_state(MG_FINAL) != "locked":
+        $ pause_bg = None
+        call final_sequence from _final_call
+        jump roadmap
+
     # Trava extra: nó bloqueado ou ainda sem minigame nunca abre
     if chosen and chosen <= mg_unlocked and chosen <= MG_IMPLEMENTED:
+        # História: cena de abertura, só na primeira vez (story.rpy)
+        if not story_seen.get("mg%d_pre" % chosen):
+            call story_play("mg%d_pre" % chosen, story_bg(chosen)) from _story_pre_call
+
         # Chama "label minigame_<chosen>_entry" dinamicamente.
         # Esse label mora dentro de minigame<chosen>.rpy e é responsável por
         # mostrar as instruções, rodar o gameplay e chamar mg_complete(chosen).

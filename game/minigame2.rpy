@@ -389,7 +389,7 @@ style mg2_instructions_text:
 screen minigame2_instructions():
 
     use mg_tutorial(MG2_INSTR_BG,
-        _("Um cavalo chegou para exame clínico!"),
+        _("O Trovão chegou para exame clínico!"),
         MG2_TUTORIAL_PREVIEW,
         [(395, 305), (1860, 420), (1860, 965)],
         [_("Comece pela Temperatura e avance uma área de cada vez."),
